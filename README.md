@@ -28,7 +28,3 @@ doesn't have.
 Generate build files using Premake5. Tested with GCC
 on Gentoo and Linux Mint, and MSVC on Windows. Mac OS
 probably doesn't work.
-
-Mostly uses standard C99, though scripting relies on the
-nonstandard feature where you can cast a void pointer
-into a function pointer.
