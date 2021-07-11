@@ -1,4 +1,4 @@
-![logo](https://raw.githubusercontent.com/veridisquot/alice/master/sbox/res/splash.png)
+![logo](https://raw.githubusercontent.com/veridisquot/alice/master/sandbox/res/splash.png)
 
 ![screenshot](https://raw.githubusercontent.com/veridisquot/alice/master/screenshots/001.png)
 
