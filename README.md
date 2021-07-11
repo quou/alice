@@ -14,6 +14,8 @@ doesn't have.
  - Entity management
  - 3D rendering
  - Resource management
+ - Custom text serialisation format
+ - Scene serialisation
 
 ## Roadmap
  - Scripting
