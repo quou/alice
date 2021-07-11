@@ -19,9 +19,11 @@ void main() {
 
 	alice_Scene* scene = alice_new_scene();	
 	
-	alice_EntityHandle cube = alice_new_entity(scene, alice_Renderable3D);
+/*	alice_EntityHandle cube = alice_new_entity(scene, alice_Renderable3D);
 	alice_Renderable3D* cube_ptr = alice_get_entity_ptr(scene, cube);
-		
+
+	cube_ptr->base.name = alice_copy_string("cube");
+	
 	cube_ptr->base.position.z = 3.0f;
 	cube_ptr->base.rotation = (alice_v3f) {
 		.x = -32.5f,
@@ -35,6 +37,8 @@ void main() {
 	alice_EntityHandle sphere = alice_new_entity(scene, alice_Renderable3D);
 	alice_Renderable3D* sphere_ptr = alice_get_entity_ptr(scene, sphere);
 
+	sphere_ptr->base.name = alice_copy_string("sphere");
+	
 	sphere_ptr->base.position.x = 1.1f;
 
 	sphere_ptr->mesh = alice_load_mesh("sphere");
@@ -86,7 +90,9 @@ void main() {
 		e->color = ALICE_COLOR_BLUE;
 		e->range = 1.0f;
 		e->intensity = 100.0f;
-	}
+	}*/
+
+	alice_deserialise_scene(scene, "scenes/test.ascn");
 
 	alice_SceneRenderer3D* renderer = alice_new_scene_renderer_3d(alice_load_shader("shaders/postprocess.glsl"));
 
@@ -98,12 +104,6 @@ void main() {
 		alice_render_clear();
 
 		alice_Application* app = alice_get_application();
-
-/*		double timestep = alice_get_timestep();
-
-		cube_ptr->base.rotation.x += 100.0 * timestep;
-		cube_ptr->base.rotation.y += 100.0 * timestep;
-		cube_ptr->base.rotation.z += 100.0 * timestep;*/
 
 		alice_render_scene_3d(renderer, app->width, app->height, scene, alice_null);
 
