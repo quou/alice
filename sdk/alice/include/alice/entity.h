@@ -21,7 +21,7 @@ typedef struct alice_Entity {
 	u32 child_capacity;
 } alice_Entity;
 
-ALICE_API alice_m4f alice_get_entity_transform(alice_Entity* entity);
+ALICE_API alice_m4f alice_get_entity_transform(alice_Scene* scne, alice_Entity* entity);
 ALICE_API void alice_entity_parent_to(alice_Scene* scene, alice_EntityHandle entity, alice_EntityHandle parent);
 ALICE_API void alice_entity_add_child(alice_Scene* scene, alice_EntityHandle entity, alice_EntityHandle child);
 

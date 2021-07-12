@@ -556,7 +556,7 @@ alice_Texture* alice_new_texture_from_memory_uncompressed(unsigned char* pixels,
 void alice_init_texture(alice_Texture* texture, alice_Resource* resource, alice_TextureFlags flags) {
 	if (resource->payload == NULL || resource->type != ALICE_RESOURCE_BINARY) {
 		alice_log_error("Resource insufficient for texture creation.");
-		return NULL;
+		return;
 	}
 
 	alice_init_texture_from_memory(texture, resource->payload, resource->payload_size, flags);
@@ -565,7 +565,7 @@ void alice_init_texture(alice_Texture* texture, alice_Resource* resource, alice_
 void alice_init_texture_from_memory(alice_Texture* texture, void* data, u32 size, alice_TextureFlags flags) {
 	if (data == NULL || size == 0) {
 		alice_log_error("Data insufficient for texture creation.");
-		return NULL;
+		return;
 	}
 
 	i32 width, height, component_count;
@@ -576,7 +576,7 @@ void alice_init_texture_from_memory(alice_Texture* texture, void* data, u32 size
 
 	if (pixels == NULL) {
 		alice_log_error("Failed to load texture: %s", stbi_failure_reason());
-		return NULL;
+		return;
 	}
 
 	alice_init_texture_from_memory_uncompressed(texture, pixels, size,
@@ -856,7 +856,7 @@ alice_m4f alice_get_camera_3d_matrix(alice_Scene* scene, alice_Camera3D* camera)
 	
 	alice_v3f rotation = alice_torad_v3f(camera->base.rotation);
 
-	alice_v3f position = alice_get_entity_world_position(scene, camera);
+	alice_v3f position = alice_get_entity_world_position(scene, (alice_Entity*)camera);
 
 	alice_v3f direction = (alice_v3f){
 		.x = cosf(rotation.x) * sinf(rotation.y),
@@ -942,7 +942,8 @@ void alice_apply_material(alice_Scene* scene, alice_Material* material) {
 		alice_shader_set_color(material->shader, name, light->color);
 
 		sprintf(name, "point_lights[%d].position", light_count);
-		alice_shader_set_v3f(material->shader, name, alice_get_entity_world_position(scene, light));
+		alice_shader_set_v3f(material->shader, name,
+				alice_get_entity_world_position(scene, (alice_Entity*)light));
 
 		sprintf(name, "point_lights[%d].intensity", light_count);
 		alice_shader_set_float(material->shader, name, light->intensity);
