@@ -161,7 +161,7 @@ void alice_init_application(alice_ApplicationConfig cfg) {
 			(float)cfg.height / 2.0, -((float)cfg.height / 2.0), -1.0, 1.0);
 		alice_m4f model = alice_m4f_scale(
 			alice_m4f_identity(),
-			(alice_v3f) {splash_texture->width / 2.0, splash_texture->height / 2.0, 1.0});
+			(alice_v3f) {splash_texture->width / 2.0, splash_texture->height / 2.0, 0.0});
 
 		glClearColor(1.0, 1.0, 1.0, 1.0);
 		alice_render_clear();

@@ -3,6 +3,7 @@
 #include <alice/resource.h>
 #include <alice/graphics.h>
 #include <alice/sceneserialise.h>
+#include <alice/ui.h>
 
 void main() {
 	alice_init_resource_manager("res");
@@ -18,83 +19,12 @@ void main() {
 	alice_init_default_resources();
 
 	alice_Scene* scene = alice_new_scene();	
-	
-/*	alice_EntityHandle cube = alice_new_entity(scene, alice_Renderable3D);
-	alice_Renderable3D* cube_ptr = alice_get_entity_ptr(scene, cube);
-
-	cube_ptr->base.name = alice_copy_string("cube");
-	
-	cube_ptr->base.position.z = 3.0f;
-	cube_ptr->base.rotation = (alice_v3f) {
-		.x = -32.5f,
-		.y = 45.0f,
-		.z = 388.5f
-	};
-
-	cube_ptr->mesh = alice_load_mesh("cube");
-	cube_ptr->material = alice_load_material("materials/pirategold.mat");
-	
-	alice_EntityHandle sphere = alice_new_entity(scene, alice_Renderable3D);
-	alice_Renderable3D* sphere_ptr = alice_get_entity_ptr(scene, sphere);
-
-	sphere_ptr->base.name = alice_copy_string("sphere");
-	
-	sphere_ptr->base.position.x = 1.1f;
-
-	sphere_ptr->mesh = alice_load_mesh("sphere");
-	sphere_ptr->material = alice_load_material("materials/rustediron.mat");
-
-	alice_entity_parent_to(scene, sphere, cube);
-
-	{
-		alice_EntityHandle e_handle = alice_new_entity(scene, alice_Camera3D);
-		alice_Camera3D* e = alice_get_entity_ptr(scene, e_handle);	
-
-		e->fov = 45.0f;
-		e->near = 0.1f;
-		e->far = 1000.0f;
-
-		e->exposure = 1.0f;
-		e->gamma = 1.4f;
-	}
-
-	{
-		alice_EntityHandle e_handle = alice_new_entity(scene, alice_PointLight);
-		alice_PointLight* e = alice_get_entity_ptr(scene, e_handle);	
-
-		e->color = ALICE_COLOR_WHITE;
-		e->range = 1.0f;
-		e->intensity = 100.0f;
-	}
-
-	{
-		alice_EntityHandle e_handle = alice_new_entity(scene, alice_PointLight);
-		alice_PointLight* e = alice_get_entity_ptr(scene, e_handle);	
-
-		e->base.position.z = 3.0f;
-		e->base.position.y = 1.3f;
-
-		e->color = ALICE_COLOR_RED;
-		e->range = 1.0f;
-		e->intensity = 100.0f;
-	}
-
-
-	{
-		alice_EntityHandle e_handle = alice_new_entity(scene, alice_PointLight);
-		alice_PointLight* e = alice_get_entity_ptr(scene, e_handle);	
-
-		e->base.position.z = 3.0f;
-		e->base.position.y = -2.0f;
-
-		e->color = ALICE_COLOR_BLUE;
-		e->range = 1.0f;
-		e->intensity = 100.0f;
-	}*/
-
 	alice_deserialise_scene(scene, "scenes/test.ascn");
 
 	alice_SceneRenderer3D* renderer = alice_new_scene_renderer_3d(alice_load_shader("shaders/postprocess.glsl"));
+
+	alice_TextRenderer* text_renderer = alice_new_text_renderer(alice_load_binary("fonts/opensans.ttf"),
+			32.0f, alice_load_shader("shaders/text.glsl"));
 
 	while (alice_is_application_running()) {
 		alice_reload_changed_resources();
@@ -105,10 +35,15 @@ void main() {
 
 		alice_Application* app = alice_get_application();
 
+		alice_set_text_renderer_dimentions(text_renderer, (alice_v2f){app->width, app->height});
+		alice_render_text(text_renderer, (alice_v2f){100, 100}, "Hello, world");
+
 		alice_render_scene_3d(renderer, app->width, app->height, scene, alice_null);
 
 		alice_update_application();
 	}
+
+	alice_free_text_renderer(text_renderer);
 
 	alice_free_scene_renderer_3d(renderer);
 
