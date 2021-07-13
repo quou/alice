@@ -81,7 +81,7 @@ alice_render_text(alice_TextRenderer* renderer, alice_v2f position, const char* 
 
 	alice_bind_vertex_buffer_for_edit(renderer->vb);
 
-	float xpos = 0.0, ypos = 0.0;
+	float xpos = 0.0, ypos = renderer->font_size;
 	
 	while (*string != '\0') {
 		if (*string >= 32) {
@@ -97,7 +97,7 @@ alice_render_text(alice_TextRenderer* renderer, alice_v2f position, const char* 
 				position.x + quad.x0, position.y + quad.y1, quad.s0, quad.t1
 			};
 
-			u32 index_offset = quad_count * 4;
+			const u32 index_offset = quad_count * 4;
 
 			u32 indices[] = {
 				index_offset + 0, index_offset + 1, index_offset + 3,

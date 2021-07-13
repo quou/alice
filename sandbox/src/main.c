@@ -1,3 +1,6 @@
+#include <string.h>
+#include <stdio.h>
+
 #include <alice/application.h>
 #include <alice/entity.h>
 #include <alice/resource.h>
@@ -26,6 +29,9 @@ void main() {
 	alice_TextRenderer* text_renderer = alice_new_text_renderer(alice_load_binary("fonts/opensans.ttf"),
 			32.0f, alice_load_shader("shaders/text.glsl"));
 
+	char fps_buffer[256] = "";
+	double time_until_fps_write = 1.0;
+
 	while (alice_is_application_running()) {
 		alice_reload_changed_resources();
 		
@@ -34,9 +40,15 @@ void main() {
 		alice_render_clear();
 
 		alice_Application* app = alice_get_application();
+		
+		time_until_fps_write -= app->timestep;
+		if (time_until_fps_write <= 0.0) {
+			time_until_fps_write = 1.0;
+			sprintf(fps_buffer, "fps: %g", 1.0 / app->timestep);
+		}
 
 		alice_set_text_renderer_dimentions(text_renderer, (alice_v2f){app->width, app->height});
-		alice_render_text(text_renderer, (alice_v2f){100, 100}, "Hello, world");
+		alice_render_text(text_renderer, (alice_v2f){0, 0}, fps_buffer);
 
 		alice_render_scene_3d(renderer, app->width, app->height, scene, alice_null);
 
