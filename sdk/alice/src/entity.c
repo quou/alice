@@ -199,6 +199,7 @@ alice_Scene* alice_new_scene() {
 	alice_register_entity_type(new, alice_Camera3D);
 	alice_register_entity_type(new, alice_Renderable3D);
 	alice_register_entity_type(new, alice_PointLight);
+	alice_register_entity_type(new, alice_DirectionalLight);
 
 	alice_set_entity_destroy_function(new, alice_Entity, alice_on_entity_destroy);
 

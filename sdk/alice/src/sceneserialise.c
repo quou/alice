@@ -8,6 +8,7 @@ typedef enum alice_SerialisableType {
 	ALICE_ST_ENTITY,
 	ALICE_ST_RENDERABLE3D,
 	ALICE_ST_POINTLIGHT,
+	ALICE_ST_DIRECTIONALLIGHT,
 	ALICE_ST_CAMERA3D
 } alice_SerialisableType;
 
@@ -20,6 +21,8 @@ static alice_SerialisableType alice_determine_entity_type(alice_EntityHandle han
 		return ALICE_ST_POINTLIGHT;
 	} else if (type_id == alice_get_type_info(alice_Camera3D).id) {
 		return ALICE_ST_CAMERA3D;
+	} else if (type_id == alice_get_type_info(alice_DirectionalLight).id) {
+		return ALICE_ST_DIRECTIONALLIGHT;
 	}
 
 	return ALICE_ST_ENTITY;
@@ -42,6 +45,9 @@ static void alice_serialise_entity(alice_DTable* table, alice_Scene* scene, alic
 			break;
 		case ALICE_ST_CAMERA3D:
 			type_name = "camera_3d";
+			break;
+		case ALICE_ST_DIRECTIONALLIGHT:
+			type_name = "directional_light";
 			break;
 	}
 
@@ -128,6 +134,27 @@ static void alice_serialise_entity(alice_DTable* table, alice_Scene* scene, alic
 			
 			break;
 		}
+		case ALICE_ST_DIRECTIONALLIGHT: {
+			alice_DirectionalLight* light = entity;
+
+			alice_RGBColor color = alice_rgb_color_from_color(light->color);
+			
+			alice_DTable color_table = alice_new_empty_dtable("color");
+			alice_DTable r_table = alice_new_number_dtable("r", color.r);
+			alice_DTable g_table = alice_new_number_dtable("g", color.g);
+			alice_DTable b_table = alice_new_number_dtable("b", color.b);
+	
+			alice_dtable_add_child(&color_table, r_table);
+			alice_dtable_add_child(&color_table, g_table);
+			alice_dtable_add_child(&color_table, b_table);
+
+			alice_dtable_add_child(&entity_table, color_table);
+
+			alice_DTable intensity_table = alice_new_number_dtable("intensity", light->intensity);
+			alice_dtable_add_child(&entity_table, intensity_table);
+			
+			break;
+		}
 		case ALICE_ST_CAMERA3D: {
 			alice_Camera3D* camera = entity;
 
@@ -192,6 +219,8 @@ static alice_SerialisableType alice_determine_dtable_type(alice_DTable* table) {
 		return ALICE_ST_CAMERA3D;
 	} else if (strcmp(table->name, "point_light") == 0) {
 		return ALICE_ST_POINTLIGHT;
+	} else if (strcmp(table->name, "directional_light") == 0) {
+		return ALICE_ST_DIRECTIONALLIGHT;
 	}
 
 	return ALICE_ST_ENTITY;
@@ -214,6 +243,9 @@ static alice_EntityHandle alice_deserialise_entity(alice_DTable* table, alice_Sc
 			break;
 		case ALICE_ST_POINTLIGHT:
 			create_type = alice_get_type_info(alice_PointLight);
+			break;
+		case ALICE_ST_DIRECTIONALLIGHT:
+			create_type = alice_get_type_info(alice_DirectionalLight);
 			break;
 		default:
 			break;
@@ -343,6 +375,38 @@ static alice_EntityHandle alice_deserialise_entity(alice_DTable* table, alice_Sc
 			}
 
 			
+			alice_DTable* color_table = alice_dtable_find_child(table, "color");
+			if (color_table) {
+				alice_RGBColor color = (alice_RGBColor){1.0, 1.0, 1.0};
+
+				alice_DTable* r_table = alice_dtable_find_child(color_table, "r");
+				if (r_table && r_table->value.type == ALICE_DTABLE_NUMBER) {
+					color.r = r_table->value.as.number;
+				}
+
+				alice_DTable* g_table = alice_dtable_find_child(color_table, "g");
+				if (g_table && g_table->value.type == ALICE_DTABLE_NUMBER) {
+					color.g = g_table->value.as.number;
+				}
+
+				alice_DTable* b_table = alice_dtable_find_child(color_table, "b");
+				if (b_table && b_table->value.type == ALICE_DTABLE_NUMBER) {
+					color.b = b_table->value.as.number;
+				}
+
+				light->color = alice_color_from_rgb_color(color);
+			}
+
+			break;
+		}
+		case ALICE_ST_DIRECTIONALLIGHT: {
+			alice_DirectionalLight* light = entity;
+
+			alice_DTable* intensity_table = alice_dtable_find_child(table, "intensity");
+			if (intensity_table && intensity_table->value.type == ALICE_DTABLE_NUMBER) {
+				light->intensity = intensity_table->value.as.number;
+			}
+	
 			alice_DTable* color_table = alice_dtable_find_child(table, "color");
 			if (color_table) {
 				alice_RGBColor color = (alice_RGBColor){1.0, 1.0, 1.0};

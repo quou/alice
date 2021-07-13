@@ -7,6 +7,7 @@
 #include <alice/graphics.h>
 #include <alice/sceneserialise.h>
 #include <alice/ui.h>
+#include <alice/input.h>
 
 void main() {
 	alice_init_resource_manager("res");
@@ -23,6 +24,7 @@ void main() {
 
 	alice_Scene* scene = alice_new_scene();	
 	alice_deserialise_scene(scene, "scenes/test.ascn");
+	alice_serialise_scene(scene, "scenes/test.ascn");
 
 	alice_SceneRenderer3D* renderer = alice_new_scene_renderer_3d(
 			alice_load_shader("shaders/postprocess.glsl"));

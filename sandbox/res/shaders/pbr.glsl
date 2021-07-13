@@ -65,8 +65,17 @@ struct PointLight {
 	float range;
 };
 
+struct DirectionalLight {
+	vec3 direction;
+	vec3 color;
+	float intensity;
+};
+
 uniform PointLight point_lights[100];
 uniform uint point_light_count = 0;
+
+uniform DirectionalLight directional_lights[100];
+uniform uint directional_light_count = 0;
 
 out vec4 color;
 
@@ -158,6 +167,29 @@ vec3 calculate_point_light(PointLight light, vec3 N, vec3 V, vec3 F0) {
 	return (kD * albedo / PI + specular) * radiance * NdotL;
 }
 
+vec3 calculate_directional_light(DirectionalLight light, vec3 N, vec3 V, vec3 F0) {
+	vec3 L = normalize(normalize(-light.direction) - fs_in.world_pos);
+	vec3 H = normalize(V + L);
+	vec3 radiance = light.color * light.intensity;
+
+	float NDF = distribution_ggx(N, H, roughness);
+	float G = geometry_smith(N, V, L, roughness);
+	vec3 F = fresnel_schlick(clamp(dot(H, V), 0.0, 1.0), F0);
+
+	vec3 numerator	= NDF * G * F;
+	float denominator = 4 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0);
+	vec3 specular = numerator / max(denominator, 0.001);
+
+	vec3 kS = F;
+	vec3 kD = vec3(1.0) - kS;
+
+	kD *= 1.0 - metallic;
+
+	float NdotL = max(dot(N, L), 0.0);
+
+	return (kD * albedo / PI + specular) * radiance * NdotL;
+}
+
 void main() {
 	normal = normalize(fs_in.normal);
 	vec3 view_dir = normalize(camera_position - fs_in.world_pos);
@@ -189,6 +221,11 @@ void main() {
 
 	for (uint i = 0; i < point_light_count; i++) {
 		lighting_result += calculate_point_light(point_lights[i], normal, view_dir, F0);
+	}
+
+	for (uint i = 0; i < directional_light_count; i++) {
+		lighting_result += calculate_directional_light(directional_lights[i],
+				normal, view_dir, F0);
 	}
 
 	float ao = 1.0;

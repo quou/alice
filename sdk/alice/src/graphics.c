@@ -964,6 +964,26 @@ void alice_apply_material(alice_Scene* scene, alice_Material* material) {
 	}
 
 	alice_shader_set_uint(material->shader, "point_light_count", light_count);
+	
+	light_count = 0;
+	for (alice_entity_iter(scene, iter, alice_DirectionalLight)) {
+		alice_DirectionalLight* light = iter.current_ptr;
+
+		char name[256];
+
+		sprintf(name, "directional_lights[%d].color", light_count);
+		alice_shader_set_color(material->shader, name, light->color);
+
+		sprintf(name, "directional_lights[%d].direction", light_count);
+		alice_shader_set_v3f(material->shader, name, light->base.position);
+
+		sprintf(name, "directional_lights[%d].intensity", light_count);
+		alice_shader_set_float(material->shader, name, light->intensity);
+
+		light_count++;
+	}
+
+	alice_shader_set_uint(material->shader, "directional_light_count", light_count);
 }
 
 alice_SceneRenderer3D* alice_new_scene_renderer_3d(alice_Shader* postprocess_shader) {

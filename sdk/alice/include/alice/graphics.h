@@ -174,6 +174,13 @@ typedef struct alice_PointLight {
 	float range;
 } alice_PointLight;
 
+typedef struct alice_DirectionalLight {
+	alice_Entity base;
+	
+	alice_Color color;
+	float intensity;
+} alice_DirectionalLight;
+
 typedef struct alice_Material {
 	alice_Shader* shader;
 
