@@ -29,28 +29,35 @@ alice_RGBColor alice_rgb_color_from_color(alice_Color color) {
 	return (alice_RGBColor) { rf, gf, bf };
 }
 
-alice_RenderTarget* alice_new_render_target(u32 width, u32 height) {
+alice_RenderTarget* alice_new_render_target(u32 width, u32 height, u32 color_attachment_count) {
 	alice_RenderTarget* target = malloc(sizeof(alice_RenderTarget));
 
 	target->width = width;
 	target->height = height;
 	target->old_width = width;
 	target->old_height = height;
+	
+	target->color_attachment_count = color_attachment_count;
+	target->color_attachments = malloc(color_attachment_count * sizeof(u32));
 
 	glGenFramebuffers(1, &target->frame_buffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, target->frame_buffer);
 
-	glGenTextures(1, &target->output);
-	glBindTexture(GL_TEXTURE_2D, target->output);
+	glGenTextures(color_attachment_count, target->color_attachments);
+	for (u32 i = 0; i < color_attachment_count; i++) {
+		glBindTexture(GL_TEXTURE_2D, target->color_attachments[i]);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA,
-		GL_FLOAT, NULL);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA,
+			GL_FLOAT, NULL);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-		target->output, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D,
+			target->color_attachments[i], 0);
+	}
 
 	glGenRenderbuffers(1, &target->render_buffer);
 	glBindRenderbuffer(GL_RENDERBUFFER, target->render_buffer);
@@ -106,10 +113,11 @@ void alice_resize_render_target(alice_RenderTarget* target, u32 width, u32 heigh
 	target->height = height;
 
 	glBindFramebuffer(GL_FRAMEBUFFER, target->frame_buffer);
-	glBindTexture(GL_TEXTURE_2D, target->output);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA,
-		GL_FLOAT, NULL);
+	for (u32 i = 0; i < target->color_attachment_count; i++) {
+		glBindTexture(GL_TEXTURE_2D, target->color_attachments[i]);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA,
+			GL_FLOAT, NULL);
+	}
 
 	glBindRenderbuffer(GL_RENDERBUFFER, target->render_buffer);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
@@ -121,11 +129,12 @@ void alice_resize_render_target(alice_RenderTarget* target, u32 width, u32 heigh
 	alice_unbind_render_target(target);
 }
 
-void alice_render_target_bind_output(alice_RenderTarget* target, u32 unit) {
+void alice_render_target_bind_output(alice_RenderTarget* target, u32 attachment_index, u32 unit) {
 	assert(target);
+	assert(attachment_index < target->color_attachment_count);
 
 	glActiveTexture(GL_TEXTURE0 + unit);
-	glBindTexture(GL_TEXTURE_2D, target->output);
+	glBindTexture(GL_TEXTURE_2D, target->color_attachments[attachment_index]);
 }
 
 alice_VertexBuffer* alice_new_vertex_buffer(alice_VertexBufferFlags flags) {
@@ -962,7 +971,7 @@ alice_SceneRenderer3D* alice_new_scene_renderer_3d(alice_Shader* postprocess_sha
 
 	alice_SceneRenderer3D* new = malloc(sizeof(alice_SceneRenderer3D));
 
-	new->output = alice_new_render_target(128, 128);
+	new->output = alice_new_render_target(128, 128, 2);
 	new->postprocess = postprocess_shader;
 
 	float verts[] = {
@@ -1051,8 +1060,8 @@ void alice_render_scene_3d(alice_SceneRenderer3D* renderer, u32 width, u32 heigh
 
 	alice_bind_shader(renderer->postprocess);
 	alice_bind_vertex_buffer_for_draw(renderer->quad);
+	alice_render_target_bind_output(renderer->output, 0, 0);
 
-	alice_render_target_bind_output(renderer->output, 0);
 	alice_shader_set_int(renderer->postprocess, "input_color", 0);
 
 	alice_shader_set_float(renderer->postprocess, "input_width", renderer->output->width);

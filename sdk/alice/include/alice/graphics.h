@@ -116,19 +116,21 @@ typedef struct alice_Rect {
 
 typedef struct alice_RenderTarget {
 	u32 frame_buffer, render_buffer;
-	u32 output;
+
+	u32* color_attachments;
+	u32 color_attachment_count;
 
 	u32 width, height;
 
 	u32 old_width, old_height;
 } alice_RenderTarget;
 
-ALICE_API alice_RenderTarget* alice_new_render_target(u32 width, u32 height);
+ALICE_API alice_RenderTarget* alice_new_render_target(u32 width, u32 height, u32 color_attachment_count);
 ALICE_API void alice_free_render_target(alice_RenderTarget* target);
 ALICE_API void alice_bind_render_target(alice_RenderTarget* target, u32 old_width, u32 old_height);
 ALICE_API void alice_unbind_render_target(alice_RenderTarget* target);
 ALICE_API void alice_resize_render_target(alice_RenderTarget* target, u32 width, u32 height);
-ALICE_API void alice_render_target_bind_output(alice_RenderTarget* rt, u32 unit);
+ALICE_API void alice_render_target_bind_output(alice_RenderTarget* rt, u32 attachment_index, u32 unit);
 
 typedef struct alice_Mesh {
 	alice_v3f translation;
@@ -201,6 +203,7 @@ typedef struct alice_SceneRenderer3D {
 	alice_RenderTarget* output;
 	alice_VertexBuffer* quad;
 	alice_Shader* postprocess;
+	alice_Shader* blur;
 
 	alice_Color color_mod;
 } alice_SceneRenderer3D;
