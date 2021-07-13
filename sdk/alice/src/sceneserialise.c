@@ -96,7 +96,7 @@ static void alice_serialise_entity(alice_DTable* table, alice_Scene* scene, alic
 
 	switch (entity_type) {
 		case ALICE_ST_RENDERABLE3D: {
-			alice_Renderable3D* renderable = entity;
+			alice_Renderable3D* renderable = (alice_Renderable3D*)entity;
 
 			alice_DTable mesh_table = alice_new_string_dtable("mesh",
 					alice_get_mesh_resource_filename(renderable->mesh));
@@ -111,7 +111,7 @@ static void alice_serialise_entity(alice_DTable* table, alice_Scene* scene, alic
 			break;
 		    }
 		case ALICE_ST_POINTLIGHT: {
-			alice_PointLight* light = entity;
+			alice_PointLight* light = (alice_PointLight*)entity;
 
 			alice_RGBColor color = alice_rgb_color_from_color(light->color);
 			
@@ -135,7 +135,7 @@ static void alice_serialise_entity(alice_DTable* table, alice_Scene* scene, alic
 			break;
 		}
 		case ALICE_ST_DIRECTIONALLIGHT: {
-			alice_DirectionalLight* light = entity;
+			alice_DirectionalLight* light = (alice_DirectionalLight*)entity;
 
 			alice_RGBColor color = alice_rgb_color_from_color(light->color);
 			
@@ -156,7 +156,7 @@ static void alice_serialise_entity(alice_DTable* table, alice_Scene* scene, alic
 			break;
 		}
 		case ALICE_ST_CAMERA3D: {
-			alice_Camera3D* camera = entity;
+			alice_Camera3D* camera = (alice_Camera3D*)entity;
 
 			alice_DTable fov_table = alice_new_number_dtable("fov", camera->fov);
 			alice_dtable_add_child(&entity_table, fov_table);
@@ -316,7 +316,7 @@ static alice_EntityHandle alice_deserialise_entity(alice_DTable* table, alice_Sc
 
 	switch (entity_type) {
 		case ALICE_ST_RENDERABLE3D: {
-			alice_Renderable3D* renderable = entity;
+			alice_Renderable3D* renderable = (alice_Renderable3D*)entity;
 			
 			alice_DTable* mesh_path_table = alice_dtable_find_child(table, "mesh");
 			if (mesh_path_table && mesh_path_table->value.type == ALICE_DTABLE_STRING) {
@@ -332,7 +332,7 @@ static alice_EntityHandle alice_deserialise_entity(alice_DTable* table, alice_Sc
 			break;
 		}
 		case ALICE_ST_CAMERA3D: {
-			alice_Camera3D* camera = entity;
+			alice_Camera3D* camera = (alice_Camera3D*)entity;
 
 			alice_DTable* fov_table = alice_dtable_find_child(table, "fov");
 			if (fov_table && fov_table->value.type == ALICE_DTABLE_NUMBER) {
@@ -362,7 +362,7 @@ static alice_EntityHandle alice_deserialise_entity(alice_DTable* table, alice_Sc
 			break;
 		}
 		case ALICE_ST_POINTLIGHT: {
-			alice_PointLight* light = entity;
+			alice_PointLight* light = (alice_PointLight*)entity;
 
 			alice_DTable* range_table = alice_dtable_find_child(table, "range");
 			if (range_table && range_table->value.type == ALICE_DTABLE_NUMBER) {
@@ -400,7 +400,7 @@ static alice_EntityHandle alice_deserialise_entity(alice_DTable* table, alice_Sc
 			break;
 		}
 		case ALICE_ST_DIRECTIONALLIGHT: {
-			alice_DirectionalLight* light = entity;
+			alice_DirectionalLight* light = (alice_DirectionalLight*)entity;
 
 			alice_DTable* intensity_table = alice_dtable_find_child(table, "intensity");
 			if (intensity_table && intensity_table->value.type == ALICE_DTABLE_NUMBER) {
