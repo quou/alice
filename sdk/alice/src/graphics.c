@@ -1012,6 +1012,8 @@ alice_SceneRenderer3D* alice_new_scene_renderer_3d(alice_Shader* postprocess_sha
 	new->extract = extract_shader;
 	new->blur = blur_shader;
 
+	new->color_mod = ALICE_COLOR_WHITE;
+
 	float verts[] = {
 		 1.0,  1.0, 	1.0f, 1.0f,
 		 1.0, -1.0, 	1.0f, 0.0f,
