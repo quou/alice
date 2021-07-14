@@ -57,6 +57,41 @@ void alice_entity_add_child(alice_Scene* scene, alice_EntityHandle entity, alice
 	alice_entity_parent_to(scene, child, entity);
 }
 
+void alice_entity_remove_child(alice_Scene* scene, alice_EntityHandle entity, alice_EntityHandle child) {
+	assert(scene);
+	
+	alice_Entity* entity_ptr = alice_get_entity_ptr(scene, entity);
+	alice_Entity* child_ptr = alice_get_entity_ptr(scene, child);
+
+	child_ptr->parent = alice_null_entity_handle;
+
+	i32 index_to_remove = -1;
+	for (u32 i = 0; i < entity_ptr->child_count; i++) {
+		if (entity_ptr->children[i] == child) {
+			index_to_remove = i;
+		}
+	}
+
+	if (index_to_remove != -1) {
+		for (u32 i = index_to_remove; i < entity_ptr->child_count - 1; i++) {
+			entity_ptr->children[i] = entity_ptr->children[i + 1];
+		}
+		entity_ptr->child_count--;
+	}
+}
+
+void alice_entity_unparent(alice_Scene* scene, alice_EntityHandle entity) {
+	assert(scene);
+
+	alice_Entity* entity_ptr = alice_get_entity_ptr(scene, entity);
+	
+	alice_EntityHandle parent = entity_ptr->parent;
+
+	if (parent != alice_null_entity_handle) {
+		alice_entity_remove_child(scene, parent, entity);
+	}
+}
+
 ALICE_API alice_v3f alice_get_entity_world_position(alice_Scene* scene, alice_Entity* entity) {
 	assert(scene);
 	assert(entity);
@@ -297,9 +332,14 @@ void alice_destroy_entity(alice_Scene* scene, alice_EntityHandle handle) {
 	assert(scene);
 
 	alice_EntityPool* pool = alice_get_entity_pool(scene, alice_get_entity_handle_type(handle));
+	alice_Entity* ptr = alice_get_entity_ptr(scene, handle);
+
+	for (u32 i = 0; i < ptr->child_count; i++) {
+		alice_destroy_entity(scene, ptr->children[i]);
+	}
 
 	if (pool->destroy) {
-		pool->destroy(scene, handle, alice_get_entity_ptr(scene, handle));
+		pool->destroy(scene, handle, ptr);
 	}
 
 	alice_entity_pool_remove(pool, alice_get_entity_handle_id(handle));

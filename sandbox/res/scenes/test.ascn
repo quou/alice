@@ -109,7 +109,7 @@ scene {
 					g 1;
 					b 1;
 				}
-				intensity 100;
+				intensity 30;
 			}
 		}
 	}

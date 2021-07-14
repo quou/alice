@@ -90,6 +90,8 @@ vec3 normal = vec3(0.0);
 float metallic = 0.0;
 float roughness = 0.0;
 
+uniform float gamma = 2.2;
+
 vec3 get_normal_from_map() {
 	vec3 tangent_normal = texture(material.normal_map, fs_in.uv).xyz * 2.0 - 1.0;
 
@@ -199,7 +201,7 @@ void main() {
 	roughness = material.roughness;
 
 	if (material.use_albedo_map) {
-		albedo = material.albedo * texture2D(material.albedo_map, fs_in.uv).rgb;
+		albedo = material.albedo * pow(texture2D(material.albedo_map, fs_in.uv).rgb, vec3(gamma));
 	}
 
 	if (material.use_normal_map) {

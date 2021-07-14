@@ -1,6 +1,6 @@
 ![logo](https://raw.githubusercontent.com/veridisquot/alice/master/sandbox/res/splash.png)
 
-![screenshot](https://raw.githubusercontent.com/veridisquot/alice/master/screenshots/001.png)
+![screenshot](https://raw.githubusercontent.com/veridisquot/alice/master/screenshots/002.png)
 
 A high performance game engine written in C99 that makes
 use of Data Oriented Design.
