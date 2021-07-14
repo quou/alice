@@ -1041,6 +1041,9 @@ void alice_free_scene_renderer_3d(alice_SceneRenderer3D* renderer) {
 	assert(renderer);
 
 	alice_free_render_target(renderer->output);
+	alice_free_render_target(renderer->bright_pixels);
+	alice_free_render_target(renderer->bloom_ping_pong[0]);
+	alice_free_render_target(renderer->bloom_ping_pong[1]);
 	alice_free_vertex_buffer(renderer->quad);
 	free(renderer);
 }
