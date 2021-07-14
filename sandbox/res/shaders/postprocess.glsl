@@ -27,6 +27,7 @@ in VS_OUT {
 out vec4 color;
 
 uniform sampler2D input_color;
+uniform sampler2D bloom_texture;
 uniform vec3 color_mod = vec3(1.0);
 
 uniform float input_width;
@@ -80,9 +81,13 @@ vec4 get_antialiased_color() {
 }
 
 void main() {
-	vec3 hdr_final = color_mod * get_antialiased_color().rgb;
+	vec3 hdr_color = color_mod * get_antialiased_color().rgb;
+	vec3 bloom_color = texture(bloom_texture, fs_in.uv).rgb;
 
-	vec3 final = vec3(1.0) - exp(-hdr_final * exposure);
+	hdr_color += bloom_color;
+	
+	vec3 final = vec3(1.0) - exp(-hdr_color * exposure);
+
 	final = pow(final, vec3(1.0 / gamma));
 
 	color = vec4(final, 1.0);

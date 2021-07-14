@@ -27,7 +27,9 @@ void main() {
 	alice_serialise_scene(scene, "scenes/test.ascn");
 	
 	alice_SceneRenderer3D* renderer = alice_new_scene_renderer_3d(
-			alice_load_shader("shaders/postprocess.glsl"));
+			alice_load_shader("shaders/postprocess.glsl"),
+			alice_load_shader("shaders/bright_extract.glsl"),
+			alice_load_shader("shaders/blur.glsl"));
 
 	alice_TextRenderer* text_renderer = alice_new_text_renderer(alice_load_binary("fonts/opensans.ttf"),
 			32.0f, alice_load_shader("shaders/text.glsl"));

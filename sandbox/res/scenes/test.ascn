@@ -58,7 +58,7 @@ scene {
 							b 0;
 						}
 						range 1;
-						intensity 100;
+						intensity 20;
 					}
 					point_light {
 						name "point light #2";
@@ -83,16 +83,16 @@ scene {
 							b 1;
 						}
 						range 1;
-						intensity 100;
+						intensity 20;
 					}
 				}
 			}
 			directional_light {
 				name "sun";
 				position {
-					x 0;
+					x -1;
 					y -1;
-					z 0;
+					z -1;
 				}
 				rotation {
 					x 0;
@@ -144,7 +144,7 @@ scene {
 			z 3;
 		}
 		rotation {
-			x -32.5;
+			x -30;
 			y 45;
 			z 388.5;
 		}

@@ -207,15 +207,19 @@ typedef struct alice_Renderable3D {
 } alice_Renderable3D;
 
 typedef struct alice_SceneRenderer3D {
+	alice_RenderTarget* bright_pixels;
+	alice_RenderTarget* bloom_ping_pong[2];
 	alice_RenderTarget* output;
 	alice_VertexBuffer* quad;
 	alice_Shader* postprocess;
+	alice_Shader* extract;
 	alice_Shader* blur;
 
 	alice_Color color_mod;
 } alice_SceneRenderer3D;
 
-ALICE_API alice_SceneRenderer3D* alice_new_scene_renderer_3d(alice_Shader* postprocess_shader);
+ALICE_API alice_SceneRenderer3D* alice_new_scene_renderer_3d(alice_Shader* postprocess_shader,
+		alice_Shader* extract_shader, alice_Shader* blur_shader);
 ALICE_API void alice_free_scene_renderer_3d(alice_SceneRenderer3D* renderer);
 ALICE_API void alice_render_scene_3d(alice_SceneRenderer3D* renderer, u32 width, u32 height,
 		alice_Scene* scene, alice_RenderTarget* render_target);
