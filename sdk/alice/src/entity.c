@@ -77,6 +77,8 @@ void alice_entity_remove_child(alice_Scene* scene, alice_EntityHandle entity, al
 			entity_ptr->children[i] = entity_ptr->children[i + 1];
 		}
 		entity_ptr->child_count--;
+	} else {
+		alice_log_warning("Child doesn't exist on this entity");
 	}
 }
 
