@@ -1022,8 +1022,8 @@ alice_SceneRenderer3D* alice_new_scene_renderer_3d(alice_Shader* postprocess_sha
 	};
 
 	u32 indices[] = {
-		0, 1, 3,
-		1, 2, 3
+		3, 2, 1,
+		3, 1, 0
 	};
 
 	new->quad = alice_new_vertex_buffer(

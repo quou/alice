@@ -100,8 +100,8 @@ alice_render_text(alice_TextRenderer* renderer, alice_v2f position, const char* 
 			const u32 index_offset = quad_count * 4;
 
 			u32 indices[] = {
-				index_offset + 0, index_offset + 1, index_offset + 3,
-				index_offset + 1, index_offset + 2, index_offset + 3
+				index_offset + 3, index_offset + 2, index_offset + 1,
+				index_offset + 3, index_offset + 1, index_offset + 0
 			};
 
 			alice_update_vertices(renderer->vb, verts, quad_count * 4 * 4, 4 * 4);

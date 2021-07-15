@@ -116,6 +116,9 @@ void alice_init_application(alice_ApplicationConfig cfg) {
 
 	gladLoadGL();
 
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 
