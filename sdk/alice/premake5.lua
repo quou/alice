@@ -1,5 +1,5 @@
 project "alice"
-	kind "StaticLib"
+	kind "SharedLib"
 	language "C"
 	cdialect "C99"
 	
@@ -29,6 +29,10 @@ project "alice"
 		"glad",
 		"stb",
 		"physfs"
+	}
+
+	defines {
+		"ALICE_EXPORT_SYMBOLS"
 	}
 
 	filter "configurations:debug"

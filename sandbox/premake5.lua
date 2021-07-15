@@ -19,6 +19,10 @@ project "sandbox"
 		"../sdk/alice/include"
 	}
 
+	defines {
+		"ALICE_IMPORT_SYMBOLS"
+	}
+
 	links {
 		"alice"
 	}

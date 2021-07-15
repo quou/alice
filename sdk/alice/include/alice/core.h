@@ -77,7 +77,14 @@ typedef struct alice_TypeInfo {
 	u32 size;
 } alice_TypeInfo;
 
+#ifndef __cplusplus
 #define alice_get_type_info(t_) ((alice_TypeInfo){ \
 			.id = alice_hash_string(#t_), \
 			.size = sizeof(t_) \
 		})
+#else
+#define alice_get_type_info(t_) { \
+			alice_hash_string(#t_), \
+			sizeof(t_) \
+		}
+#endif

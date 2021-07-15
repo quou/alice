@@ -14,5 +14,4 @@ include "sdk/extern/stb"
 
 group "projects"
 include "sandbox"
-include "wonderland"
 group ""
