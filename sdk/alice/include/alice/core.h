@@ -39,6 +39,8 @@
 	#else
 		#define ALICE_API
 	#endif
+#else
+#define ALICE_API
 #endif
 
 #if !defined(ALICE_CALL)

@@ -1,7 +1,7 @@
-project "sandbox"
+project "wonderland"
 	kind "ConsoleApp"
-	language "C"
-	cdialect "C99"
+	language "C++"
+	cppdialect "C++20"
 
 	staticruntime "on"
 
@@ -11,16 +11,22 @@ project "sandbox"
 	architecture "x64"
 
 	files {
+		"src/**.hpp",
+		"src/**.cpp",
 		"src/**.h",
 		"src/**.c"
 	}
 
 	includedirs {
-		"../sdk/alice/include"
+		"../sdk/alice/include",
+		"../sdk/extern/glfw/include",
+		"../sdk/extern/glad/include"
 	}
 
 	links {
-		"alice"
+		"alice",
+		"glad",
+		"glfw"
 	}
 
 	filter "configurations:debug"

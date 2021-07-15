@@ -172,6 +172,9 @@ static void alice_serialise_entity(alice_DTable* table, alice_Scene* scene, alic
 
 			alice_DTable gamma_table = alice_new_number_dtable("gamma", camera->gamma);
 			alice_dtable_add_child(&entity_table, gamma_table);
+
+			alice_DTable active_table = alice_new_bool_dtable("active", camera->active);
+			alice_dtable_add_child(&active_table, active_table);
 			break;
 		}
 	}
@@ -357,6 +360,11 @@ static alice_EntityHandle alice_deserialise_entity(alice_DTable* table, alice_Sc
 			alice_DTable* gamma_table = alice_dtable_find_child(table, "gamma");
 			if (gamma_table && gamma_table->value.type == ALICE_DTABLE_NUMBER) {
 				camera->gamma = gamma_table->value.as.number;
+			}
+
+			alice_DTable* active_table = alice_dtable_find_child(table, "active");
+			if (active_table && active_table->value.type == ALICE_DTABLE_BOOL) {
+				camera->active = active_table->value.as.number;
 			}
 
 			break;

@@ -74,7 +74,7 @@ void alice_set_text_renderer_dimentions(alice_TextRenderer* renderer, alice_v2f 
 	renderer->dimentions = dimentions;
 }
 
-alice_render_text(alice_TextRenderer* renderer, alice_v2f position, const char* string) {
+void alice_render_text(alice_TextRenderer* renderer, alice_v2f position, const char* string) {
 	assert(renderer);
 
 	u32 quad_count = 0;

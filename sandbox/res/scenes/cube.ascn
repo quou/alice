@@ -1,0 +1,71 @@
+scene {
+	directional_light {
+		name "sun";
+		position {
+			x -1;
+			y -1;
+			z -1;
+		}
+		rotation {
+			x 0;
+			y 0;
+			z 0;
+		}
+		scale {
+			x 1;
+			y 1;
+			z 1;
+		}
+		color {
+			r 1;
+			g 1;
+			b 1;
+		}
+		intensity 30;
+	}
+
+	camera_3d {
+		name "main camera";
+		position {
+			x 0;
+			y 0;
+			z 0;
+		}
+		rotation {
+			x 0;
+			y 0;
+			z 0;
+		}
+		scale {
+			x 1;
+			y 1;
+			z 1;
+		}
+		fov 45;
+		near 0.1;
+		far 1000;
+		exposure 1;
+		gamma 1.4;
+		active true;
+	}
+	renderable_3d {
+		name "cube";
+		position {
+			x 0;
+			y 0;
+			z 3;
+		}
+		rotation {
+			x -30;
+			y 45;
+			z 388.5;
+		}
+		scale {
+			x 1;
+			y 1;
+			z 1;
+		}
+		mesh "cube";
+		material "materials/basic.mat";
+	}
+}
