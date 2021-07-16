@@ -119,4 +119,6 @@ ALICE_API alice_m4f alice_m4f_persp(float fov, float aspect, float near, float f
 
 ALICE_API alice_m4f alice_m4f_lookat(alice_v3f camera, alice_v3f object, alice_v3f up);
 
+ALICE_API void alice_m4f_decompose(alice_m4f matrix, alice_v3f* translation, alice_v3f* rotation, alice_v3f* scale);
+
 /* TODO: signed and unsigned integer matrices */

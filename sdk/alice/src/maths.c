@@ -2,6 +2,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #include "alice/maths.h"
 
@@ -457,4 +458,22 @@ alice_m4f alice_m4f_lookat(alice_v3f camera, alice_v3f object, alice_v3f up) {
 	result.elements[3][2] = alice_v3f_dot(f, camera);
 
 	return result;
+}
+
+void alice_m4f_decompose(alice_m4f matrix, alice_v3f* translation, alice_v3f* rotation, alice_v3f* scale) {
+	assert(translation && rotation && scale);
+
+	translation->x = matrix.elements[3][0];
+	translation->y = matrix.elements[3][1];
+	translation->z = matrix.elements[3][2];
+
+	scale->x = matrix.elements[0][0];
+	scale->y = matrix.elements[1][1];
+	scale->z = matrix.elements[2][2];
+
+	rotation->x = (180.0f / alice_pi) * atan2f(matrix.elements[1][2], matrix.elements[2][2]);
+	rotation->y = (180.0f / alice_pi) * atan2f(-matrix.elements[0][2],
+			sqrtf(matrix.elements[1][2] * matrix.elements[1][2] +
+				matrix.elements[2][2] * matrix.elements[2][2]));
+	rotation->z = (180.0f / alice_pi) * atan2f(matrix.elements[0][1], matrix.elements[0][0]);
 }

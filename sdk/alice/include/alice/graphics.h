@@ -133,9 +133,7 @@ ALICE_API void alice_resize_render_target(alice_RenderTarget* target, u32 width,
 ALICE_API void alice_render_target_bind_output(alice_RenderTarget* rt, u32 attachment_index, u32 unit);
 
 typedef struct alice_Mesh {
-	alice_v3f translation;
-	alice_v3f rotation;
-	alice_v3f scale;
+	alice_m4f transform;
 
 	alice_VertexBuffer* vb;
 } alice_Mesh;
@@ -187,7 +185,7 @@ typedef struct alice_PointLight {
 
 typedef struct alice_DirectionalLight {
 	alice_Entity base;
-	
+
 	alice_Color color;
 	float intensity;
 } alice_DirectionalLight;

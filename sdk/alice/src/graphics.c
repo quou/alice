@@ -669,9 +669,7 @@ void alice_init_mesh(alice_Mesh* mesh, alice_VertexBuffer* vb) {
 	assert(mesh);
 
 	*mesh = (alice_Mesh){
-		.translation = (alice_v3f){0.0, 0.0, 0.0},
-		.rotation = (alice_v3f){0.0, 0.0, 0.0},
-		.scale = (alice_v3f){1.0, 1.0, 1.0},
+		.transform = alice_m4f_identity(),
 
 		.vb = vb
 	};
@@ -1154,6 +1152,7 @@ void alice_render_scene_3d(alice_SceneRenderer3D* renderer, u32 width, u32 heigh
 			}
 
 			if (!material) {
+				alice_log_warning("Attempting to render object that doesn't have any materials.");
 				goto renderable_iter_continue;
 			}
 
@@ -1161,12 +1160,7 @@ void alice_render_scene_3d(alice_SceneRenderer3D* renderer, u32 width, u32 heigh
 
 			alice_Shader* shader = material->shader;
 
-			alice_m4f model = transform_matrix;
-			model = alice_m4f_translate(model, mesh->translation);
-			model = alice_m4f_rotate(model, mesh->rotation.z, (alice_v3f){0.0, 0.0, 1.0});
-			model = alice_m4f_rotate(model, mesh->rotation.y, (alice_v3f){0.0, 1.0, 0.0});
-			model = alice_m4f_rotate(model, mesh->rotation.x, (alice_v3f){1.0, 0.0, 0.0});
-			model = alice_m4f_scale(model, mesh->scale);
+			alice_m4f model = alice_m4f_multiply(transform_matrix, mesh->transform);
 
 			alice_shader_set_m4f(shader, "transform", model);
 			alice_shader_set_v3f(shader, "camera_position", camera->base.position);

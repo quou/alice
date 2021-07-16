@@ -614,7 +614,7 @@ static bool impl_alice_load_material(alice_Resource* resource, const char* path,
 	return true;
 }
 
-static alice_Mesh alice_process_model_mesh(aiMesh* ai_mesh, const aiScene* scene) {
+static alice_Mesh alice_process_model_mesh(aiNode* node, aiMesh* ai_mesh, const aiScene* scene) {
 	assert(ai_mesh && scene);
 
 	if (!ai_mesh->mNormals) {
@@ -675,6 +675,28 @@ static alice_Mesh alice_process_model_mesh(aiMesh* ai_mesh, const aiScene* scene
 
 	alice_init_mesh(&mesh, vb);
 
+	aiMatrix4x4 ai_transform = node->mTransformation;
+
+	mesh.transform.elements[0][0] = ai_transform.a1;
+	mesh.transform.elements[1][0] = ai_transform.a2;
+	mesh.transform.elements[2][0] = ai_transform.a3;
+	mesh.transform.elements[3][0] = ai_transform.a4;
+
+	mesh.transform.elements[0][1] = ai_transform.b1;
+	mesh.transform.elements[1][1] = ai_transform.b2;
+	mesh.transform.elements[2][1] = ai_transform.b3;
+	mesh.transform.elements[3][1] = ai_transform.b4;
+
+	mesh.transform.elements[0][2] = ai_transform.c1;
+	mesh.transform.elements[1][2] = ai_transform.c2;
+	mesh.transform.elements[2][2] = ai_transform.c3;
+	mesh.transform.elements[3][2] = ai_transform.c4;
+
+	mesh.transform.elements[0][3] = ai_transform.d1;
+	mesh.transform.elements[1][3] = ai_transform.d2;
+	mesh.transform.elements[2][3] = ai_transform.d3;
+	mesh.transform.elements[3][3] = ai_transform.d4;
+
 	return mesh;
 }
 
@@ -683,7 +705,7 @@ static void alice_process_model_node(alice_Model* model, aiNode* node, const aiS
 
 	for (u32 i = 0; i < node->mNumMeshes; i++) {
 		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-		alice_model_add_mesh(model, alice_process_model_mesh(mesh, scene));
+		alice_model_add_mesh(model, alice_process_model_mesh(node, mesh, scene));
 	}
 
 	for (u32 i = 0; i < node->mNumChildren; i++) {
