@@ -34,65 +34,13 @@ scene {
 					y 1;
 					z 1;
 				}
-				children {
-					point_light {
-						name "point light #1";
-						position {
-							x 0;
-							y 1.3;
-							z 3;
-						}
-						rotation {
-							x 0;
-							y 0;
-							z 0;
-						}
-						scale {
-							x 1;
-							y 1;
-							z 1;
-						}
-						color {
-							r 1;
-							g 0;
-							b 0;
-						}
-						range 1;
-						intensity 20;
-					}
-					point_light {
-						name "point light #2";
-						position {
-							x 0;
-							y -2;
-							z 3;
-						}
-						rotation {
-							x 0;
-							y 0;
-							z 0;
-						}
-						scale {
-							x 1;
-							y 1;
-							z 1;
-						}
-						color {
-							r 0;
-							g 0;
-							b 1;
-						}
-						range 1;
-						intensity 20;
-					}
-				}
 			}
 			directional_light {
 				name "sun";
 				position {
-					x -1;
+					x 0;
 					y -1;
-					z -1;
+					z 0;
 				}
 				rotation {
 					x 0;
@@ -109,7 +57,7 @@ scene {
 					g 1;
 					b 1;
 				}
-				intensity 30;
+				intensity 10;
 			}
 		}
 	}
@@ -117,11 +65,11 @@ scene {
 		name "main camera";
 		position {
 			x 0;
-			y 0;
+			y 3;
 			z 0;
 		}
 		rotation {
-			x 0;
+			x -45;
 			y 0;
 			z 0;
 		}
@@ -144,9 +92,9 @@ scene {
 			z 3;
 		}
 		rotation {
-			x -30;
+			x 0;
 			y 45;
-			z 388.5;
+			z 0;
 		}
 		scale {
 			x 1;
@@ -154,28 +102,6 @@ scene {
 			z 1;
 		}
 		mesh "cube";
-		material "materials/pirategold.mat";
-		children {
-			renderable_3d {
-				name "sphere";
-				position {
-					x 1.1;
-					y 0;
-					z 0;
-				}
-				rotation {
-					x 0;
-					y 0;
-					z 0;
-				}
-				scale {
-					x 1;
-					y 1;
-					z 1;
-				}
-				mesh "sphere";
-				material "materials/rustediron.mat";
-			}
-		}
+		material "materials/rustediron.mat";
 	}
 }

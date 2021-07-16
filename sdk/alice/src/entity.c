@@ -6,14 +6,6 @@
 #include "alice/entity.h"
 #include "alice/graphics.h"
 
-static void alice_on_entity_destroy(alice_Scene* scene, alice_EntityHandle handle, void* ptr) {
-	alice_Entity* e = ptr;
-
-	if (e->name) {
-		free(e->name);
-	}
-}
-
 alice_m4f alice_get_entity_transform(alice_Scene* scene, alice_Entity* entity) {
 	assert(entity);
 
@@ -238,8 +230,6 @@ alice_Scene* alice_new_scene() {
 	alice_register_entity_type(new, alice_PointLight);
 	alice_register_entity_type(new, alice_DirectionalLight);
 
-	alice_set_entity_destroy_function(new, alice_Entity, alice_on_entity_destroy);
-
 	return new;
 }
 
@@ -342,6 +332,10 @@ void alice_destroy_entity(alice_Scene* scene, alice_EntityHandle handle) {
 
 	if (pool->destroy) {
 		pool->destroy(scene, handle, ptr);
+	}
+
+	if (ptr->name) {
+		free(ptr->name);
 	}
 
 	alice_entity_pool_remove(pool, alice_get_entity_handle_id(handle));
