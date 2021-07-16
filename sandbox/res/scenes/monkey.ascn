@@ -3,11 +3,11 @@ scene {
 		name "main camera";
 		position {
 			x 0;
-			y 0;
+			y 3;
 			z 0;
 		}
 		rotation {
-			x 0;
+			x -45;
 			y 0;
 			z 0;
 		}
