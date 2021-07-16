@@ -23,8 +23,8 @@ void main() {
 	alice_init_default_resources();
 
 	alice_Scene* scene = alice_new_scene();	
-	alice_deserialise_scene(scene, "scenes/cube.ascn");
-	alice_serialise_scene(scene, "scenes/cube.ascn");
+	alice_deserialise_scene(scene, "scenes/monkey.ascn");
+	alice_serialise_scene(scene, "scenes/monkey.ascn");
 	
 	alice_SceneRenderer3D* renderer = alice_new_scene_renderer_3d(
 			alice_load_shader("shaders/postprocess.glsl"),

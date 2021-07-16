@@ -107,7 +107,7 @@ static void alice_serialise_entity(alice_DTable* table, alice_Scene* scene, alic
 			for (u32 i = 0; i < renderable->material_count; i++) {
 				char material_name[256];
 				sprintf(material_name, "material%d", i);
-			
+
 				alice_Material* material = renderable->materials[i];
 
 				const char* material_path =

@@ -11,6 +11,17 @@
 
 #define ALICE_RESOURCE_TABLE_MAX_LOAD 0.75
 
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+#include <assimp/cimport.h>
+#include <assimp/matrix4x4.h>
+
+typedef struct aiScene aiScene;
+typedef struct aiNode aiNode;
+typedef struct aiMesh aiMesh;
+typedef struct aiFace aiFace;
+typedef struct aiMatrix4x4 aiMatrix4x4;
+
 typedef struct alice_ResourceTableEntry {
 	u32 key;
 	alice_Resource* value;
@@ -209,7 +220,7 @@ void alice_init_default_resources() {
 			.file_name_hash = alice_hash_string("cube")
 		};
 		strcpy(cube_resource->file_name, "cube");
-		
+
 		alice_model_add_mesh(cube_resource->payload, alice_new_cube_mesh());
 
 		alice_resource_manager_add(cube_resource);
@@ -233,7 +244,7 @@ void alice_init_default_resources() {
 		alice_model_add_mesh(sphere_resource->payload, alice_new_sphere_mesh());
 
 		strcpy(sphere_resource->file_name, "sphere");
-		
+
 		alice_resource_manager_add(sphere_resource);
 	}
 
@@ -603,6 +614,128 @@ static bool impl_alice_load_material(alice_Resource* resource, const char* path,
 	return true;
 }
 
+static alice_Mesh alice_process_model_mesh(aiMesh* ai_mesh, const aiScene* scene) {
+	assert(ai_mesh && scene);
+
+	if (!ai_mesh->mNormals) {
+		alice_log_error("Cannot load mesh that doesn't have normals");
+	}
+
+	if (!ai_mesh->mTextureCoords[0]) {
+		alice_log_error("Cannot load mesh that doesn't have texture coordinates");
+	}
+
+	float* vertices = malloc(ai_mesh->mNumVertices * 8 * sizeof(float));
+	u32 current_vertex = 0;
+
+	for (u32 i = 0; i < ai_mesh->mNumVertices; i++) {
+		vertices[current_vertex++] = ai_mesh->mVertices[i].x;
+		vertices[current_vertex++] = ai_mesh->mVertices[i].y;
+		vertices[current_vertex++] = ai_mesh->mVertices[i].z;
+
+		vertices[current_vertex++] = ai_mesh->mNormals[i].x;
+		vertices[current_vertex++] = ai_mesh->mNormals[i].y;
+		vertices[current_vertex++] = ai_mesh->mNormals[i].z;
+
+		vertices[current_vertex++] = ai_mesh->mTextureCoords[0][i].x;
+		vertices[current_vertex++] = ai_mesh->mTextureCoords[0][i].y;
+	}
+
+	u32* indices = alice_null;
+	u32 index_count = 0;
+	u32 index_capacity = 0;
+
+	for (u32 i = 0; i < ai_mesh->mNumFaces; i++) {
+		aiFace face = ai_mesh->mFaces[i];
+
+		index_capacity += face.mNumIndices;
+		indices = realloc(indices, index_capacity * sizeof(u32));
+
+		for (u32 ii = 0; ii < face.mNumIndices; ii++) {
+			indices[index_count++] = face.mIndices[ii];
+		}
+	}
+
+
+	alice_VertexBuffer* vb = alice_new_vertex_buffer(
+		ALICE_VERTEXBUFFER_DRAW_TRIANGLES | ALICE_VERTEXBUFFER_STATIC_DRAW);
+
+	alice_bind_vertex_buffer_for_edit(vb);
+	alice_push_vertices(vb, vertices, current_vertex);
+	alice_push_indices(vb, indices, index_count);
+	alice_configure_vertex_buffer(vb, 0, 3, 8, 0); /* vec3 position */
+	alice_configure_vertex_buffer(vb, 1, 3, 8, 3); /* vec3 normal */
+	alice_configure_vertex_buffer(vb, 2, 2, 8, 6); /* vec2 uv */
+	alice_bind_vertex_buffer_for_edit(NULL);
+
+	free(indices);
+	free(vertices);
+
+	alice_Mesh mesh;
+
+	alice_init_mesh(&mesh, vb);
+
+	return mesh;
+}
+
+static void alice_process_model_node(alice_Model* model, aiNode* node, const aiScene* scene) {
+	assert(model && node && scene);
+
+	for (u32 i = 0; i < node->mNumMeshes; i++) {
+		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
+		alice_model_add_mesh(model, alice_process_model_mesh(mesh, scene));
+	}
+
+	for (u32 i = 0; i < node->mNumChildren; i++) {
+		alice_process_model_node(model, node->mChildren[i], scene);
+	}
+}
+
+static bool impl_alice_load_model(alice_Resource* resource, const char* path, bool new) {
+	assert(resource);
+
+	alice_Resource* raw = malloc(sizeof(alice_Resource));
+	if (!impl_alice_load_binary(raw, path)) {
+		free(raw);
+		return false;
+	}
+
+	resource->type = ALICE_RESOURCE_MODEL;
+	resource->payload_size = sizeof(alice_Model);
+	resource->modtime = raw->modtime;
+	resource->file_name = malloc(strlen(path) + 1);
+	resource->file_name_hash = raw->file_name_hash;
+
+	if (new) {
+		resource->payload = malloc(sizeof(alice_Model));
+	}
+
+	alice_Model* model = resource->payload;
+	alice_init_model(model);
+
+	strcpy(resource->file_name, path);
+
+	const char* extension = alice_get_file_extension(path);
+
+	const aiScene* scene = aiImportFileFromMemory(raw->payload, raw->payload_size,
+			aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs,
+			extension);
+
+	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
+		alice_log_error("Error importing model `%s': `%s'", path, aiGetErrorString());
+		alice_free_resource(raw);
+		return false;
+	}
+
+	alice_process_model_node(model, scene->mRootNode, scene);
+
+	aiReleaseImport(scene);
+
+	alice_free_resource(raw);
+
+	return true;
+}
+
 alice_Resource* alice_load_binary(const char* path) {
 	alice_Resource* got_resource = alice_resource_table_get(rm.table, alice_hash_string(path));
 	if (got_resource) {
@@ -694,9 +827,15 @@ alice_Model* alice_load_model(const char* path) {
 		return got_resource->payload;
 	}
 
-	alice_log_error("Cannot load meshes from disk yet");
+	alice_Resource* resource = malloc(sizeof(alice_Resource));
+	if (!impl_alice_load_model(resource, path, true)) {
+		free(resource);
+		return NULL;
+	}
 
-	return NULL;
+	alice_resource_manager_add(resource);
+
+	return resource->payload;
 }
 
 void alice_reload_resource(alice_Resource* resource) {

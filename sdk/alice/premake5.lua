@@ -21,10 +21,12 @@ project "alice"
 		"../extern/glad/include",
 		"../extern/stb/include",
 		"../extern/physfs/src",
+		"../extern/assimp/include",
 		"include"
 	}
 
 	links {
+		"assimp",
 		"glfw",
 		"glad",
 		"stb",

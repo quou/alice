@@ -11,6 +11,7 @@ include "sdk/extern/glfw"
 include "sdk/extern/glad"
 include "sdk/extern/physfs"
 include "sdk/extern/stb"
+include "sdk/extern/assimp"
 
 group "projects"
 include "sandbox"

@@ -36,7 +36,7 @@ alice_RenderTarget* alice_new_render_target(u32 width, u32 height, u32 color_att
 	target->height = height;
 	target->old_width = width;
 	target->old_height = height;
-	
+
 	target->color_attachment_count = color_attachment_count;
 	target->color_attachments = malloc(color_attachment_count * sizeof(u32));
 
@@ -832,7 +832,7 @@ alice_Mesh alice_new_sphere_mesh() {
 
 	free(vertices);
 	free(indices);
-	
+
 	alice_Mesh mesh;
 
 	alice_init_mesh(&mesh, sphere);
@@ -850,7 +850,7 @@ void alice_init_model(alice_Model* model) {
 
 void alice_deinit_model(alice_Model* model) {
 	assert(model);
-	
+
 	for (u32 i = 0; i < model->mesh_count; i++) {
 		alice_deinit_mesh(&model->meshes[i]);
 	}
@@ -871,8 +871,8 @@ alice_Model* alice_new_model() {
 void alice_free_model(alice_Model* model) {
 	assert(model);
 
-	alice_deinit_model(model);	
-	
+	alice_deinit_model(model);
+
 	free(model);
 }
 
@@ -910,7 +910,7 @@ alice_Camera3D* alice_get_scene_camera(alice_Scene* scene) {
 
 alice_m4f alice_get_camera_3d_matrix(alice_Scene* scene, alice_Camera3D* camera) {
 	assert(camera);
-	
+
 	alice_v3f rotation = alice_torad_v3f(camera->base.rotation);
 
 	alice_v3f position = alice_get_entity_world_position(scene, (alice_Entity*)camera);
@@ -937,7 +937,7 @@ alice_m4f alice_get_camera_3d_matrix(alice_Scene* scene, alice_Camera3D* camera)
 
 void alice_apply_material(alice_Scene* scene, alice_Material* material) {
 	assert(material);
-	
+
 	if (!material->shader) {
 		alice_log_warning("Attempting to render object who's material doesn't have a shader");
 		return;
@@ -1012,7 +1012,7 @@ void alice_apply_material(alice_Scene* scene, alice_Material* material) {
 	}
 
 	alice_shader_set_uint(material->shader, "point_light_count", light_count);
-	
+
 	light_count = 0;
 	for (alice_entity_iter(scene, iter, alice_DirectionalLight)) {
 		alice_DirectionalLight* light = iter.current_ptr;
@@ -1073,7 +1073,7 @@ alice_SceneRenderer3D* alice_new_scene_renderer_3d(alice_Shader* postprocess_sha
 	new->bright_pixels = alice_new_render_target(128, 128, 1);
 	new->bloom_ping_pong[0] = alice_new_render_target(128, 128, 1);
 	new->bloom_ping_pong[1] = alice_new_render_target(128, 128, 1);
-	
+
 	new->postprocess = postprocess_shader;
 	new->extract = extract_shader;
 	new->blur = blur_shader;
@@ -1145,14 +1145,14 @@ void alice_render_scene_3d(alice_SceneRenderer3D* renderer, u32 width, u32 heigh
 		for (u32 i = 0; i < model->mesh_count; i++) {
 			alice_Mesh* mesh = &model->meshes[i];
 			alice_VertexBuffer* vb = mesh->vb;
-			
+
 			alice_Material* material = alice_null;
 			if (i < renderable->material_count) {
 				material = renderable->materials[i];
 			} else if (renderable->material_count == 1) {
 				material = renderable->materials[0];
 			}
-			
+
 			if (!material) {
 				goto renderable_iter_continue;
 			}
@@ -1183,7 +1183,7 @@ renderable_iter_continue:
 
 	alice_unbind_render_target(renderer->output);
 
-	/* Draw bright areas to bloom target */	
+	/* Draw bright areas to bloom target */
 	alice_resize_render_target(renderer->bright_pixels, width, height);
 	alice_bind_render_target(renderer->bright_pixels, width, height);
 

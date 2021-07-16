@@ -30,16 +30,16 @@ scene {
 			z 3;
 		}
 		rotation {
-			x -45;
-			y 45;
-			z -45;
+			x 0;
+			y 180;
+			z 0;
 		}
 		scale {
 			x 1;
 			y 1;
 			z 1;
 		}
-		model "cube";
+		model "models/monkey.glb";
 		materials {
 			material0 "default_material";
 		}
@@ -47,9 +47,9 @@ scene {
 	directional_light {
 		name "sun";
 		position {
-			x -1;
+			x 1;
 			y -1;
-			z -1;
+			z 0;
 		}
 		rotation {
 			x 0;
