@@ -112,7 +112,9 @@ static void alice_serialise_entity(alice_DTable* table, alice_Scene* scene, alic
 
 				const char* material_path =
 					alice_get_material_resource_filename(material);
-				alice_save_material(material, material_path);
+				if (strcmp(material_path, "default_material") != 0) {
+					alice_save_material(material, material_path);
+				}
 				alice_DTable material_table = 
 					alice_new_string_dtable(material_name, material_path);
 				
