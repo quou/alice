@@ -145,7 +145,7 @@ void alice_free_resource(alice_Resource* resource) {
 	if (resource->type == ALICE_RESOURCE_SHADER ||
 		resource->type == ALICE_RESOURCE_TEXTURE ||
 		resource->type == ALICE_RESOURCE_MATERIAL ||
-		resource->type == ALICE_RESOURCE_MESH) {
+		resource->type == ALICE_RESOURCE_MODEL) {
 		free(resource->payload);
 	}
 	free(resource->file_name);
@@ -164,8 +164,8 @@ void alice_free_resource_payload(alice_Resource* resource) {
 		/* Nothing needs to be freed for materials */
 		return;
 	}
-	else if (resource->type == ALICE_RESOURCE_MESH) {
-		alice_deinit_mesh(resource->payload);
+	else if (resource->type == ALICE_RESOURCE_MODEL) {
+		alice_deinit_model(resource->payload);
 	}
 	else {
 		free(resource->payload);
@@ -195,10 +195,10 @@ void alice_init_resource_manager(const char* working_dir) {
 void alice_init_default_resources() {
 	alice_Resource* cube_resource = malloc(sizeof(alice_Resource));
 	*cube_resource = (alice_Resource){
-		.type = ALICE_RESOURCE_MESH,
+		.type = ALICE_RESOURCE_MODEL,
 
-		.payload = alice_new_cube_mesh(),
-		.payload_size = sizeof(alice_Mesh),
+		.payload = alice_new_model(),
+		.payload_size = sizeof(alice_Model),
 
 		.modtime = 0,
 
@@ -207,14 +207,17 @@ void alice_init_default_resources() {
 		.file_name_hash = alice_hash_string("cube")
 	};
 	strcpy(cube_resource->file_name, "cube");
+	
+	alice_model_add_mesh(cube_resource->payload, alice_new_cube_mesh());
+
 	alice_resource_manager_add(cube_resource);
 
 	alice_Resource* sphere_resource = malloc(sizeof(alice_Resource));
 	*sphere_resource = (alice_Resource){
-		.type = ALICE_RESOURCE_MESH,
+		.type = ALICE_RESOURCE_MODEL,
 
-		.payload = alice_new_sphere_mesh(),
-		.payload_size = sizeof(alice_Mesh),
+		.payload = alice_new_model(),
+		.payload_size = sizeof(alice_Model),
 
 		.modtime = 0,
 
@@ -222,7 +225,10 @@ void alice_init_default_resources() {
 		.file_name_length = 7,
 		.file_name_hash = alice_hash_string("sphere")
 	};
+	alice_model_add_mesh(sphere_resource->payload, alice_new_sphere_mesh());
+
 	strcpy(sphere_resource->file_name, "sphere");
+	
 	alice_resource_manager_add(sphere_resource);
 }
 
@@ -299,13 +305,13 @@ const char* alice_get_material_resource_filename(alice_Material* material) {
 	return NULL;
 }
 
-const char* alice_get_mesh_resource_filename(alice_Mesh* mesh) {
-	assert(mesh);
+const char* alice_get_model_resource_filename(alice_Model* model) {
+	assert(model);
 
 	for (u32 i = 0; i < rm.table->capacity; i++) {
 		alice_Resource* resource = rm.table->entries[i].value;
 
-		if (resource && resource->payload == mesh) {
+		if (resource && resource->payload == model) {
 			return resource->file_name;
 		}
 	}
@@ -639,7 +645,7 @@ alice_Material* alice_load_material(const char* path) {
 	return resource->payload;
 }
 
-alice_Mesh* alice_load_mesh(const char* path) {
+alice_Model* alice_load_model(const char* path) {
 	alice_Resource* got_resource = alice_resource_table_get(rm.table, alice_hash_string(path));
 	if (got_resource) {
 		return got_resource->payload;

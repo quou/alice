@@ -7,7 +7,7 @@ typedef enum alice_TextureFlags alice_TextureFlags;
 typedef struct alice_Texture alice_Texture;
 typedef struct alice_Shader alice_Shader;
 typedef struct alice_Material alice_Material;
-typedef struct alice_Mesh alice_Mesh;
+typedef struct alice_Model alice_Model;
 
 typedef enum alice_ResourceType {
 	ALICE_RESOURCE_STRING,
@@ -16,7 +16,7 @@ typedef enum alice_ResourceType {
 	ALICE_RESOURCE_SHADER,
 	ALICE_RESOURCE_ASSEMBLY,
 	ALICE_RESOURCE_SCRIPT,
-	ALICE_RESOURCE_MESH,
+	ALICE_RESOURCE_MODEL,
 	ALICE_RESOURCE_MATERIAL
 } alice_ResourceType;
 
@@ -45,7 +45,7 @@ ALICE_API alice_ResourceType alice_predict_resource_type(const char* file_extens
 ALICE_API const char* alice_get_texture_resource_filename(alice_Texture* texture);
 ALICE_API const char* alice_get_shader_resource_filename(alice_Shader* shader);
 ALICE_API const char* alice_get_material_resource_filename(alice_Material* material);
-ALICE_API const char* alice_get_mesh_resource_filename(alice_Mesh* mesh);
+ALICE_API const char* alice_get_model_resource_filename(alice_Model* model);
 
 ALICE_API void alice_get_working_dir(char* working_dir);
 
@@ -58,7 +58,7 @@ ALICE_API alice_Resource* alice_load_string(const char* path);
 ALICE_API alice_Texture* alice_load_texture(const char* path, alice_TextureFlags flags);
 ALICE_API alice_Shader* alice_load_shader(const char* path);
 ALICE_API alice_Material* alice_load_material(const char* path);
-ALICE_API alice_Mesh* alice_load_mesh(const char* path);
+ALICE_API alice_Model* alice_load_model(const char* path);
 
 ALICE_API void alice_save_material(alice_Material* material, const char* path);
 

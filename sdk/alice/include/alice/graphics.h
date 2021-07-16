@@ -140,13 +140,24 @@ typedef struct alice_Mesh {
 	alice_VertexBuffer* vb;
 } alice_Mesh;
 
-ALICE_API alice_Mesh* alice_new_mesh(alice_VertexBuffer* vb);
 ALICE_API void alice_init_mesh(alice_Mesh* mesh, alice_VertexBuffer* vb);
-ALICE_API void alice_free_mesh(alice_Mesh* mesh);
 ALICE_API void alice_deinit_mesh(alice_Mesh* mesh);
 
-ALICE_API alice_Mesh* alice_new_cube_mesh();
-ALICE_API alice_Mesh* alice_new_sphere_mesh();
+ALICE_API alice_Mesh alice_new_cube_mesh();
+ALICE_API alice_Mesh alice_new_sphere_mesh();
+
+typedef struct alice_Model {
+	alice_Mesh* meshes;
+	u32 mesh_count;
+	u32 mesh_capacity;
+} alice_Model;
+
+ALICE_API void alice_init_model(alice_Model* model);
+ALICE_API void alice_deinit_model(alice_Model* model);
+
+ALICE_API alice_Model* alice_new_model();
+ALICE_API void alice_free_model(alice_Model* model);
+ALICE_API void alice_model_add_mesh(alice_Model* model, alice_Mesh mesh);
 
 typedef struct alice_Camera3D {
 	alice_Entity base;
@@ -202,9 +213,16 @@ ALICE_API void alice_apply_material(alice_Scene* scene, alice_Material* material
 typedef struct alice_Renderable3D {
 	alice_Entity base;
 
-	alice_Material* material;
-	alice_Mesh* mesh;
+	alice_Material** materials;
+	u32 material_count;
+	u32 material_capacity;
+
+	alice_Model* model;
 } alice_Renderable3D;
+
+ALICE_API void alice_on_renderable_3d_create(alice_Scene* scene, alice_EntityHandle handle, void* ptr);
+ALICE_API void alice_on_renderable_3d_destroy(alice_Scene* scene, alice_EntityHandle handle, void* ptr);
+ALICE_API void alice_renderable_3d_add_material(alice_Renderable3D* renderable, const char* material_path);
 
 typedef struct alice_SceneRenderer3D {
 	alice_RenderTarget* bright_pixels;

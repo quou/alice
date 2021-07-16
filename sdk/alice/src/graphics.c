@@ -677,29 +677,13 @@ void alice_init_mesh(alice_Mesh* mesh, alice_VertexBuffer* vb) {
 	};
 }
 
-alice_Mesh* alice_new_mesh(alice_VertexBuffer* vb) {
-	alice_Mesh* mesh = malloc(sizeof(alice_Mesh));
-
-	alice_init_mesh(mesh, vb);
-
-	return mesh;
-}
-
 void alice_deinit_mesh(alice_Mesh* mesh) {
 	assert(mesh);
 
 	alice_free_vertex_buffer(mesh->vb);
 }
 
-void alice_free_mesh(alice_Mesh* mesh) {
-	assert(mesh);
-
-	alice_deinit_mesh(mesh);
-
-	free(mesh);
-}
-
-alice_Mesh* alice_new_cube_mesh() {
+alice_Mesh alice_new_cube_mesh() {
 	float verts[] = {
 		 0.5f,  0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.625, 0.500,
 		-0.5f,  0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.875, 0.500,
@@ -759,10 +743,14 @@ alice_Mesh* alice_new_cube_mesh() {
 	alice_configure_vertex_buffer(cube, 2, 2, 8, 6); /* vec2 uv */
 	alice_bind_vertex_buffer_for_edit(NULL);
 
-	return alice_new_mesh(cube);
+	alice_Mesh mesh;
+
+	alice_init_mesh(&mesh, cube);
+
+	return mesh;
 }
 
-alice_Mesh* alice_new_sphere_mesh() {
+alice_Mesh alice_new_sphere_mesh() {
 	const float sector_count = 36.0f;
 	const float stack_count = 18.0f;
 	const float radius = 0.5;
@@ -844,8 +832,59 @@ alice_Mesh* alice_new_sphere_mesh() {
 
 	free(vertices);
 	free(indices);
+	
+	alice_Mesh mesh;
 
-	return alice_new_mesh(sphere);
+	alice_init_mesh(&mesh, sphere);
+
+	return mesh;
+}
+
+void alice_init_model(alice_Model* model) {
+	assert(model);
+
+	model->meshes = alice_null;
+	model->mesh_count = 0;
+	model->mesh_capacity = 0;
+}
+
+void alice_deinit_model(alice_Model* model) {
+	assert(model);
+	
+	for (u32 i = 0; i < model->mesh_count; i++) {
+		alice_deinit_mesh(&model->meshes[i]);
+	}
+
+	if (model->mesh_capacity > 0) {
+		free(model->meshes);
+	}
+}
+
+alice_Model* alice_new_model() {
+	alice_Model* new = malloc(sizeof(alice_Model));
+
+	alice_init_model(new);
+
+	return new;
+}
+
+void alice_free_model(alice_Model* model) {
+	assert(model);
+
+	alice_deinit_model(model);	
+	
+	free(model);
+}
+
+void alice_model_add_mesh(alice_Model* model, alice_Mesh mesh) {
+	assert(model);
+
+	if (model->mesh_count >= model->mesh_capacity) {
+		model->mesh_capacity = alice_grow_capacity(model->mesh_capacity);
+		model->meshes = realloc(model->meshes, model->mesh_capacity * sizeof(alice_Mesh));
+	}
+
+	model->meshes[model->mesh_count++] = mesh;
 }
 
 void alice_render_clear() {
@@ -995,6 +1034,33 @@ void alice_apply_material(alice_Scene* scene, alice_Material* material) {
 	alice_shader_set_uint(material->shader, "directional_light_count", light_count);
 }
 
+void alice_on_renderable_3d_create(alice_Scene* scene, alice_EntityHandle handle, void* ptr) {
+	alice_Renderable3D* renderable = ptr;
+
+	renderable->materials = alice_null;
+	renderable->material_count = 0;
+	renderable->material_capacity = 0;
+}
+
+void alice_on_renderable_3d_destroy(alice_Scene* scene, alice_EntityHandle handle, void* ptr) {
+	alice_Renderable3D* renderable = ptr;
+
+	if (renderable->material_capacity > 0) {
+		free(renderable->materials);
+	}
+}
+
+void alice_renderable_3d_add_material(alice_Renderable3D* renderable, const char* material_path) {
+	assert(renderable);
+
+	if (renderable->material_count >= renderable->material_capacity) {
+		renderable->material_capacity = alice_grow_capacity(renderable->material_capacity);
+		renderable->materials = realloc(renderable->materials, renderable->material_capacity * sizeof(alice_Material*));
+	}
+
+	renderable->materials[renderable->material_count++] = alice_load_material(material_path);
+}
+
 alice_SceneRenderer3D* alice_new_scene_renderer_3d(alice_Shader* postprocess_shader,
 		alice_Shader* extract_shader, alice_Shader* blur_shader) {
 	assert(postprocess_shader);
@@ -1071,28 +1137,48 @@ void alice_render_scene_3d(alice_SceneRenderer3D* renderer, u32 width, u32 heigh
 
 		alice_m4f transform_matrix = alice_get_entity_transform(scene, (alice_Entity*)renderable);
 
-		alice_Mesh* mesh = renderable->mesh;
-		alice_VertexBuffer* vb = mesh->vb;
-		alice_Material* material = renderable->material;
+		alice_Model* model = renderable->model;
+		if (!model) {
+			continue;
+		}
 
-		alice_apply_material(scene, material);
+		for (u32 i = 0; i < model->mesh_count; i++) {
+			alice_Mesh* mesh = &model->meshes[i];
+			alice_VertexBuffer* vb = mesh->vb;
+			
+			alice_Material* material = alice_null;
+			if (i < renderable->material_count) {
+				material = renderable->materials[i];
+			} else if (renderable->material_count == 1) {
+				material = renderable->materials[0];
+			}
+			
+			if (!material) {
+				goto renderable_iter_continue;
+			}
 
-		alice_Shader* shader = material->shader;
+			alice_apply_material(scene, material);
 
-		alice_m4f model = transform_matrix;
-		model = alice_m4f_translate(model, mesh->translation);
-		model = alice_m4f_rotate(model, mesh->rotation.z, (alice_v3f){0.0, 0.0, 1.0});
-		model = alice_m4f_rotate(model, mesh->rotation.y, (alice_v3f){0.0, 1.0, 0.0});
-		model = alice_m4f_rotate(model, mesh->rotation.x, (alice_v3f){1.0, 0.0, 0.0});
-		model = alice_m4f_scale(model, mesh->scale);
+			alice_Shader* shader = material->shader;
 
-		alice_shader_set_m4f(shader, "transform", model);
-		alice_shader_set_v3f(shader, "camera_position", camera->base.position);
-		alice_shader_set_float(shader, "gamma", camera->gamma);
-		alice_shader_set_m4f(shader, "camera", alice_get_camera_3d_matrix(scene, camera));
+			alice_m4f model = transform_matrix;
+			model = alice_m4f_translate(model, mesh->translation);
+			model = alice_m4f_rotate(model, mesh->rotation.z, (alice_v3f){0.0, 0.0, 1.0});
+			model = alice_m4f_rotate(model, mesh->rotation.y, (alice_v3f){0.0, 1.0, 0.0});
+			model = alice_m4f_rotate(model, mesh->rotation.x, (alice_v3f){1.0, 0.0, 0.0});
+			model = alice_m4f_scale(model, mesh->scale);
 
-		alice_bind_vertex_buffer_for_draw(vb);
-		alice_draw_vertex_buffer(vb);
+			alice_shader_set_m4f(shader, "transform", model);
+			alice_shader_set_v3f(shader, "camera_position", camera->base.position);
+			alice_shader_set_float(shader, "gamma", camera->gamma);
+			alice_shader_set_m4f(shader, "camera", alice_get_camera_3d_matrix(scene, camera));
+
+			alice_bind_vertex_buffer_for_draw(vb);
+			alice_draw_vertex_buffer(vb);
+		}
+
+renderable_iter_continue:
+		continue;
 	}
 
 	alice_unbind_render_target(renderer->output);

@@ -39,8 +39,10 @@ scene {
 			y 1;
 			z 1;
 		}
-		mesh "cube";
-		material "materials/basic.mat";
+		model "cube";
+		materials {
+			material0 "materials/basic.mat";
+		}
 	}
 	directional_light {
 		name "sun";

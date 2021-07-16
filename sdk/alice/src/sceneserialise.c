@@ -98,16 +98,29 @@ static void alice_serialise_entity(alice_DTable* table, alice_Scene* scene, alic
 		case ALICE_ST_RENDERABLE3D: {
 			alice_Renderable3D* renderable = (alice_Renderable3D*)entity;
 
-			alice_DTable mesh_table = alice_new_string_dtable("mesh",
-					alice_get_mesh_resource_filename(renderable->mesh));
-			alice_dtable_add_child(&entity_table, mesh_table);
+			alice_DTable model_table = alice_new_string_dtable("model",
+					alice_get_model_resource_filename(renderable->model));
+			alice_dtable_add_child(&entity_table, model_table);
 
+			alice_DTable materials_table = alice_new_empty_dtable("materials");
 
-			const char* material_path = alice_get_material_resource_filename(renderable->material);
-			alice_save_material(renderable->material, material_path);
-			alice_DTable material_table = alice_new_string_dtable("material", material_path);
+			for (u32 i = 0; i < renderable->material_count; i++) {
+				char material_name[256];
+				sprintf(material_name, "material%d", i);
 			
-			alice_dtable_add_child(&entity_table, material_table);
+				alice_Material* material = renderable->materials[i];
+
+				const char* material_path =
+					alice_get_material_resource_filename(material);
+				alice_save_material(material, material_path);
+				alice_DTable material_table = 
+					alice_new_string_dtable(material_name, material_path);
+				
+				alice_dtable_add_child(&materials_table, material_table);
+			}
+			
+			alice_dtable_add_child(&entity_table, materials_table);
+
 			break;
 		    }
 		case ALICE_ST_POINTLIGHT: {
@@ -321,15 +334,21 @@ static alice_EntityHandle alice_deserialise_entity(alice_DTable* table, alice_Sc
 		case ALICE_ST_RENDERABLE3D: {
 			alice_Renderable3D* renderable = (alice_Renderable3D*)entity;
 			
-			alice_DTable* mesh_path_table = alice_dtable_find_child(table, "mesh");
-			if (mesh_path_table && mesh_path_table->value.type == ALICE_DTABLE_STRING) {
-				renderable->mesh = alice_load_mesh(mesh_path_table->value.as.string);
+			alice_DTable* model_path_table = alice_dtable_find_child(table, "model");
+			if (model_path_table && model_path_table->value.type == ALICE_DTABLE_STRING) {
+				renderable->model = alice_load_model(model_path_table->value.as.string);
 			}
 
-			alice_DTable* material_path_table = alice_dtable_find_child(table, "material");
-			if (material_path_table && material_path_table->value.type == ALICE_DTABLE_STRING) {
-				renderable->material = 
-					alice_load_material(material_path_table->value.as.string);
+			alice_DTable* materials_table = alice_dtable_find_child(table, "materials");
+			if (materials_table) {
+				for (u32 i = 0; i < materials_table->child_count; i++) {
+					alice_DTable* material_table = &materials_table->children[i];
+
+					if (material_table->value.type == ALICE_DTABLE_STRING) {
+						alice_renderable_3d_add_material(renderable,
+								material_table->value.as.string);
+					}
+				}
 			}
 
 			break;

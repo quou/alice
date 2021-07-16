@@ -101,7 +101,9 @@ scene {
 			y 1;
 			z 1;
 		}
-		mesh "cube";
-		material "materials/rustediron.mat";
+		model "cube";
+		materials {
+			material0 "materials/basic.mat";
+		}
 	}
 }
