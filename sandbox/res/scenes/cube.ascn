@@ -41,7 +41,7 @@ scene {
 		}
 		model "cube";
 		materials {
-			material0 "materials/basic.mat";
+			material0 "default_material";
 		}
 	}
 	directional_light {

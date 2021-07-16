@@ -193,43 +193,86 @@ void alice_init_resource_manager(const char* working_dir) {
 }
 
 void alice_init_default_resources() {
-	alice_Resource* cube_resource = malloc(sizeof(alice_Resource));
-	*cube_resource = (alice_Resource){
-		.type = ALICE_RESOURCE_MODEL,
+	/* Default cube */
+	{
+		alice_Resource* cube_resource = malloc(sizeof(alice_Resource));
+		*cube_resource = (alice_Resource){
+			.type = ALICE_RESOURCE_MODEL,
 
-		.payload = alice_new_model(),
-		.payload_size = sizeof(alice_Model),
+			.payload = alice_new_model(),
+			.payload_size = sizeof(alice_Model),
 
-		.modtime = 0,
+			.modtime = 0,
 
-		.file_name = malloc(5),
-		.file_name_length = 5,
-		.file_name_hash = alice_hash_string("cube")
-	};
-	strcpy(cube_resource->file_name, "cube");
-	
-	alice_model_add_mesh(cube_resource->payload, alice_new_cube_mesh());
+			.file_name = malloc(5),
+			.file_name_length = 5,
+			.file_name_hash = alice_hash_string("cube")
+		};
+		strcpy(cube_resource->file_name, "cube");
+		
+		alice_model_add_mesh(cube_resource->payload, alice_new_cube_mesh());
 
-	alice_resource_manager_add(cube_resource);
+		alice_resource_manager_add(cube_resource);
+	}
 
-	alice_Resource* sphere_resource = malloc(sizeof(alice_Resource));
-	*sphere_resource = (alice_Resource){
-		.type = ALICE_RESOURCE_MODEL,
+	/* Default sphere */
+	{
+		alice_Resource* sphere_resource = malloc(sizeof(alice_Resource));
+		*sphere_resource = (alice_Resource){
+			.type = ALICE_RESOURCE_MODEL,
 
-		.payload = alice_new_model(),
-		.payload_size = sizeof(alice_Model),
+			.payload = alice_new_model(),
+			.payload_size = sizeof(alice_Model),
 
-		.modtime = 0,
+			.modtime = 0,
 
-		.file_name = malloc(7),
-		.file_name_length = 7,
-		.file_name_hash = alice_hash_string("sphere")
-	};
-	alice_model_add_mesh(sphere_resource->payload, alice_new_sphere_mesh());
+			.file_name = malloc(7),
+			.file_name_length = 7,
+			.file_name_hash = alice_hash_string("sphere")
+		};
+		alice_model_add_mesh(sphere_resource->payload, alice_new_sphere_mesh());
 
-	strcpy(sphere_resource->file_name, "sphere");
-	
-	alice_resource_manager_add(sphere_resource);
+		strcpy(sphere_resource->file_name, "sphere");
+		
+		alice_resource_manager_add(sphere_resource);
+	}
+
+	/* Default material */
+	{
+		const char* name = "default_material";
+		const u32 name_len = strlen(name);
+
+		alice_Resource* default_material_resource = malloc(sizeof(alice_Resource));
+		*default_material_resource = (alice_Resource) {
+			.type = ALICE_RESOURCE_MATERIAL,
+
+			.payload = malloc(sizeof(alice_Material)),
+			.payload_size = sizeof(alice_Material),
+
+			.modtime = 0,
+
+			.file_name = malloc(name_len + 1),
+			.file_name_length = name_len,
+			.file_name_hash = alice_hash_string(name)
+		};
+		strcpy(default_material_resource->file_name, name);
+
+		*((alice_Material*)default_material_resource->payload) = (alice_Material) {
+			.shader = alice_load_shader("shaders/pbr.glsl"),
+			.albedo = 0xffffff,
+			.roughness = 1.0f,
+			.metallic = 1.0f,
+			.emissive = 0.0f,
+
+			.albedo_map = alice_null,
+			.normal_map = alice_null,
+			.metallic_map = alice_null,
+			.roughness_map = alice_null,
+			.ambient_occlusion_map = alice_null
+		};
+
+		alice_resource_manager_add(default_material_resource);
+	}
 }
 
 void alice_get_working_dir(char* working_dir) {
