@@ -22,10 +22,10 @@ void main() {
 
 	alice_init_default_resources();
 
-	alice_Scene* scene = alice_new_scene();	
+	alice_Scene* scene = alice_new_scene();
 	alice_deserialise_scene(scene, "scenes/monkey.ascn");
 	alice_serialise_scene(scene, "scenes/monkey.ascn");
-	
+
 	alice_SceneRenderer3D* renderer = alice_new_scene_renderer_3d(
 			alice_load_shader("shaders/postprocess.glsl"),
 			alice_load_shader("shaders/bright_extract.glsl"),
@@ -37,19 +37,26 @@ void main() {
 	char fps_buffer[256] = "";
 	double time_until_fps_write = 1.0;
 
+	bool fullscreen = false;
+
 	while (alice_is_application_running()) {
 		alice_reload_changed_resources();
-		
+
 		alice_update_events();
 
 		alice_render_clear();
 
 		alice_Application* app = alice_get_application();
-		
+
 		time_until_fps_write -= app->timestep;
 		if (time_until_fps_write <= 0.0) {
 			time_until_fps_write = 1.0;
 			sprintf(fps_buffer, "fps: %g", 1.0 / app->timestep);
+		}
+
+		if (alice_key_just_pressed(ALICE_KEY_F11)) {
+			fullscreen = !fullscreen;
+			alice_set_application_fullscreen(0, fullscreen);
 		}
 
 		alice_set_text_renderer_dimentions(text_renderer, (alice_v2f){app->width, app->height});

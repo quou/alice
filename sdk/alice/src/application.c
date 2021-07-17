@@ -98,7 +98,11 @@ void alice_init_application(alice_ApplicationConfig cfg) {
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	app.window = glfwCreateWindow(app.width, app.height, app.name,
-		cfg.fullscreen ? glfwGetPrimaryMonitor() : NULL, NULL);
+		alice_null, alice_null);
+
+	if (cfg.fullscreen) {
+		alice_set_application_fullscreen(0, true);
+	}
 
 	if (!app.window) {
 		alice_log_error("Failed to create window");
@@ -151,9 +155,9 @@ void alice_init_application(alice_ApplicationConfig cfg) {
 		};
 
 		alice_VertexBuffer* quad = alice_new_vertex_buffer(
-				ALICE_VERTEXBUFFER_STATIC_DRAW | 
+				ALICE_VERTEXBUFFER_STATIC_DRAW |
 				ALICE_VERTEXBUFFER_DRAW_TRIANGLES);
-		
+
 		alice_bind_vertex_buffer_for_edit(quad);
 		alice_push_vertices(quad, verts, sizeof(verts) / sizeof(float));
 		alice_push_indices(quad, indices, sizeof(indices) / sizeof(u32));
@@ -175,7 +179,7 @@ void alice_init_application(alice_ApplicationConfig cfg) {
 		alice_shader_set_int(shader, "image", 0);
 		alice_shader_set_m4f(shader, "transform", model);
 		alice_shader_set_m4f(shader, "projection", projection);
-		
+
 		alice_bind_vertex_buffer_for_draw(quad);
 		alice_draw_vertex_buffer(quad);
 
@@ -213,6 +217,40 @@ void alice_cancel_application_quit() {
 void alice_free_application() {
 	glfwDestroyWindow(app.window);
 	glfwTerminate();
+}
+
+void alice_resize_application(u32 new_width, u32 new_height) {
+	app.width = new_width;
+	app.height = new_height;
+
+	glfwSetWindowSize(app.window, new_width, new_height);
+}
+
+void alice_rename_application(const char* new_name) {
+	app.name = new_name;
+
+	glfwSetWindowTitle(app.window, new_name);
+}
+
+void alice_set_application_fullscreen(u32 monitor_index, bool fullscreen) {
+	if (fullscreen) {
+		i32 monitor_count;
+		GLFWmonitor** monitors = glfwGetMonitors(&monitor_count);
+
+		if (monitor_index >= monitor_count) {
+			monitor_index = 0;
+		}
+
+		GLFWmonitor* monitor = monitors[monitor_index];
+
+		const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+		glfwSetWindowMonitor(app.window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+
+		app.width = mode->width;
+		app.height = mode->height;
+	} else {
+		glfwSetWindowMonitor(app.window, alice_null, 100, 100, app.width, app.height, 0);
+	}
 }
 
 double alice_get_timestep() {

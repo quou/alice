@@ -35,4 +35,8 @@ ALICE_API bool alice_is_application_running();
 ALICE_API void alice_quit_application();
 ALICE_API void alice_cancel_application_quit();
 
+ALICE_API void alice_resize_application(u32 new_width, u32 new_height);
+ALICE_API void alice_rename_application(const char* new_name);
+ALICE_API void alice_set_application_fullscreen(u32 monitor_index, bool fullscreen);
+
 ALICE_API double alice_get_timestep();
