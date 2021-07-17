@@ -1,17 +1,17 @@
-scene  {
-	camera_3d  {
+scene {
+	camera_3d {
 		name "main camera";
-		position  {
+		position {
 			x 0;
 			y 3;
 			z 0;
 		}
-		rotation  {
+		rotation {
 			x -45;
 			y 0;
 			z 0;
 		}
-		scale  {
+		scale {
 			x 1;
 			y 1;
 			z 1;
@@ -22,19 +22,19 @@ scene  {
 		exposure 1;
 		gamma 1.4;
 	}
-	renderable_3d  {
+	renderable_3d {
 		name "monkey";
-		position  {
+		position {
 			x 0;
 			y 0;
 			z 3;
 		}
-		rotation  {
+		rotation {
 			x 0;
 			y 180;
 			z 0;
 		}
-		scale  {
+		scale {
 			x 1;
 			y 1;
 			z 1;
@@ -45,24 +45,24 @@ scene  {
 		]
 
 	}
-	directional_light  {
+	directional_light {
 		name "sun";
-		position  {
+		position {
 			x 1;
 			y -1;
 			z 0;
 		}
-		rotation  {
+		rotation {
 			x 0;
 			y 0;
 			z 0;
 		}
-		scale  {
+		scale {
 			x 1;
 			y 1;
 			z 1;
 		}
-		color  {
+		color {
 			r 1;
 			g 1;
 			b 1;

@@ -585,7 +585,7 @@ static void impl_alice_write_dtable(alice_DTable* table, PHYSFS_File* file, u32 
 	alice_write_dtable_value(file, table->value, indent);
 
 	if (table->child_count > 0) {
-		PHYSFS_writeBytes(file, " {", 2);
+		PHYSFS_writeBytes(file, "{", 1);
 	}
 	PHYSFS_writeBytes(file, "\n", 1);
 
