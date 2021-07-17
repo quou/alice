@@ -102,12 +102,9 @@ static void alice_serialise_entity(alice_DTable* table, alice_Scene* scene, alic
 					alice_get_model_resource_filename(renderable->model));
 			alice_dtable_add_child(&entity_table, model_table);
 
-			alice_DTable materials_table = alice_new_empty_dtable("materials");
+			alice_DTableValueArray* material_array = alice_new_dtable_value_array();
 
 			for (u32 i = 0; i < renderable->material_count; i++) {
-				char material_name[256];
-				sprintf(material_name, "material%d", i);
-
 				alice_Material* material = renderable->materials[i];
 
 				const char* material_path =
@@ -115,12 +112,15 @@ static void alice_serialise_entity(alice_DTable* table, alice_Scene* scene, alic
 				if (strcmp(material_path, "default_material") != 0) {
 					alice_save_material(material, material_path);
 				}
-				alice_DTable material_table = 
-					alice_new_string_dtable(material_name, material_path);
-				
-				alice_dtable_add_child(&materials_table, material_table);
+
+				alice_DTableValue material_path_value;
+				material_path_value.type = ALICE_DTABLE_STRING;
+				material_path_value.as.string = alice_copy_string(material_path);
+
+				alice_dtable_value_array_add(material_array, material_path_value);
 			}
-			
+
+			alice_DTable materials_table = alice_new_array_dtable("materials", material_array);
 			alice_dtable_add_child(&entity_table, materials_table);
 
 			break;
@@ -129,12 +129,12 @@ static void alice_serialise_entity(alice_DTable* table, alice_Scene* scene, alic
 			alice_PointLight* light = (alice_PointLight*)entity;
 
 			alice_RGBColor color = alice_rgb_color_from_color(light->color);
-			
+
 			alice_DTable color_table = alice_new_empty_dtable("color");
 			alice_DTable r_table = alice_new_number_dtable("r", color.r);
 			alice_DTable g_table = alice_new_number_dtable("g", color.g);
 			alice_DTable b_table = alice_new_number_dtable("b", color.b);
-	
+
 			alice_dtable_add_child(&color_table, r_table);
 			alice_dtable_add_child(&color_table, g_table);
 			alice_dtable_add_child(&color_table, b_table);
@@ -146,19 +146,19 @@ static void alice_serialise_entity(alice_DTable* table, alice_Scene* scene, alic
 
 			alice_DTable intensity_table = alice_new_number_dtable("intensity", light->intensity);
 			alice_dtable_add_child(&entity_table, intensity_table);
-			
+
 			break;
 		}
 		case ALICE_ST_DIRECTIONALLIGHT: {
 			alice_DirectionalLight* light = (alice_DirectionalLight*)entity;
 
 			alice_RGBColor color = alice_rgb_color_from_color(light->color);
-			
+
 			alice_DTable color_table = alice_new_empty_dtable("color");
 			alice_DTable r_table = alice_new_number_dtable("r", color.r);
 			alice_DTable g_table = alice_new_number_dtable("g", color.g);
 			alice_DTable b_table = alice_new_number_dtable("b", color.b);
-	
+
 			alice_dtable_add_child(&color_table, r_table);
 			alice_dtable_add_child(&color_table, g_table);
 			alice_dtable_add_child(&color_table, b_table);
@@ -167,7 +167,7 @@ static void alice_serialise_entity(alice_DTable* table, alice_Scene* scene, alic
 
 			alice_DTable intensity_table = alice_new_number_dtable("intensity", light->intensity);
 			alice_dtable_add_child(&entity_table, intensity_table);
-			
+
 			break;
 		}
 		case ALICE_ST_CAMERA3D: {
@@ -175,10 +175,10 @@ static void alice_serialise_entity(alice_DTable* table, alice_Scene* scene, alic
 
 			alice_DTable fov_table = alice_new_number_dtable("fov", camera->fov);
 			alice_dtable_add_child(&entity_table, fov_table);
-			
+
 			alice_DTable near_table = alice_new_number_dtable("near", camera->near);
 			alice_dtable_add_child(&entity_table, near_table);
-			
+
 			alice_DTable far_table = alice_new_number_dtable("far", camera->far);
 			alice_dtable_add_child(&entity_table, far_table);
 
@@ -223,7 +223,7 @@ void alice_serialise_scene(alice_Scene* scene, const char* file_path) {
 		}
 	}
 
-	alice_write_dtable(&table, file_path);	
+	alice_write_dtable(&table, file_path);
 
 	alice_deinit_dtable(&table);
 }
@@ -247,9 +247,9 @@ static alice_SerialisableType alice_determine_dtable_type(alice_DTable* table) {
 static alice_EntityHandle alice_deserialise_entity(alice_DTable* table, alice_Scene* scene) {
 	assert(table);
 	assert(scene);
-	
+
 	const alice_SerialisableType entity_type = alice_determine_dtable_type(table);
-	
+
 	alice_TypeInfo create_type = alice_get_type_info(alice_Entity);
 
 	switch (entity_type) {
@@ -289,13 +289,13 @@ static alice_EntityHandle alice_deserialise_entity(alice_DTable* table, alice_Sc
 		if (y_table && y_table->value.type == ALICE_DTABLE_NUMBER) {
 			entity->position.y = y_table->value.as.number;
 		}
-		
+
 		alice_DTable* z_table = alice_dtable_find_child(position_table, "z");
 		if (z_table && z_table->value.type == ALICE_DTABLE_NUMBER) {
 			entity->position.z = z_table->value.as.number;
 		}
 	}
-	
+
 	alice_DTable* rotation_table = alice_dtable_find_child(table, "rotation");
 	if (rotation_table) {
 		alice_DTable* x_table = alice_dtable_find_child(rotation_table, "x");
@@ -307,13 +307,13 @@ static alice_EntityHandle alice_deserialise_entity(alice_DTable* table, alice_Sc
 		if (y_table && y_table->value.type == ALICE_DTABLE_NUMBER) {
 			entity->rotation.y = y_table->value.as.number;
 		}
-		
+
 		alice_DTable* z_table = alice_dtable_find_child(rotation_table, "z");
 		if (z_table && z_table->value.type == ALICE_DTABLE_NUMBER) {
 			entity->rotation.z = z_table->value.as.number;
 		}
 	}
-	
+
 	alice_DTable* scale_table = alice_dtable_find_child(table, "scale");
 	if (scale_table) {
 		alice_DTable* x_table = alice_dtable_find_child(scale_table, "x");
@@ -325,7 +325,7 @@ static alice_EntityHandle alice_deserialise_entity(alice_DTable* table, alice_Sc
 		if (y_table && y_table->value.type == ALICE_DTABLE_NUMBER) {
 			entity->scale.y = y_table->value.as.number;
 		}
-		
+
 		alice_DTable* z_table = alice_dtable_find_child(scale_table, "z");
 		if (z_table && z_table->value.type == ALICE_DTABLE_NUMBER) {
 			entity->scale.z = z_table->value.as.number;
@@ -335,20 +335,20 @@ static alice_EntityHandle alice_deserialise_entity(alice_DTable* table, alice_Sc
 	switch (entity_type) {
 		case ALICE_ST_RENDERABLE3D: {
 			alice_Renderable3D* renderable = (alice_Renderable3D*)entity;
-			
+
 			alice_DTable* model_path_table = alice_dtable_find_child(table, "model");
 			if (model_path_table && model_path_table->value.type == ALICE_DTABLE_STRING) {
 				renderable->model = alice_load_model(model_path_table->value.as.string);
 			}
 
 			alice_DTable* materials_table = alice_dtable_find_child(table, "materials");
-			if (materials_table) {
-				for (u32 i = 0; i < materials_table->child_count; i++) {
-					alice_DTable* material_table = &materials_table->children[i];
+			if (materials_table && materials_table->value.type == ALICE_DTABLE_ARRAY) {
+				alice_DTableValueArray* array = materials_table->value.as.array;
+				for (u32 i = 0; i < array->count; i++) {
+					alice_DTableValue* value = &array->values[i];
 
-					if (material_table->value.type == ALICE_DTABLE_STRING) {
-						alice_renderable_3d_add_material(renderable,
-								material_table->value.as.string);
+					if (value->type == ALICE_DTABLE_STRING) {
+						alice_renderable_3d_add_material(renderable, value->as.string);
 					}
 				}
 			}
@@ -403,7 +403,7 @@ static alice_EntityHandle alice_deserialise_entity(alice_DTable* table, alice_Sc
 				light->intensity = intensity_table->value.as.number;
 			}
 
-			
+
 			alice_DTable* color_table = alice_dtable_find_child(table, "color");
 			if (color_table) {
 				alice_RGBColor color = (alice_RGBColor){1.0, 1.0, 1.0};
@@ -435,7 +435,7 @@ static alice_EntityHandle alice_deserialise_entity(alice_DTable* table, alice_Sc
 			if (intensity_table && intensity_table->value.type == ALICE_DTABLE_NUMBER) {
 				light->intensity = intensity_table->value.as.number;
 			}
-	
+
 			alice_DTable* color_table = alice_dtable_find_child(table, "color");
 			if (color_table) {
 				alice_RGBColor color = (alice_RGBColor){1.0, 1.0, 1.0};
@@ -478,7 +478,7 @@ static alice_EntityHandle alice_deserialise_entity(alice_DTable* table, alice_Sc
 
 void alice_deserialise_scene(alice_Scene* scene, const char* file_path) {
 	assert(scene);
-	
+
 	alice_DTable* table = alice_read_dtable(alice_load_string(file_path));
 	if (!table) { return; }
 

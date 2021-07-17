@@ -1,11 +1,11 @@
-material {
+material  {
 	shader "/shaders/pbr.glsl";
 	albedo_map "/textures/pirate-gold_albedo.png";
 	normal_map "/textures/pirate-gold_normal-ogl.png";
 	metallic_map "/textures/pirate-gold_metallic.png";
 	roughness_map "/textures/pirate-gold_roughness.png";
 	ao_map "/textures/pirate-gold_ao.png";
-	albedo {
+	albedo  {
 		r 1;
 		g 1;
 		b 1;
