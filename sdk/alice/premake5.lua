@@ -21,6 +21,7 @@ project "alice"
 		"../extern/glad/include",
 		"../extern/stb/include",
 		"../extern/physfs/src",
+		"../extern/lua/src",
 		"../extern/assimp/include",
 		"include"
 	}
@@ -30,7 +31,8 @@ project "alice"
 		"glfw",
 		"glad",
 		"stb",
-		"physfs"
+		"physfs",
+		"lua"
 	}
 
 	defines {

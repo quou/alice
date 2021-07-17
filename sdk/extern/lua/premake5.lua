@@ -1,4 +1,4 @@
-project "physfs"
+project "lua"
 	kind "StaticLib"
 	language "C"
 	
