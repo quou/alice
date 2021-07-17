@@ -23,6 +23,8 @@ typedef struct alice_DTableValue {
 	} as;
 } alice_DTableValue;
 
+ALICE_API void alice_free_dtable_value(alice_DTableValue* value);
+
 typedef struct alice_DTableValueArray {
 	alice_DTableValue* values;
 	u32 count;
@@ -37,6 +39,7 @@ typedef struct alice_DTable alice_DTable;
 
 typedef struct alice_DTable {
 	char* name;
+	u32 name_hash;
 
 	alice_DTableValue value;
 

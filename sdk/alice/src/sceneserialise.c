@@ -98,8 +98,9 @@ static void alice_serialise_entity(alice_DTable* table, alice_Scene* scene, alic
 		case ALICE_ST_RENDERABLE3D: {
 			alice_Renderable3D* renderable = (alice_Renderable3D*)entity;
 
-			alice_DTable model_table = alice_new_string_dtable("model",
-					alice_get_model_resource_filename(renderable->model));
+			const char* model_path = alice_get_model_resource_filename(renderable->model);
+
+			alice_DTable model_table = alice_new_string_dtable("model", model_path);
 			alice_dtable_add_child(&entity_table, model_table);
 
 			alice_DTableValueArray* material_array = alice_new_dtable_value_array();
