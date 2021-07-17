@@ -26,6 +26,9 @@ in VS_OUT {
 
 out vec4 color;
 
+uniform bool use_antialiasing;
+uniform bool use_bloom;
+
 uniform sampler2D input_color;
 uniform sampler2D bloom_texture;
 uniform vec3 color_mod = vec3(1.0);
@@ -81,8 +84,18 @@ vec4 get_antialiased_color() {
 }
 
 void main() {
-	vec3 hdr_color = color_mod * get_antialiased_color().rgb;
-	vec3 bloom_color = texture(bloom_texture, fs_in.uv).rgb;
+	vec3 hdr_color = vec3(0.0);
+	if (use_antialiasing) {
+		hdr_color = color_mod * get_antialiased_color().rgb;
+	} else {
+		hdr_color = color_mod * texture(input_color, fs_in.uv).rgb;
+	}
+
+	vec3 bloom_color = vec3(0.0);
+
+	if (use_bloom) {
+		bloom_color = texture(bloom_texture, fs_in.uv).rgb;
+	}
 
 	hdr_color += bloom_color;
 	

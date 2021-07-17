@@ -31,6 +31,9 @@ void main() {
 			alice_load_shader("shaders/bright_extract.glsl"),
 			alice_load_shader("shaders/blur.glsl"));
 
+	renderer->use_bloom = true;
+	renderer->use_antialiasing = true;
+
 	alice_TextRenderer* text_renderer = alice_new_text_renderer(alice_load_binary("fonts/opensans.ttf"),
 			32.0f, alice_load_shader("shaders/text.glsl"));
 

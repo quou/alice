@@ -1076,6 +1076,9 @@ alice_SceneRenderer3D* alice_new_scene_renderer_3d(alice_Shader* postprocess_sha
 	new->extract = extract_shader;
 	new->blur = blur_shader;
 
+	new->use_bloom = false;
+	new->use_antialiasing = false;
+
 	new->color_mod = ALICE_COLOR_WHITE;
 
 	float verts[] = {
@@ -1177,57 +1180,60 @@ renderable_iter_continue:
 
 	alice_unbind_render_target(renderer->output);
 
-	/* Draw bright areas to bloom target */
-	alice_resize_render_target(renderer->bright_pixels, width, height);
-	alice_bind_render_target(renderer->bright_pixels, width, height);
 
-	alice_bind_shader(renderer->extract);
-
-	alice_render_target_bind_output(renderer->output, 0, 0);
-	alice_shader_set_int(renderer->extract, "input_color", 0);
-
-	alice_shader_set_float(renderer->extract, "input_width", renderer->output->width);
-	alice_shader_set_float(renderer->extract, "input_height", renderer->output->height);
-
-	alice_bind_vertex_buffer_for_draw(renderer->quad);
-	alice_draw_vertex_buffer(renderer->quad);
-	alice_bind_vertex_buffer_for_draw(alice_null);
-
-	alice_unbind_render_target(renderer->bright_pixels);
-
-	/* Blur the bloom target */
-	bool horizontal = true;
-	bool first_iteration = true;
 	alice_RenderTarget* bloom_output;
-	for (u32 i = 0; i < 10; i++) {
-		bloom_output = renderer->bloom_ping_pong[horizontal];
+	if (renderer->use_bloom) {
+		/* Draw bright areas to bloom target */
+		alice_resize_render_target(renderer->bright_pixels, width, height);
+		alice_bind_render_target(renderer->bright_pixels, width, height);
 
-		alice_resize_render_target(bloom_output, width, height);
-		alice_bind_render_target(bloom_output, width, height);
+		alice_bind_shader(renderer->extract);
 
-		alice_bind_shader(renderer->blur);
+		alice_render_target_bind_output(renderer->output, 0, 0);
+		alice_shader_set_int(renderer->extract, "input_color", 0);
 
-		if (first_iteration) {
-			alice_render_target_bind_output(renderer->bright_pixels, 0, 0);
-			first_iteration = false;
-		} else {
-			alice_render_target_bind_output(renderer->bloom_ping_pong[!horizontal], 0, 0);
-		}
-
-		alice_shader_set_int(renderer->blur, "input_color", 0);
-
-		alice_shader_set_int(renderer->blur, "horizontal", horizontal);
-
-		alice_shader_set_float(renderer->blur, "input_width", renderer->bright_pixels->width);
-		alice_shader_set_float(renderer->blur, "input_height", renderer->bright_pixels->height);
+		alice_shader_set_float(renderer->extract, "input_width", renderer->output->width);
+		alice_shader_set_float(renderer->extract, "input_height", renderer->output->height);
 
 		alice_bind_vertex_buffer_for_draw(renderer->quad);
 		alice_draw_vertex_buffer(renderer->quad);
 		alice_bind_vertex_buffer_for_draw(alice_null);
 
-		alice_unbind_render_target(bloom_output);
+		alice_unbind_render_target(renderer->bright_pixels);
 
-		horizontal = !horizontal;
+		/* Blur the bloom target */
+		bool horizontal = true;
+		bool first_iteration = true;
+		for (u32 i = 0; i < 10; i++) {
+			bloom_output = renderer->bloom_ping_pong[horizontal];
+
+			alice_resize_render_target(bloom_output, width, height);
+			alice_bind_render_target(bloom_output, width, height);
+
+			alice_bind_shader(renderer->blur);
+
+			if (first_iteration) {
+				alice_render_target_bind_output(renderer->bright_pixels, 0, 0);
+				first_iteration = false;
+			} else {
+				alice_render_target_bind_output(renderer->bloom_ping_pong[!horizontal], 0, 0);
+			}
+
+			alice_shader_set_int(renderer->blur, "input_color", 0);
+
+			alice_shader_set_int(renderer->blur, "horizontal", horizontal);
+
+			alice_shader_set_float(renderer->blur, "input_width", renderer->bright_pixels->width);
+			alice_shader_set_float(renderer->blur, "input_height", renderer->bright_pixels->height);
+
+			alice_bind_vertex_buffer_for_draw(renderer->quad);
+			alice_draw_vertex_buffer(renderer->quad);
+			alice_bind_vertex_buffer_for_draw(alice_null);
+
+			alice_unbind_render_target(bloom_output);
+
+			horizontal = !horizontal;
+		}
 	}
 
 	/* Draw to render target/backbuffer */
@@ -1238,10 +1244,16 @@ renderable_iter_continue:
 
 	alice_bind_shader(renderer->postprocess);
 	alice_render_target_bind_output(renderer->output, 0, 0);
-	alice_render_target_bind_output(bloom_output, 0, 1);
+
+	if (renderer->use_bloom) {
+		alice_render_target_bind_output(bloom_output, 0, 1);
+		alice_shader_set_int(renderer->postprocess, "bloom_texture", 1);
+	}
+
+	alice_shader_set_int(renderer->postprocess, "use_bloom", renderer->use_bloom);
+	alice_shader_set_int(renderer->postprocess, "use_antialiasing", renderer->use_antialiasing);
 
 	alice_shader_set_int(renderer->postprocess, "input_color", 0);
-	alice_shader_set_int(renderer->postprocess, "bloom_texture", 1);
 
 	alice_shader_set_float(renderer->postprocess, "input_width", renderer->output->width);
 	alice_shader_set_float(renderer->postprocess, "input_height", renderer->output->height);

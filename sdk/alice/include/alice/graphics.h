@@ -231,6 +231,9 @@ typedef struct alice_SceneRenderer3D {
 	alice_Shader* extract;
 	alice_Shader* blur;
 
+	bool use_bloom;
+	bool use_antialiasing;
+
 	alice_Color color_mod;
 } alice_SceneRenderer3D;
 
