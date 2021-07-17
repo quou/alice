@@ -385,6 +385,7 @@ static alice_EntityHandle alice_deserialise_entity(alice_DTable* table, alice_Sc
 
 			alice_DTable* active_table = alice_dtable_find_child(table, "active");
 			if (active_table && active_table->value.type == ALICE_DTABLE_BOOL) {
+				alice_log("hi");
 				camera->active = active_table->value.as.number;
 			}
 

@@ -7,6 +7,9 @@ project "assimp"
   targetdir "bin"
   objdir "obj"
 
+
+  pic "on"
+
 	architecture "x64"
 
   defines {

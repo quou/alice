@@ -6,6 +6,8 @@ project "physfs"
 
 	architecture "x64"
 
+	pic "on"
+
 	targetdir "bin"
 	objdir "obj"
 

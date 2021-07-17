@@ -9,6 +9,8 @@ project "lua"
 	targetdir "bin"
 	objdir "obj"
 
+	pic "on"
+
 	files {
 		"src/**.c",
 		"src/**.h"

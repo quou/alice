@@ -53,7 +53,7 @@ project "alice"
 			"dl",
 			"X11",
 			"m",
-			"GL"
+			"GL",
 		}
 
 	filter "system:windows"
