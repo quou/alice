@@ -102,8 +102,8 @@ scene {
 			z 1;
 		}
 		model "cube";
-		materials {
-			material0 "materials/basic.mat";
-		}
+		materials [
+			"materials/basic.mat";
+		]
 	}
 }
