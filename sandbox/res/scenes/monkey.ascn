@@ -41,7 +41,7 @@ scene {
 		}
 		model "models/monkey.glb";
 		materials {
-			material0 "default_material";
+			material0 "materials/basic.mat";
 		}
 	}
 	directional_light {

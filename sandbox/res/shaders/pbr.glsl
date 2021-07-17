@@ -170,7 +170,7 @@ vec3 calculate_point_light(PointLight light, vec3 N, vec3 V, vec3 F0) {
 }
 
 vec3 calculate_directional_light(DirectionalLight light, vec3 N, vec3 V, vec3 F0) {
-	vec3 L = normalize(normalize(-light.direction) - fs_in.world_pos);
+	vec3 L = normalize(-light.direction);
 	vec3 H = normalize(V + L);
 	vec3 radiance = light.color * light.intensity;
 
