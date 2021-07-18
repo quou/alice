@@ -9,6 +9,12 @@
 #include <alice/ui.h>
 #include <alice/input.h>
 
+static void on_test_window_create(alice_UIContext* context, alice_UIWindow* window) {
+	window->title = "Test Window";
+	window->position = (alice_v2f){ 100.0f, 30.0f };
+	window->dimentions = (alice_v2f) { 350.0f, 600.0f };
+}
+
 void main() {
 	alice_init_resource_manager("res");
 	alice_init_application((alice_ApplicationConfig){
@@ -33,6 +39,14 @@ void main() {
 
 	renderer->use_bloom = true;
 	renderer->use_antialiasing = true;
+
+	alice_UIContext* ui = alice_new_ui_context(
+			alice_load_shader("shaders/uirect.glsl"),
+			alice_load_shader("shaders/text.glsl"),
+			alice_load_binary("fonts/opensans.ttf"),
+			18.0f);
+
+	alice_new_ui_window(ui, on_test_window_create);
 
 	alice_TextRenderer* text_renderer = alice_new_text_renderer(alice_load_binary("fonts/opensans.ttf"),
 			32.0f, alice_load_shader("shaders/text.glsl"));
@@ -62,14 +76,17 @@ void main() {
 			alice_set_application_fullscreen(0, fullscreen);
 		}
 
+		alice_render_scene_3d(renderer, app->width, app->height, scene, alice_null);
+
 		alice_set_text_renderer_dimentions(text_renderer, (alice_v2f){app->width, app->height});
 		alice_render_text(text_renderer, (alice_v2f){0, 0}, fps_buffer);
 
-		alice_render_scene_3d(renderer, app->width, app->height, scene, alice_null);
+		alice_draw_ui(ui);
 
 		alice_update_application();
 	}
 
+	alice_free_ui_context(ui);
 	alice_free_text_renderer(text_renderer);
 
 	alice_free_scene_renderer_3d(renderer);

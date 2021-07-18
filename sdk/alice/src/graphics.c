@@ -889,6 +889,18 @@ void alice_render_clear() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
+void alice_depth_clear() {
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+void alice_enable_depth() {
+	glEnable(GL_DEPTH_TEST);
+}
+
+void alice_disable_depth() {
+	glDisable(GL_DEPTH_TEST);
+}
+
 alice_Camera3D* alice_get_scene_camera(alice_Scene* scene) {
 	assert(scene);
 
@@ -1133,6 +1145,8 @@ void alice_render_scene_3d(alice_SceneRenderer3D* renderer, u32 width, u32 heigh
 	alice_resize_render_target(renderer->output, width, height);
 	alice_bind_render_target(renderer->output, width, height);
 
+	alice_enable_depth();
+
 	for (alice_entity_iter(scene, iter, alice_Renderable3D)) {
 		alice_Renderable3D* renderable = iter.current_ptr;
 
@@ -1271,4 +1285,6 @@ renderable_iter_continue:
 	if (render_target) {
 		alice_unbind_render_target(render_target);
 	}
+
+	alice_disable_depth();
 }

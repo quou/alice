@@ -82,6 +82,10 @@ ALICE_API void alice_draw_vertex_buffer(alice_VertexBuffer* buffer);
 ALICE_API void alice_draw_vertex_buffer_custom_count(alice_VertexBuffer* buffer, u32 count);
 
 ALICE_API void alice_render_clear();
+ALICE_API void alice_depth_clear();
+
+ALICE_API void alice_enable_depth();
+ALICE_API void alice_disable_depth();
 
 typedef enum alice_TextureFlags {
 	ALICE_TEXTURE_ALIASED = 1 << 0,
