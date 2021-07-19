@@ -333,6 +333,7 @@ void alice_apply_default_ui_config(alice_UIContext* context) {
 
 	context->ui_cfg[ALICE_UICFG_PADDING] = 5.0f;
 	context->ui_cfg[ALICE_UICFG_OUTLINE_WIDTH] = 1.0f;
+	context->ui_cfg[ALICE_UICFG_COLUMN_SIZE] = 200.0f;
 
 	context->ui_colors[ALICE_UICOLOR_BACKGROUND] = 0xffffff;
 	context->ui_colors[ALICE_UICOLOR_OUTLINE] = 0x000000;
@@ -346,14 +347,14 @@ void alice_apply_default_ui_config(alice_UIContext* context) {
 alice_v2f alice_calculate_ui_element_dimentions(alice_UIContext* context, alice_UIElement* element) {
 	assert(element);
 
+	const float padding = context->ui_cfg[ALICE_UICFG_PADDING];
+
 	switch (element->type) {
 		case ALICE_UIELEMENT_BUTTON: {
 			alice_UIButton* button = (alice_UILabel*)element;
 
 			alice_v2f text_dimentions =
 				alice_calculate_text_dimentions(context->text_renderer, button->text);
-
-			float padding = context->ui_cfg[ALICE_UICFG_PADDING];
 
 			return (alice_v2f) {
 				.x = text_dimentions.x + padding * 2,
@@ -363,6 +364,17 @@ alice_v2f alice_calculate_ui_element_dimentions(alice_UIContext* context, alice_
 		case ALICE_UIELEMENT_LABEL: {
 			alice_UILabel* label = (alice_UILabel*)element;
 			return alice_calculate_text_dimentions(context->text_renderer, label->text);
+		}
+		case ALICE_UIELEMENT_TEXTINPUT: {
+			alice_UITextInput* input = (alice_UITextInput*)element;
+
+			const alice_v2f label_dimentions =
+				alice_calculate_text_dimentions(context->text_renderer, input->label);
+
+			return (alice_v2f) {
+				.x = (label_dimentions.x + input->base.window->dimentions.x) - (padding * 2.0f),
+				.y = label_dimentions.y + (padding * 4.0f)
+			};
 		}
 	}
 
@@ -425,6 +437,7 @@ void alice_draw_ui(alice_UIContext* context) {
 
 	const float padding = context->ui_cfg[ALICE_UICFG_PADDING];
 	const float outline_thickness = context->ui_cfg[ALICE_UICFG_OUTLINE_WIDTH];
+	const float column_size = context->ui_cfg[ALICE_UICFG_COLUMN_SIZE];
 
 	alice_UITextQueue text_queue;
 	alice_init_text_queue(&text_queue);
@@ -453,6 +466,30 @@ void alice_draw_ui(alice_UIContext* context) {
 			.h = title_height
 		};
 
+		if (alice_mouse_over_ui_rect(title_rect)
+				&& alice_mouse_button_just_pressed(ALICE_MOUSE_BUTTON_LEFT)) {
+			const alice_v2i mouse_pos = alice_get_mouse_position();
+
+			window->being_dragged = true;
+			window->drag_offset = (alice_v2f) {
+				.x = mouse_pos.x - window->position.x,
+				.y = mouse_pos.y - window->position.y
+			};
+		}
+
+		if (window->being_dragged) {
+			const alice_v2i mouse_pos = alice_get_mouse_position();
+
+			window->position = (alice_v2f) {
+				.x = mouse_pos.x - window->drag_offset.x,
+				.y = mouse_pos.y - window->drag_offset.y
+			};
+
+			if (alice_mouse_button_just_released(ALICE_MOUSE_BUTTON_LEFT)) {
+				window->being_dragged = false;
+			}
+		}
+
 		alice_UIRect title_outline_rect = (alice_UIRect) {
 			.x = window->position.x,
 			.y = window->position.y - title_height,
@@ -475,16 +512,21 @@ void alice_draw_ui(alice_UIContext* context) {
 
 			const alice_v2f element_dimensions = alice_calculate_ui_element_dimentions(context, element);
 
+			const alice_v2f element_position = (alice_v2f) {
+				.x = window->position.x + element->position.x,
+				.y = window->position.y + element->position.y
+			};
+
 			const alice_UIRect element_rect = (alice_UIRect) {
-				.x = element->position.x,
-				.y = element->position.y,
+				.x = element_position.x,
+				.y = element_position.y,
 				.w = element_dimensions.x,
 				.h = element_dimensions.y
 			};
 
 			const alice_UIRect element_outline_rect = (alice_UIRect) {
-				.x = element->position.x - outline_thickness,
-				.y = element->position.y - outline_thickness,
+				.x = element_position.x - outline_thickness,
+				.y = element_position.y - outline_thickness,
 				.w = element_dimensions.x + (outline_thickness * 2.0f),
 				.h = element_dimensions.y + (outline_thickness * 2.0f)
 			};
@@ -521,8 +563,8 @@ void alice_draw_ui(alice_UIContext* context) {
 					alice_draw_ui_rect(context->renderer, element_rect, background_color);
 
 					const alice_v2f text_position = (alice_v2f) {
-						.x = element->position.x + padding,
-						.y = element->position.y
+						.x = element_position.x + padding,
+						.y = element_position.y
 					};
 
 					alice_text_queue_add(&text_queue, button->text, text_position);
@@ -532,7 +574,38 @@ void alice_draw_ui(alice_UIContext* context) {
 				case ALICE_UIELEMENT_LABEL: {
 					alice_UILabel* label = (alice_UILabel*)element;
 
-					alice_text_queue_add(&text_queue, label->text, element->position);
+					alice_text_queue_add(&text_queue, label->text, element_position);
+
+					break;
+				}
+				case ALICE_UIELEMENT_TEXTINPUT: {
+					alice_UITextInput* input = (alice_UITextInput*)element;
+
+					const alice_UIRect box_rect = (alice_UIRect) {
+						.x = (window->position.x + window->dimentions.x) -
+							(padding + column_size),
+						.y = element_position.y + padding,
+						.w = column_size,
+						.h = element_dimensions.y - (padding * 2.0f)
+					};
+
+					const alice_UIRect box_outline_rect = (alice_UIRect) {
+						.x = box_rect.x - outline_thickness,
+						.y = box_rect.y - outline_thickness,
+						.w = box_rect.w + (outline_thickness * 2.0f),
+						.h = box_rect.h + (outline_thickness * 2.0f)
+					};
+
+
+					alice_draw_ui_rect(context->renderer, box_outline_rect, outline_color);
+					alice_draw_ui_rect(context->renderer, box_rect, background_color);
+
+					const alice_v2f label_position = (alice_v2f) {
+						.x = element_position.x,
+						.y = element_position.y + padding
+					};
+
+					alice_text_queue_add(&text_queue, input->label, label_position);
 
 					break;
 				}
@@ -615,6 +688,8 @@ void alice_init_ui_window(alice_UIWindow* window, u32 id) {
 	window->element_capacity = 0;
 	window->elements = alice_null;
 
+	window->being_dragged = false;
+
 	window->last_element = alice_null;
 }
 
@@ -693,6 +768,8 @@ static alice_UIElement* alice_alloc_ui_element(alice_UIElementType type) {
 			return malloc(sizeof(alice_UIButton));
 		case ALICE_UIELEMENT_LABEL:
 			return malloc(sizeof(alice_UILabel));
+		case ALICE_UIELEMENT_TEXTINPUT:
+			return malloc(sizeof(alice_UITextInput));
 		default: /* Unreachable */
 			return alice_null;
 			break;
@@ -708,15 +785,17 @@ static alice_UIElement* alice_new_ui_element(alice_UIWindow* window, alice_UIEle
 		alice_v2f last_dimensions = alice_calculate_ui_element_dimentions(window->context, window->last_element);
 
 		element->position = (alice_v2f){
-			.x = window->position.x + padding,
+			.x = padding,
 			.y = window->last_element->position.y + last_dimensions.y + padding
 		};
 	} else {
 		element->position = (alice_v2f){
-			.x = window->position.x + padding,
-			.y = window->position.y + padding
+			.x = padding,
+			.y = padding
 		};
 	}
+
+	element->window = window;
 
 	element->on_hover = alice_null;
 	element->on_click = alice_null;
@@ -738,4 +817,10 @@ alice_UILabel* alice_add_ui_label(alice_UIWindow* window) {
 	assert(window);
 
 	return (alice_UILabel*)alice_new_ui_element(window, ALICE_UIELEMENT_LABEL);
+}
+
+alice_UITextInput* alice_add_ui_text_input(alice_UIWindow* window) {
+	assert(window);
+
+	return (alice_UITextInput*)alice_new_ui_element(window, ALICE_UIELEMENT_TEXTINPUT);
 }

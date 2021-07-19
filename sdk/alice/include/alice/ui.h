@@ -8,6 +8,7 @@
 typedef struct alice_TextRenderer alice_TextRenderer;
 typedef struct alice_UIContext alice_UIContext;
 typedef struct alice_UIElement alice_UIElement;
+typedef struct alice_UIWindow alice_UIWindow;
 
 ALICE_API alice_TextRenderer* alice_new_text_renderer(alice_Resource* font_data,
 		float font_size, alice_Shader* font_shader);
@@ -47,12 +48,15 @@ typedef void (*alice_UIElementOnHoverFunction)(alice_UIContext* context, alice_U
 
 typedef enum alice_UIElementType {
 	ALICE_UIELEMENT_BUTTON,
-	ALICE_UIELEMENT_LABEL
+	ALICE_UIELEMENT_LABEL,
+	ALICE_UIELEMENT_TEXTINPUT
 } alice_UIElementType;
 
 struct alice_UIElement {
 	alice_UIElementType type;
 	alice_v2f position;
+
+	alice_UIWindow* window;
 
 	alice_UIElementOnClickFunction on_click;
 	alice_UIElementOnHoverFunction on_hover;
@@ -68,9 +72,15 @@ typedef struct alice_UILabel {
 	const char* text;
 } alice_UILabel;
 
+typedef struct alice_UITextInput {
+	alice_UIElement base;
+	const char* label;
+	char* buffer;
+} alice_UITextInput;
+
 ALICE_API alice_v2f alice_calculate_ui_element_dimentions(alice_UIContext* context, alice_UIElement* element);
 
-typedef struct alice_UIWindow {
+struct alice_UIWindow {
 	u32 id;
 
 	alice_UIContext* context;
@@ -81,10 +91,13 @@ typedef struct alice_UIWindow {
 
 	alice_UIElement* last_element;
 
+	bool being_dragged;
+	alice_v2f drag_offset;
+
 	const char* title;
 	alice_v2f position;
 	alice_v2f dimentions;
-} alice_UIWindow;
+};
 
 ALICE_API void alice_init_ui_window(alice_UIWindow* window, u32 id);
 ALICE_API void alice_deinit_ui_window(alice_UIWindow* window);
@@ -96,12 +109,14 @@ ALICE_API void alice_free_ui_element(alice_UIElement* element);
 
 ALICE_API alice_UIButton* alice_add_ui_button(alice_UIWindow* window);
 ALICE_API alice_UILabel* alice_add_ui_label(alice_UIWindow* window);
+ALICE_API alice_UITextInput* alice_add_ui_text_input(alice_UIWindow* window);
 
 enum {
 	ALICE_UICFG_PADDING = 0,
 	ALICE_UICFG_OUTLINE_WIDTH = 1,
+	ALICE_UICFG_COLUMN_SIZE = 2,
 
-	ALICE_UICFG_COUNT = 2
+	ALICE_UICFG_COUNT = 3
 };
 
 enum {

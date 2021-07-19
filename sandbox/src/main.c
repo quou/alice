@@ -29,6 +29,21 @@ static void on_test_window_create(alice_UIContext* context, alice_UIWindow* wind
 	button2->text = "I'm a button!";
 	button2->base.on_hover = on_button_hover;
 	button2->base.on_click = on_button_click;
+
+	alice_UITextInput* input = alice_add_ui_text_input(window);
+	input->label = "Text input 1";
+
+	alice_UITextInput* input2 = alice_add_ui_text_input(window);
+	input2->label = "Text input 2";
+
+	alice_UITextInput* input3 = alice_add_ui_text_input(window);
+	input3->label = "Text input 3";
+
+	alice_UILabel* label2 = alice_add_ui_label(window);
+	label2->text = "I'm a label!";
+
+	alice_UILabel* label3 = alice_add_ui_label(window);
+	label3->text = "I'm a label!";
 }
 
 void main() {
