@@ -7,6 +7,7 @@
 
 #include "alice/ui.h"
 #include "alice/application.h"
+#include "alice/input.h"
 
 struct alice_TextRenderer {
 	alice_VertexBuffer* vb;
@@ -113,6 +114,9 @@ void alice_render_text(alice_TextRenderer* renderer, alice_v2f position, const c
 			alice_update_indices(renderer->vb, indices, quad_count * 6, 6);
 
 			quad_count++;
+		} else if (*string == '\n') {
+			ypos += renderer->font_size;
+			xpos = 0.0;
 		}
 
 		string++;
@@ -144,25 +148,62 @@ void alice_set_text_renderer_color(alice_TextRenderer* renderer, alice_Color col
 	renderer->color = color;
 }
 
-float alice_calculate_text_width(alice_TextRenderer* renderer, const char* string) {
+alice_v2f alice_calculate_text_dimentions(alice_TextRenderer* renderer, const char* text) {
 	assert(renderer);
 
 	float width = 0.0f;
+	float height = renderer->font_size;
+
+	float temp_width = 0.0f;
+
+	float xpos = 0.0, ypos = renderer->font_size;
+
+	const char* string = text;
 
 	while (*string != '\0') {
 		if (*string >= 32) {
-			float char_width;
-			float left_side_bearing;
+			stbtt_aligned_quad quad;
+			stbtt_GetPackedQuad(renderer->char_data,
+					alice_font_bitmap_size, alice_font_bitmap_size,
+					*string - 32, &xpos, &ypos, &quad, 0);
 
-			stbtt_GetCodepointHMetrics(&renderer->font_info, *string, &char_width, &left_side_bearing);
+			temp_width += quad.x1 - quad.x0;
 
-			width += char_width;
+			const char* next = string + 1;
+			if (*next != '\0') {
+				stbtt_aligned_quad next_quad;
+				stbtt_GetPackedQuad(renderer->char_data,
+						alice_font_bitmap_size, alice_font_bitmap_size,
+						*string - 32, &xpos, &ypos, &next_quad, 0);
+				temp_width += next_quad.x0 - quad.x1;
+			}
+		} else if (*string == '\n') {
+			height += renderer->font_size;
+			if (temp_width > width) {
+				width = temp_width;
+				temp_width = 0.0f;
+			}
 		}
 
 		string++;
 	}
 
-	return width;
+	if (temp_width > width) {
+		width = temp_width;
+	}
+
+	return (alice_v2f){
+		.x = width,
+		.y = height
+	};
+}
+
+bool alice_mouse_over_ui_rect(alice_UIRect rect) {
+	alice_v2i mouse_pos = alice_get_mouse_position();
+
+	return
+			mouse_pos.x > rect.x && mouse_pos.x < rect.x + rect.w &&
+			mouse_pos.y > rect.y && mouse_pos.y < rect.y + rect.h;
 }
 
 alice_UIRenderer* alice_new_ui_renderer(alice_Shader* rect_shader) {
@@ -291,6 +332,7 @@ void alice_apply_default_ui_config(alice_UIContext* context) {
 	assert(context);
 
 	context->ui_cfg[ALICE_UICFG_PADDING] = 5.0f;
+	context->ui_cfg[ALICE_UICFG_OUTLINE_WIDTH] = 1.0f;
 
 	context->ui_colors[ALICE_UICOLOR_BACKGROUND] = 0xffffff;
 	context->ui_colors[ALICE_UICOLOR_OUTLINE] = 0x000000;
@@ -299,6 +341,32 @@ void alice_apply_default_ui_config(alice_UIContext* context) {
 	context->ui_colors[ALICE_UICOLOR_HOVERED] = 0xdbdbdb;
 	context->ui_colors[ALICE_UICOLOR_ACCENT1] = 0x52528c;
 	context->ui_colors[ALICE_UICOLOR_ACCENT2] = 0x6b6bbc;
+}
+
+alice_v2f alice_calculate_ui_element_dimentions(alice_UIContext* context, alice_UIElement* element) {
+	assert(element);
+
+	switch (element->type) {
+		case ALICE_UIELEMENT_BUTTON: {
+			alice_UIButton* button = (alice_UILabel*)element;
+
+			alice_v2f text_dimentions =
+				alice_calculate_text_dimentions(context->text_renderer, button->text);
+
+			float padding = context->ui_cfg[ALICE_UICFG_PADDING];
+
+			return (alice_v2f) {
+				.x = text_dimentions.x + padding * 2,
+				.y = text_dimentions.y + padding * 2
+			};
+		}
+		case ALICE_UIELEMENT_LABEL: {
+			alice_UILabel* label = (alice_UILabel*)element;
+			return alice_calculate_text_dimentions(context->text_renderer, label->text);
+		}
+	}
+
+	return (alice_v2f) { 0.0f, 0.0f };
 }
 
 typedef struct alice_UITextQueueElement {
@@ -348,14 +416,15 @@ void alice_text_queue_add(alice_UITextQueue* queue, const char* text, alice_v2f 
 void alice_draw_ui(alice_UIContext* context) {
 	assert(context);
 
-	alice_Application* app = alice_get_application();
+	const alice_Application* app = alice_get_application();
 
 	alice_set_text_renderer_dimentions(context->text_renderer, (alice_v2f){app->width, app->height});
 	alice_set_ui_renderer_dimentions(context->renderer, (alice_v2f){app->width, app->height});
 
 	alice_set_text_renderer_color(context->text_renderer, context->ui_colors[ALICE_UICOLOR_TEXT]);
 
-	float padding = context->ui_cfg[ALICE_UICFG_PADDING];
+	const float padding = context->ui_cfg[ALICE_UICFG_PADDING];
+	const float outline_thickness = context->ui_cfg[ALICE_UICFG_OUTLINE_WIDTH];
 
 	alice_UITextQueue text_queue;
 	alice_init_text_queue(&text_queue);
@@ -373,12 +442,14 @@ void alice_draw_ui(alice_UIContext* context) {
 			.h = window->dimentions.y
 		};
 
-		float title_height = (padding) + context->text_size;
+		const alice_v2f title_dimension = alice_calculate_text_dimentions(context->text_renderer, window->title);
+
+		const float title_height = (padding) + title_dimension.y;
 
 		alice_UIRect title_rect = (alice_UIRect) {
-			.x = window->position.x + 1,
-			.y = window->position.y - title_height + 1,
-			.w = window->dimentions.x - 2,
+			.x = window->position.x + outline_thickness,
+			.y = window->position.y - title_height + outline_thickness,
+			.w = window->dimentions.x - (outline_thickness * 2.0f),
 			.h = title_height
 		};
 
@@ -386,7 +457,7 @@ void alice_draw_ui(alice_UIContext* context) {
 			.x = window->position.x,
 			.y = window->position.y - title_height,
 			.w = window->dimentions.x,
-			.h = title_height + 2
+			.h = title_height + (outline_thickness * 2.0f)
 		};
 		alice_draw_ui_rect(context->renderer, window_rect, context->ui_colors[ALICE_UICOLOR_BACKGROUND]);
 		alice_draw_ui_rect(context->renderer, title_outline_rect, context->ui_colors[ALICE_UICOLOR_OUTLINE]);
@@ -398,6 +469,75 @@ void alice_draw_ui(alice_UIContext* context) {
 		};
 
 		alice_text_queue_add(&text_queue, window->title, window_label_position);
+
+		for (u32 i = 0; i < window->element_count; i++) {
+			alice_UIElement* element = window->elements[i];
+
+			const alice_v2f element_dimensions = alice_calculate_ui_element_dimentions(context, element);
+
+			const alice_UIRect element_rect = (alice_UIRect) {
+				.x = element->position.x,
+				.y = element->position.y,
+				.w = element_dimensions.x,
+				.h = element_dimensions.y
+			};
+
+			const alice_UIRect element_outline_rect = (alice_UIRect) {
+				.x = element->position.x - outline_thickness,
+				.y = element->position.y - outline_thickness,
+				.w = element_dimensions.x + (outline_thickness * 2.0f),
+				.h = element_dimensions.y + (outline_thickness * 2.0f)
+			};
+
+			const alice_Color outline_color = context->ui_colors[ALICE_UICOLOR_OUTLINE];
+			alice_Color background_color = context->ui_colors[ALICE_UICOLOR_BACKGROUND];
+
+			if (alice_mouse_over_ui_rect(element_rect)) {
+				background_color = context->ui_colors[ALICE_UICOLOR_HOVERED];
+
+				if (context->hovered_element != element && element->on_hover) {
+					element->on_hover(context, element);
+				}
+
+				if (alice_mouse_button_pressed(ALICE_MOUSE_BUTTON_LEFT)) {
+					background_color = context->ui_colors[ALICE_UICOLOR_ACTIVE];
+				}
+
+				if (alice_mouse_button_just_released(ALICE_MOUSE_BUTTON_LEFT) &&
+						element->on_click) {
+					element->on_click(context, element);
+				}
+
+				context->hovered_element = element;
+			} else if (context->hovered_element == element) {
+				context->hovered_element = alice_null;
+			}
+
+			switch (element->type) {
+				case ALICE_UIELEMENT_BUTTON: {
+					alice_UIButton* button = (alice_UIButton*)element;
+
+					alice_draw_ui_rect(context->renderer, element_outline_rect, outline_color);
+					alice_draw_ui_rect(context->renderer, element_rect, background_color);
+
+					const alice_v2f text_position = (alice_v2f) {
+						.x = element->position.x + padding,
+						.y = element->position.y
+					};
+
+					alice_text_queue_add(&text_queue, button->text, text_position);
+
+					break;
+				}
+				case ALICE_UIELEMENT_LABEL: {
+					alice_UILabel* label = (alice_UILabel*)element;
+
+					alice_text_queue_add(&text_queue, label->text, element->position);
+
+					break;
+				}
+			}
+		}
 	}
 
 	alice_ui_renderer_end_batch(context->renderer);
@@ -423,6 +563,8 @@ alice_UIWindow* alice_new_ui_window(alice_UIContext* context,
 	alice_UIWindow* new = &context->windows[context->window_count++];
 
 	alice_init_ui_window(new, context->window_count);
+
+	new->context = context;
 
 	if (create_function) {
 		create_function(context, new);
@@ -472,6 +614,8 @@ void alice_init_ui_window(alice_UIWindow* window, u32 id) {
 	window->element_count = 0;
 	window->element_capacity = 0;
 	window->elements = alice_null;
+
+	window->last_element = alice_null;
 }
 
 void alice_deinit_ui_window(alice_UIWindow* window) {
@@ -484,6 +628,8 @@ void alice_deinit_ui_window(alice_UIWindow* window) {
 	free(window->elements);
 
 	window->id = 0;
+
+	window->last_element = alice_null;
 
 	window->element_count = 0;
 	window->element_capacity = 0;
@@ -555,6 +701,29 @@ static alice_UIElement* alice_alloc_ui_element(alice_UIElementType type) {
 
 static alice_UIElement* alice_new_ui_element(alice_UIWindow* window, alice_UIElementType type) {
 	alice_UIElement* element = alice_alloc_ui_element(type);
+
+	const float padding = window->context->ui_cfg[ALICE_UICFG_PADDING];
+
+	if (window->last_element) {
+		alice_v2f last_dimensions = alice_calculate_ui_element_dimentions(window->context, window->last_element);
+
+		element->position = (alice_v2f){
+			.x = window->position.x + padding,
+			.y = window->last_element->position.y + last_dimensions.y + padding
+		};
+	} else {
+		element->position = (alice_v2f){
+			.x = window->position.x + padding,
+			.y = window->position.y + padding
+		};
+	}
+
+	element->on_hover = alice_null;
+	element->on_click = alice_null;
+
+	element->type = type;
+
+	window->last_element = element;
 
 	return alice_add_ui_element(window, element);
 }

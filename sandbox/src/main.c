@@ -9,10 +9,26 @@
 #include <alice/ui.h>
 #include <alice/input.h>
 
+static void on_button_hover(alice_UIContext* context, alice_UIElement* button) {
+	alice_log("hover");
+}
+
+static void on_button_click(alice_UIContext* context, alice_UIElement* button) {
+	alice_log("click");
+}
+
 static void on_test_window_create(alice_UIContext* context, alice_UIWindow* window) {
-	window->title = "Test Window";
+	window->title = "I'm a window!";
 	window->position = (alice_v2f){ 100.0f, 30.0f };
 	window->dimentions = (alice_v2f) { 350.0f, 600.0f };
+
+	alice_UILabel* label = alice_add_ui_label(window);
+	label->text = "I'm a label!";
+
+	alice_UIButton* button2 = alice_add_ui_button(window);
+	button2->text = "I'm a button!";
+	button2->base.on_hover = on_button_hover;
+	button2->base.on_click = on_button_click;
 }
 
 void main() {

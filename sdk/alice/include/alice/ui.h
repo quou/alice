@@ -18,11 +18,13 @@ ALICE_API void alice_set_text_renderer_color(alice_TextRenderer* renderer, alice
 ALICE_API void alice_set_text_renderer_dimentions(alice_TextRenderer* renderer, alice_v2f dimentions);
 ALICE_API void alice_render_text(alice_TextRenderer* renderer, alice_v2f position, const char* string);
 
-ALICE_API float alice_calculate_text_width(alice_TextRenderer* renderer, const char* string);
+ALICE_API alice_v2f alice_calculate_text_dimentions(alice_TextRenderer* renderer, const char* string);
 
 typedef struct alice_UIRect {
 	float x, y, w, h;
 } alice_UIRect;
+
+ALICE_API bool alice_mouse_over_ui_rect(alice_UIRect rect);
 
 typedef struct alice_UIRenderer {
 	alice_VertexBuffer* vb;
@@ -51,14 +53,13 @@ typedef enum alice_UIElementType {
 struct alice_UIElement {
 	alice_UIElementType type;
 	alice_v2f position;
+
+	alice_UIElementOnClickFunction on_click;
+	alice_UIElementOnHoverFunction on_hover;
 };
 
 typedef struct alice_UIButton {
-	alice_UIElementOnClickFunction on_click;
-	alice_UIElementOnHoverFunction on_hover;
-
 	alice_UIElement base;
-	alice_v2f dimentions;
 	const char* text;
 } alice_UIButton;
 
@@ -67,12 +68,18 @@ typedef struct alice_UILabel {
 	const char* text;
 } alice_UILabel;
 
+ALICE_API alice_v2f alice_calculate_ui_element_dimentions(alice_UIContext* context, alice_UIElement* element);
+
 typedef struct alice_UIWindow {
 	u32 id;
+
+	alice_UIContext* context;
 
 	alice_UIElement** elements;
 	u32 element_count;
 	u32 element_capacity;
+
+	alice_UIElement* last_element;
 
 	const char* title;
 	alice_v2f position;
@@ -92,8 +99,9 @@ ALICE_API alice_UILabel* alice_add_ui_label(alice_UIWindow* window);
 
 enum {
 	ALICE_UICFG_PADDING = 0,
+	ALICE_UICFG_OUTLINE_WIDTH = 1,
 
-	ALICE_UICFG_COUNT = 1
+	ALICE_UICFG_COUNT = 2
 };
 
 enum {
@@ -119,6 +127,8 @@ struct alice_UIContext {
 	alice_UIWindow* windows;
 	u32 window_count;
 	u32 window_capacity;
+
+	alice_UIElement* hovered_element;
 
 	float text_size;
 
