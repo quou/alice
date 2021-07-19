@@ -39,6 +39,12 @@ scene {
 			y 1;
 			z 1;
 		}
+		script {
+			get_instance_size "get_test_script_instance_size";
+			on_init "on_test_script_init";
+			on_update "on_test_script_update";
+			on_free "on_test_script_free";
+		}
 		model "models/monkey.glb";
 		materials [
 			"default_material";

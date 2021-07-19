@@ -1,13 +1,11 @@
-include "scripts"
-
-project "sandbox"
-	kind "ConsoleApp"
+project "scripts"
+	kind "SharedLib"
 	language "C"
 	cdialect "C99"
 
 	staticruntime "on"
 
-	targetdir "../bin"
+	targetdir "../"
 	objdir "obj"
 	
 	architecture "x64"
@@ -18,11 +16,11 @@ project "sandbox"
 	}
 
 	includedirs {
-		"../sdk/alice/include"
+		"../../sdk/alice/include"
 	}
 
 	defines {
-		"ALICE_IMPORT_SYMBOLS"
+		"ALICE_EXPORT_SYMBOLS"
 	}
 
 	links {

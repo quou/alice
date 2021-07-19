@@ -5,6 +5,7 @@
 
 #include "alice/entity.h"
 #include "alice/graphics.h"
+#include "alice/scripting.h"
 
 alice_m4f alice_get_entity_transform(alice_Scene* scene, alice_Entity* entity) {
 	assert(entity);
@@ -12,7 +13,7 @@ alice_m4f alice_get_entity_transform(alice_Scene* scene, alice_Entity* entity) {
 	alice_m4f matrix = alice_m4f_identity();
 
 	matrix = alice_m4f_translate(matrix, entity->position);
-		
+
 	matrix = alice_m4f_rotate(matrix, entity->rotation.z, (alice_v3f){0.0f, 0.0f, 1.0f});
 	matrix = alice_m4f_rotate(matrix, entity->rotation.y, (alice_v3f){0.0f, 1.0f, 0.0f});
 	matrix = alice_m4f_rotate(matrix, entity->rotation.x, (alice_v3f){1.0f, 0.0f, 0.0f});
@@ -51,7 +52,7 @@ void alice_entity_add_child(alice_Scene* scene, alice_EntityHandle entity, alice
 
 void alice_entity_remove_child(alice_Scene* scene, alice_EntityHandle entity, alice_EntityHandle child) {
 	assert(scene);
-	
+
 	alice_Entity* entity_ptr = alice_get_entity_ptr(scene, entity);
 	alice_Entity* child_ptr = alice_get_entity_ptr(scene, child);
 
@@ -78,7 +79,7 @@ void alice_entity_unparent(alice_Scene* scene, alice_EntityHandle entity) {
 	assert(scene);
 
 	alice_Entity* entity_ptr = alice_get_entity_ptr(scene, entity);
-	
+
 	alice_EntityHandle parent = entity_ptr->parent;
 
 	if (parent != alice_null_entity_handle) {
@@ -215,13 +216,15 @@ void alice_entity_pool_remove(alice_EntityPool* pool, u32 index) {
 	pool->count--;
 }
 
-alice_Scene* alice_new_scene() {
+alice_Scene* alice_new_scene(const char* script_assembly) {
 	alice_Scene* new = malloc(sizeof(alice_Scene));
 
 	*new = (alice_Scene){
 		.pools = alice_null,
 		.pool_count = 0,
-		.pool_capacity = 0
+		.pool_capacity = 0,
+
+		.script_context = alice_new_script_context(new, script_assembly)
 	};
 
 	alice_register_entity_type(new, alice_Entity);
@@ -238,7 +241,9 @@ alice_Scene* alice_new_scene() {
 
 void alice_free_scene(alice_Scene* scene) {
 	assert(scene);
-	
+
+	alice_free_scripts(scene->script_context);
+
 	for (u32 i = 0; i < scene->pool_count; i++) {
 		alice_EntityPool* pool = &scene->pools[i];
 
@@ -310,13 +315,15 @@ alice_EntityHandle impl_alice_new_entity(alice_Scene* scene, alice_TypeInfo type
 		.rotation = (alice_v3f){0.0f, 0.0f, 0.0f},
 		.scale = (alice_v3f){1.0f, 1.0f, 1.0f},
 
+		.script = alice_null,
+
 		.parent = alice_null_entity_handle,
 		.children = alice_null,
 		.child_count = 0,
 		.child_capacity = 0
 	};
-	
-	if (pool->create) {	
+
+	if (pool->create) {
 		pool->create(scene, new, e_ptr);
 	}
 

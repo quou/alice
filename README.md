@@ -18,9 +18,10 @@ doesn't have.
  - Resource management
  - Custom text serialisation format
  - Scene serialisation
+ - Scripting
 
 ## Roadmap
- - Scripting
+ - GUI
  - Level editor
  - Custom shading language
  - Vulkan renderer

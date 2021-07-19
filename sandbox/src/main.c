@@ -8,6 +8,7 @@
 #include <alice/sceneserialise.h>
 #include <alice/ui.h>
 #include <alice/input.h>
+#include <alice/scripting.h>
 
 static void on_button_hover(alice_UIContext* context, alice_UIElement* button) {
 	alice_log("hover");
@@ -32,18 +33,7 @@ static void on_test_window_create(alice_UIContext* context, alice_UIWindow* wind
 
 	alice_UITextInput* input = alice_add_ui_text_input(window);
 	input->label = "Text input 1";
-
-	alice_UITextInput* input2 = alice_add_ui_text_input(window);
-	input2->label = "Text input 2";
-
-	alice_UITextInput* input3 = alice_add_ui_text_input(window);
-	input3->label = "Text input 3";
-
-	alice_UILabel* label2 = alice_add_ui_label(window);
-	label2->text = "I'm a label!";
-
-	alice_UILabel* label3 = alice_add_ui_label(window);
-	label3->text = "I'm a label!";
+	input->buffer = "Some text";
 }
 
 void main() {
@@ -59,8 +49,11 @@ void main() {
 
 	alice_init_default_resources();
 
-	alice_Scene* scene = alice_new_scene();
+	alice_Scene* scene = alice_new_scene("scripts.dll");
 	alice_deserialise_scene(scene, "scenes/monkey.ascn");
+
+	alice_init_scripts(scene->script_context);
+
 	alice_serialise_scene(scene, "scenes/monkey.ascn");
 
 	alice_SceneRenderer3D* renderer = alice_new_scene_renderer_3d(
@@ -106,6 +99,8 @@ void main() {
 			fullscreen = !fullscreen;
 			alice_set_application_fullscreen(0, fullscreen);
 		}
+
+		alice_update_scripts(scene->script_context, app->timestep);
 
 		alice_render_scene_3d(renderer, app->width, app->height, scene, alice_null);
 

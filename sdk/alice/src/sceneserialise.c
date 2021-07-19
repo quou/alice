@@ -3,6 +3,7 @@
 #include "alice/sceneserialise.h"
 #include "alice/dtable.h"
 #include "alice/graphics.h"
+#include "alice/scripting.h"
 
 typedef enum alice_SerialisableType {
 	ALICE_ST_ENTITY,
@@ -93,6 +94,23 @@ static void alice_serialise_entity(alice_DTable* table, alice_Scene* scene, alic
 		alice_dtable_add_child(&scale_table, z_table);
 	}
 	alice_dtable_add_child(&entity_table, scale_table);
+
+	if (entity->script) {
+		alice_DTable script_table = alice_new_empty_dtable("script");
+
+		alice_DTable get_instance_size_table =
+			alice_new_string_dtable("get_instance_size", entity->script->get_instance_size_name);
+		alice_DTable on_init_table = alice_new_string_dtable("on_init", entity->script->on_init_name);
+		alice_DTable on_update_table = alice_new_string_dtable("on_update", entity->script->on_update_name);
+		alice_DTable on_free_table = alice_new_string_dtable("on_free", entity->script->on_free_name);
+
+		alice_dtable_add_child(&script_table, get_instance_size_table);
+		alice_dtable_add_child(&script_table, on_init_table);
+		alice_dtable_add_child(&script_table, on_update_table);
+		alice_dtable_add_child(&script_table, on_free_table);
+
+		alice_dtable_add_child(&entity_table, script_table);
+	}
 
 	switch (entity_type) {
 		case ALICE_ST_RENDERABLE3D: {
@@ -330,6 +348,25 @@ static alice_EntityHandle alice_deserialise_entity(alice_DTable* table, alice_Sc
 		alice_DTable* z_table = alice_dtable_find_child(scale_table, "z");
 		if (z_table && z_table->value.type == ALICE_DTABLE_NUMBER) {
 			entity->scale.z = z_table->value.as.number;
+		}
+	}
+
+	alice_DTable* script_table = alice_dtable_find_child(table, "script");
+	if (script_table) {
+		alice_DTable* get_instance_size_table = alice_dtable_find_child(script_table, "get_instance_size");
+		alice_DTable* on_init_table = alice_dtable_find_child(script_table, "on_init");
+		alice_DTable* on_update_table = alice_dtable_find_child(script_table, "on_update");
+		alice_DTable* on_free_table = alice_dtable_find_child(script_table, "on_free");
+
+		if (get_instance_size_table && get_instance_size_table->value.type == ALICE_DTABLE_STRING &&
+				on_init_table && on_init_table->value.type == ALICE_DTABLE_STRING &&
+				on_update_table && on_update_table->value.type == ALICE_DTABLE_STRING &&
+				on_free_table && on_free_table->value.type == ALICE_DTABLE_STRING) {
+			entity->script = alice_new_script(scene->script_context, handle,
+					get_instance_size_table->value.as.string,
+					on_init_table->value.as.string,
+					on_update_table->value.as.string,
+					on_free_table->value.as.string, false);
 		}
 	}
 

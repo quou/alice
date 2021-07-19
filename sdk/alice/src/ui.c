@@ -596,7 +596,6 @@ void alice_draw_ui(alice_UIContext* context) {
 						.h = box_rect.h + (outline_thickness * 2.0f)
 					};
 
-
 					alice_draw_ui_rect(context->renderer, box_outline_rect, outline_color);
 					alice_draw_ui_rect(context->renderer, box_rect, background_color);
 
@@ -605,7 +604,13 @@ void alice_draw_ui(alice_UIContext* context) {
 						.y = element_position.y + padding
 					};
 
+					const alice_v2f buffer_position = (alice_v2f) {
+						.x = box_rect.x + padding,
+						.y = box_rect.y
+					};
+
 					alice_text_queue_add(&text_queue, input->label, label_position);
+					alice_text_queue_add(&text_queue, input->buffer, buffer_position);
 
 					break;
 				}

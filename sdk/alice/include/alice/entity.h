@@ -5,6 +5,8 @@
 #include "alice/maths.h"
 
 typedef struct alice_Scene alice_Scene;
+typedef struct alice_Script alice_Script;
+typedef struct alice_ScriptContext alice_ScriptContext;
 
 typedef u64 alice_EntityHandle;
 
@@ -14,6 +16,8 @@ typedef struct alice_Entity {
 	alice_v3f position;
 	alice_v3f rotation;
 	alice_v3f scale;
+
+	alice_Script* script;
 
 	alice_EntityHandle parent;
 	alice_EntityHandle* children;
@@ -31,7 +35,7 @@ ALICE_API alice_v3f alice_get_entity_world_position(alice_Scene* scene, alice_En
 ALICE_API alice_v3f alice_get_entity_world_rotation(alice_Scene* scene, alice_Entity* entity);
 ALICE_API alice_v3f alice_get_entity_world_scale(alice_Scene* scene, alice_Entity* entity);
 
-static const alice_EntityHandle alice_null_entity_handle = 
+static const alice_EntityHandle alice_null_entity_handle =
 		((alice_EntityHandle)UINT32_MAX << 32) | ((alice_EntityHandle)UINT32_MAX);
 
 ALICE_API alice_EntityHandle alice_new_entity_handle(u32 id, u32 type_id);
@@ -63,10 +67,12 @@ struct alice_Scene {
 	alice_EntityPool* pools;
 	u32 pool_count;
 	u32 pool_capacity;
+
+	alice_ScriptContext* script_context;
 };
 
 #define alice_register_entity_type(s_, t_) \
-	impl_alice_register_entity_type((s_), alice_get_type_info(t_))	
+	impl_alice_register_entity_type((s_), alice_get_type_info(t_))
 
 #define alice_new_entity(s_, t_) \
 	impl_alice_new_entity((s_), alice_get_type_info(t_))
@@ -77,7 +83,7 @@ struct alice_Scene {
 #define alice_set_entity_destroy_function(s_, t_, f_) \
 	impl_alice_set_entity_destroy_function((s_), alice_get_type_info(t_), f_)
 
-ALICE_API alice_Scene* alice_new_scene();
+ALICE_API alice_Scene* alice_new_scene(const char* script_assembly);
 ALICE_API void alice_free_scene(alice_Scene* scene);
 
 ALICE_API alice_EntityPool* alice_get_entity_pool(alice_Scene* scene, u32 type_id);
@@ -99,13 +105,13 @@ ALICE_API void impl_alice_set_entity_destroy_function(alice_Scene* scene,
 
 typedef struct alice_EntityIter {
 	u32 index;
-	
+
 	alice_EntityPool* pool;
 
 	alice_Scene* scene;
 
 	alice_TypeInfo type;
-	
+
 	alice_EntityHandle current;
 	void* current_ptr;
 } alice_EntityIter;
