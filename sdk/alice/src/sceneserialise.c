@@ -98,16 +98,27 @@ static void alice_serialise_entity(alice_DTable* table, alice_Scene* scene, alic
 	if (entity->script) {
 		alice_DTable script_table = alice_new_empty_dtable("script");
 
-		alice_DTable get_instance_size_table =
-			alice_new_string_dtable("get_instance_size", entity->script->get_instance_size_name);
-		alice_DTable on_init_table = alice_new_string_dtable("on_init", entity->script->on_init_name);
-		alice_DTable on_update_table = alice_new_string_dtable("on_update", entity->script->on_update_name);
-		alice_DTable on_free_table = alice_new_string_dtable("on_free", entity->script->on_free_name);
+		if (entity->script->get_instance_size_name) {
+			alice_DTable get_instance_size_table =
+				alice_new_string_dtable("get_instance_size", entity->script->get_instance_size_name);
+			alice_dtable_add_child(&script_table, get_instance_size_table);
+		}
 
-		alice_dtable_add_child(&script_table, get_instance_size_table);
-		alice_dtable_add_child(&script_table, on_init_table);
-		alice_dtable_add_child(&script_table, on_update_table);
-		alice_dtable_add_child(&script_table, on_free_table);
+		if (entity->script->on_init_name) {
+			alice_DTable on_init_table = alice_new_string_dtable("on_init", entity->script->on_init_name);
+			alice_dtable_add_child(&script_table, on_init_table);
+		}
+
+		if (entity->script->on_update_name) {
+			alice_DTable on_update_table = alice_new_string_dtable("on_update", entity->script->on_update_name);
+			alice_dtable_add_child(&script_table, on_update_table);
+		}
+
+		if (entity->script->on_free_name) {
+			alice_DTable on_free_table = alice_new_string_dtable("on_free", entity->script->on_free_name);
+			alice_dtable_add_child(&script_table, on_free_table);
+		}
+
 
 		alice_dtable_add_child(&entity_table, script_table);
 	}
@@ -358,16 +369,33 @@ static alice_EntityHandle alice_deserialise_entity(alice_DTable* table, alice_Sc
 		alice_DTable* on_update_table = alice_dtable_find_child(script_table, "on_update");
 		alice_DTable* on_free_table = alice_dtable_find_child(script_table, "on_free");
 
-		if (get_instance_size_table && get_instance_size_table->value.type == ALICE_DTABLE_STRING &&
-				on_init_table && on_init_table->value.type == ALICE_DTABLE_STRING &&
-				on_update_table && on_update_table->value.type == ALICE_DTABLE_STRING &&
-				on_free_table && on_free_table->value.type == ALICE_DTABLE_STRING) {
-			entity->script = alice_new_script(scene->script_context, handle,
-					get_instance_size_table->value.as.string,
-					on_init_table->value.as.string,
-					on_update_table->value.as.string,
-					on_free_table->value.as.string, false);
+		const char* get_instance_size_name = alice_null;
+		const char* on_init_name = alice_null;
+		const char* on_update_name = alice_null;
+		const char* on_free_name = alice_null;
+
+		if (get_instance_size_table && get_instance_size_table->value.type == ALICE_DTABLE_STRING) {
+			get_instance_size_name = get_instance_size_table->value.as.string;
 		}
+
+		if (on_init_table && on_init_table->value.type == ALICE_DTABLE_STRING) {
+			on_init_name = on_init_table->value.as.string;
+		}
+
+		if (on_update_table && on_update_table->value.type == ALICE_DTABLE_STRING) {
+			on_update_name = on_update_table->value.as.string;
+		}
+
+		if (on_free_table && on_free_table->value.type == ALICE_DTABLE_STRING) {
+			on_free_name = on_free_table->value.as.string;
+		}
+
+		entity->script = alice_new_script(scene->script_context, handle,
+				get_instance_size_name,
+				on_init_name,
+				on_update_name,
+				on_free_name, false);
+
 	}
 
 	switch (entity_type) {

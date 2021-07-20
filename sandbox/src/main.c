@@ -50,11 +50,9 @@ void main() {
 	alice_init_default_resources();
 
 	alice_Scene* scene = alice_new_scene("scripts.dll");
-	alice_deserialise_scene(scene, "scenes/monkey.ascn");
+	alice_deserialise_scene(scene, "scenes/lottamonkeys.ascn");
 
 	alice_init_scripts(scene->script_context);
-
-	alice_serialise_scene(scene, "scenes/monkey.ascn");
 
 	alice_SceneRenderer3D* renderer = alice_new_scene_renderer_3d(
 			alice_load_shader("shaders/postprocess.glsl"),
@@ -70,7 +68,7 @@ void main() {
 			alice_load_binary("fonts/opensans.ttf"),
 			18.0f);
 
-	alice_new_ui_window(ui, on_test_window_create);
+	//alice_new_ui_window(ui, on_test_window_create);
 
 	alice_TextRenderer* text_renderer = alice_new_text_renderer(alice_load_binary("fonts/opensans.ttf"),
 			32.0f, alice_load_shader("shaders/text.glsl"));

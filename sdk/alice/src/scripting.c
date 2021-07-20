@@ -77,15 +77,37 @@ alice_Script* alice_new_script(alice_ScriptContext* context, alice_EntityHandle 
 	alice_Entity* entity_ptr = alice_get_entity_ptr(context->scene, entity);
 	entity_ptr->script = new;
 
-	new->get_instance_size_name = alice_copy_string(get_instance_size_name);
-	new->on_init_name = alice_copy_string(on_init_name);
-	new->on_update_name = alice_copy_string(on_update_name);
-	new->on_free_name = alice_copy_string(on_free_name);
+	new->get_instance_size_name = alice_null;
+	new->on_init_name = alice_null;
+	new->on_update_name = alice_null;
+	new->on_free_name = alice_null;
 
-	alice_ScriptGetInstanceSizeFunction get_size = alice_get_script_proc(context, get_instance_size_name);
-	new->on_init = alice_get_script_proc(context, on_init_name);
-	new->on_update = alice_get_script_proc(context, on_update_name);
-	new->on_free = alice_get_script_proc(context, on_free_name);
+	new->on_init = alice_null;
+	new->on_update = alice_null;
+	new->on_free = alice_null;
+
+	alice_ScriptGetInstanceSizeFunction get_size = alice_null;
+	if (get_instance_size_name) {
+		new->get_instance_size_name = alice_copy_string(get_instance_size_name);
+
+		get_size = alice_get_script_proc(context, get_instance_size_name);
+	}
+
+	if (on_init_name) {
+		new->on_init_name = alice_copy_string(on_init_name);
+		new->on_init = alice_get_script_proc(context, on_init_name);
+	}
+
+	if (on_update_name) {
+		new->on_update_name = alice_copy_string(on_update_name);
+		new->on_update = alice_get_script_proc(context, on_update_name);
+
+	}
+
+	if (on_free_name) {
+		new->on_free_name = alice_copy_string(on_free_name);
+		new->on_free = alice_get_script_proc(context, on_free_name);
+	}
 
 	if (get_size) {
 		new->instance = malloc(get_size());

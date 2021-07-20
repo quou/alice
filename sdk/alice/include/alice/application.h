@@ -39,4 +39,9 @@ ALICE_API void alice_resize_application(u32 new_width, u32 new_height);
 ALICE_API void alice_rename_application(const char* new_name);
 ALICE_API void alice_set_application_fullscreen(u32 monitor_index, bool fullscreen);
 
+ALICE_API void alice_hide_mouse();
+ALICE_API void alice_show_mouse();
+
+ALICE_API i32 alice_random_int(i32 min, i32 max);
+
 ALICE_API double alice_get_timestep();

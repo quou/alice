@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <stddef.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "alice/application.h"
 #include "alice/input.h"
@@ -83,6 +84,8 @@ alice_Application* alice_get_application() {
 }
 
 void alice_init_application(alice_ApplicationConfig cfg) {
+	srand(time(alice_null));
+
 	app.name = cfg.name;
 	app.width = cfg.width;
 	app.height = cfg.height;
@@ -248,6 +251,30 @@ void alice_set_application_fullscreen(u32 monitor_index, bool fullscreen) {
 	} else {
 		glfwSetWindowMonitor(app.window, alice_null, 100, 100, app.width, app.height, 0);
 	}
+}
+
+void alice_hide_mouse() {
+	glfwSetInputMode(app.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+}
+
+void alice_show_mouse() {
+	glfwSetInputMode(app.window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+}
+
+i32 alice_random_int(i32 min, i32 max) {
+	i32 r = 0;
+	i32 l = 0;
+	i32 h = 0;
+
+	if (min < max) {
+		l = min;
+		h = max + 1;
+	} else {
+		l = max + 1;
+		h = min;
+	}
+
+	return (rand() % (h - l)) + l;
 }
 
 double alice_get_timestep() {

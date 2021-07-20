@@ -4,6 +4,8 @@
 
 ![screenshot](https://raw.githubusercontent.com/veridisquot/alice/master/screenshots/004.png)
 
+![screenshot](https://raw.githubusercontent.com/veridisquot/alice/master/screenshots/stress.png)
+
 A high performance game engine written in C99 that makes
 use of Data Oriented Design.
 
