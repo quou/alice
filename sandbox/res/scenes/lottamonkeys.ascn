@@ -27,6 +27,21 @@ scene {
 		exposure 1;
 		gamma 1.4;
 	}
+	
+	entity {
+		name "test entity";
+		children {
+			entity {
+				name "test child";
+				children {
+					entity {
+						name "test child 2";
+					}
+				}
+			}
+		}
+	}
+
 	entity {
 		name "monkey_spawner";
 		position {

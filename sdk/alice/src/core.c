@@ -83,7 +83,7 @@ void alice_log(const char* fmt, ...) {
 	SetConsoleTextAttribute(console, 2);
 	printf("info: ");
 	SetConsoleTextAttribute(console, 7);
-	
+
 	va_list argptr;
 	va_start(argptr, fmt);
 	vprintf(fmt, argptr);
@@ -98,7 +98,7 @@ void alice_log_error(const char* fmt, ...) {
 	SetConsoleTextAttribute(console, 4);
 	printf("error: ");
 	SetConsoleTextAttribute(console, 7);
-	
+
 	va_list argptr;
 	va_start(argptr, fmt);
 	vprintf(fmt, argptr);
@@ -113,7 +113,7 @@ void alice_log_warning(const char* fmt, ...) {
 	SetConsoleTextAttribute(console, 6);
 	printf("warning: ");
 	SetConsoleTextAttribute(console, 7);
-	
+
 	va_list argptr;
 	va_start(argptr, fmt);
 	vprintf(fmt, argptr);

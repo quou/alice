@@ -87,7 +87,67 @@ void alice_entity_unparent(alice_Scene* scene, alice_EntityHandle entity) {
 	}
 }
 
-ALICE_API alice_v3f alice_get_entity_world_position(alice_Scene* scene, alice_Entity* entity) {
+static alice_Entity* alice_find_entity(alice_Scene* scene, alice_Entity* parent, const char* name) {
+	assert(scene);
+
+	if (parent == alice_null) {
+		for (u32 i = 0; i < scene->pool_count; i++) {
+			alice_EntityPool* pool = &scene->pools[i];
+			for (u32 ii = 0; ii < pool->count; ii++) {
+				alice_EntityHandle handle = alice_new_entity_handle(ii, pool->type_id);
+
+				alice_Entity* ptr = alice_entity_pool_get(pool, ii);
+
+				if (ptr->parent == alice_null_entity_handle && ptr->name &&
+						strcmp(ptr->name, name) == 0) {
+					return handle;
+				}
+			}
+		}
+
+		return alice_null_entity_handle;
+	}
+
+	for (u32 i = 0; i < parent->child_count; i++) {
+		alice_EntityHandle handle = parent->children[i];
+
+		alice_Entity* ptr = alice_get_entity_ptr(scene, handle);
+
+		if (strcmp(ptr->name, name) == 0) {
+			return handle;
+		}
+	}
+
+	return alice_null_entity_handle;
+}
+
+alice_EntityHandle alice_get_entity(alice_Scene* scene, const char* path) {
+	assert(scene);
+
+	char* copied_path = alice_copy_string(path);
+
+	char* token = strtok(copied_path, "/");
+	alice_Entity* last = alice_null;
+	alice_EntityHandle current_handle = alice_null_entity_handle;
+
+	while (token) {
+		current_handle = alice_find_entity(scene, last, token);
+		if (current_handle == alice_null_entity_handle) {
+			alice_log_error("Failed to find entity with path `%s'", path);
+			return;
+		}
+
+		last = alice_get_entity_ptr(scene, current_handle);
+
+		token = strtok(alice_null, "/");
+	}
+
+	free(copied_path);
+
+	return current_handle;
+}
+
+alice_v3f alice_get_entity_world_position(alice_Scene* scene, alice_Entity* entity) {
 	assert(scene);
 	assert(entity);
 
@@ -100,7 +160,7 @@ ALICE_API alice_v3f alice_get_entity_world_position(alice_Scene* scene, alice_En
 	};
 }
 
-ALICE_API alice_v3f alice_get_entity_world_rotation(alice_Scene* scene, alice_Entity* entity) {
+alice_v3f alice_get_entity_world_rotation(alice_Scene* scene, alice_Entity* entity) {
 	assert(scene);
 	assert(entity);
 
@@ -122,7 +182,7 @@ ALICE_API alice_v3f alice_get_entity_world_rotation(alice_Scene* scene, alice_En
 	return result;
 }
 
-ALICE_API alice_v3f alice_get_entity_world_scale(alice_Scene* scene, alice_Entity* entity) {
+alice_v3f alice_get_entity_world_scale(alice_Scene* scene, alice_Entity* entity) {
 	assert(scene);
 	assert(entity);
 

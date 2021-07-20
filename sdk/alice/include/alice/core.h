@@ -71,7 +71,7 @@ ALICE_API u32 alice_hash_string(const char* string);
 ALICE_API void alice_log(const char* fmt, ...);
 ALICE_API void alice_log_warning(const char* fmt, ...);
 ALICE_API void alice_log_error(const char* fmt, ...);
- 
+
 typedef struct alice_TypeInfo {
 	u32 id;
 	u32 size;
