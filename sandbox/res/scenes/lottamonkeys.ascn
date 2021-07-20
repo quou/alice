@@ -73,4 +73,81 @@ scene {
 		}
 		intensity 10;
 	}
+	point_light {
+		name "red lamp";
+		position {
+			x 10;
+			y 3;
+			z 10;
+		}
+		rotation {
+			x 0;
+			y 0;
+			z 0;
+		}
+		scale {
+			x 1;
+			y 1;
+			z 1;
+		}
+		color {
+			r 1;
+			g 0;
+			b 0;
+		}
+		intensity 100;
+		range 3;
+	}
+
+	point_light {
+		name "blue lamp";
+		position {
+			x 30;
+			y 3;
+			z 10;
+		}
+		rotation {
+			x 0;
+			y 0;
+			z 0;
+		}
+		scale {
+			x 1;
+			y 1;
+			z 1;
+		}
+		color {
+			r 0;
+			g 0;
+			b 1;
+		}
+		intensity 100;
+		range 3;
+	}
+
+	point_light {
+		name "green lamp";
+		position {
+			x 30;
+			y 3;
+			z 30;
+		}
+		rotation {
+			x 0;
+			y 0;
+			z 0;
+		}
+		scale {
+			x 1;
+			y 1;
+			z 1;
+		}
+		color {
+			r 0;
+			g 1;
+			b 0;
+		}
+		intensity 100;
+		range 3;
+	}
 }

@@ -222,6 +222,8 @@ typedef struct alice_Renderable3D {
 	alice_Model* model;
 } alice_Renderable3D;
 
+ALICE_API void alice_apply_point_lights(alice_Scene* scene, alice_Entity* entity, alice_Material* material);
+
 ALICE_API void alice_on_renderable_3d_create(alice_Scene* scene, alice_EntityHandle handle, void* ptr);
 ALICE_API void alice_on_renderable_3d_destroy(alice_Scene* scene, alice_EntityHandle handle, void* ptr);
 ALICE_API void alice_renderable_3d_add_material(alice_Renderable3D* renderable, const char* material_path);
