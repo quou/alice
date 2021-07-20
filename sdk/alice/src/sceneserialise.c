@@ -375,19 +375,19 @@ static alice_EntityHandle alice_deserialise_entity(alice_DTable* table, alice_Sc
 		const char* on_free_name = alice_null;
 
 		if (get_instance_size_table && get_instance_size_table->value.type == ALICE_DTABLE_STRING) {
-			get_instance_size_name = get_instance_size_table->value.as.string;
+			get_instance_size_name = alice_copy_string(get_instance_size_table->value.as.string);
 		}
 
 		if (on_init_table && on_init_table->value.type == ALICE_DTABLE_STRING) {
-			on_init_name = on_init_table->value.as.string;
+			on_init_name = alice_copy_string(on_init_table->value.as.string);
 		}
 
 		if (on_update_table && on_update_table->value.type == ALICE_DTABLE_STRING) {
-			on_update_name = on_update_table->value.as.string;
+			on_update_name = alice_copy_string(on_update_table->value.as.string);
 		}
 
 		if (on_free_table && on_free_table->value.type == ALICE_DTABLE_STRING) {
-			on_free_name = on_free_table->value.as.string;
+			on_free_name = alice_copy_string(on_free_table->value.as.string);
 		}
 
 		entity->script = alice_new_script(scene->script_context, handle,
