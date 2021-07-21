@@ -41,7 +41,7 @@ Alice handles entities in a way that's fairly unique - It's somewhere halfway
 between a purely data oriented ECS and a traditional inheritance model.
 
 The first part of the puzzle is the `alice_EntityHandle`. This is a 64 bit unsigned
-integer, where the first 32 bits represents and index into an entity array for the specific
+integer, where the first 32 bits represents an index into an entity array for the specific
 entity type, with the last 32 bits being the id of the type of entity. Type IDs are
 generated using a simple hash function on the string name of the type. Entity handles are
 used to get back a generic pointer from the scene to the actual entity object.
