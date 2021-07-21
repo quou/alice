@@ -25,6 +25,8 @@ doesn't have.
 ## Roadmap
  - GUI
  - Level editor
+ - Physics
+ - Audio
  - Custom shading language
  - Vulkan renderer
  - Software renderer
