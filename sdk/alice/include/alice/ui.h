@@ -144,6 +144,7 @@ struct alice_UIContext {
 	u32 window_capacity;
 
 	alice_UIElement* hovered_element;
+	alice_UIElement* active_input;
 
 	float text_size;
 

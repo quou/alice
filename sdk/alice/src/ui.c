@@ -312,6 +312,9 @@ alice_UIContext* alice_new_ui_context(alice_Shader* rect_shader, alice_Shader* t
 	new->window_capacity = 0;
 	new->windows = alice_null;
 
+	new->hovered_element = alice_null;
+	new->active_input = alice_null;
+
 	new->text_size = font_size;
 
 	return new;
@@ -507,6 +510,8 @@ void alice_draw_ui(alice_UIContext* context) {
 
 		alice_text_queue_add(&text_queue, window->title, window_label_position);
 
+		bool any_element_hovered = false;
+
 		for (u32 i = 0; i < window->element_count; i++) {
 			alice_UIElement* element = window->elements[i];
 
@@ -532,22 +537,35 @@ void alice_draw_ui(alice_UIContext* context) {
 			};
 
 			const alice_Color outline_color = context->ui_colors[ALICE_UICOLOR_OUTLINE];
-			alice_Color background_color = context->ui_colors[ALICE_UICOLOR_BACKGROUND];
+			const alice_Color background_color = context->ui_colors[ALICE_UICOLOR_BACKGROUND];
+			const alice_Color hovered_color = context->ui_colors[ALICE_UICOLOR_HOVERED];
+			const alice_Color active_color = context->ui_colors[ALICE_UICOLOR_ACTIVE];
+
+			bool element_hovered = false;
+			bool element_held = false;
 
 			if (alice_mouse_over_ui_rect(element_rect)) {
-				background_color = context->ui_colors[ALICE_UICOLOR_HOVERED];
+				element_held = true;
+				any_element_hovered = true;
 
 				if (context->hovered_element != element && element->on_hover) {
 					element->on_hover(context, element);
 				}
 
 				if (alice_mouse_button_pressed(ALICE_MOUSE_BUTTON_LEFT)) {
-					background_color = context->ui_colors[ALICE_UICOLOR_ACTIVE];
+					element_held = true;
 				}
 
-				if (alice_mouse_button_just_released(ALICE_MOUSE_BUTTON_LEFT) &&
-						element->on_click) {
-					element->on_click(context, element);
+				if (alice_mouse_button_just_released(ALICE_MOUSE_BUTTON_LEFT)) {
+					if (element->type == ALICE_UIELEMENT_TEXTINPUT) {
+						context->active_input = element;
+					} else {
+						context->active_input = alice_null;
+					}
+
+					if (element->on_click) {
+						element->on_click(context, element);
+					}
 				}
 
 				context->hovered_element = element;
@@ -559,8 +577,15 @@ void alice_draw_ui(alice_UIContext* context) {
 				case ALICE_UIELEMENT_BUTTON: {
 					alice_UIButton* button = (alice_UIButton*)element;
 
+					alice_Color color = background_color;
+					if (element_held) {
+						color = active_color;
+					} else if (element_hovered) {
+						color = hovered_color;
+					}
+
 					alice_draw_ui_rect(context->renderer, element_outline_rect, outline_color);
-					alice_draw_ui_rect(context->renderer, element_rect, background_color);
+					alice_draw_ui_rect(context->renderer, element_rect, color);
 
 					const alice_v2f text_position = (alice_v2f) {
 						.x = element_position.x + padding,
@@ -610,11 +635,15 @@ void alice_draw_ui(alice_UIContext* context) {
 					};
 
 					alice_text_queue_add(&text_queue, input->label, label_position);
-					alice_text_queue_add(&text_queue, input->buffer, buffer_position);
+					//alice_text_queue_add(&text_queue, input->buffer, buffer_position);
 
 					break;
 				}
 			}
+		}
+
+		if (!any_element_hovered && alice_mouse_button_just_released(ALICE_MOUSE_BUTTON_LEFT)) {
+			context->active_input = alice_null;
 		}
 	}
 
@@ -680,6 +709,16 @@ void alice_destroy_ui_window(alice_UIContext* context, alice_UIWindow* window) {
 
 void alice_free_ui_element(alice_UIElement* element) {
 	assert(element);
+
+	switch (element->type) {
+		case ALICE_UIELEMENT_TEXTINPUT: {
+			alice_UITextInput* input = (alice_UITextInput*)element;
+			free(input->buffer);
+			break;
+		}
+		default:
+			break;
+	}
 
 	free(element);
 }
@@ -799,6 +838,15 @@ static alice_UIElement* alice_new_ui_element(alice_UIWindow* window, alice_UIEle
 			.y = padding
 		};
 	}
+
+	switch (type) {
+		case ALICE_UIELEMENT_TEXTINPUT: {
+			alice_UITextInput* input = (alice_UITextInput*)element;
+			input->buffer = calloc(256, 256);
+		}
+		default:
+			break;
+	};
 
 	element->window = window;
 

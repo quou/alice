@@ -10,6 +10,8 @@
 #include <alice/input.h>
 #include <alice/scripting.h>
 
+#include <glad/glad.h>
+
 static void on_button_hover(alice_UIContext* context, alice_UIElement* button) {
 	alice_log("hover");
 }
@@ -33,7 +35,6 @@ static void on_test_window_create(alice_UIContext* context, alice_UIWindow* wind
 
 	alice_UITextInput* input = alice_add_ui_text_input(window);
 	input->label = "Text input 1";
-	input->buffer = "Some text";
 }
 
 void main() {
@@ -44,7 +45,7 @@ void main() {
 				.splash_shader = "shaders/splash.glsl",
 				.width = 1024,
 				.height = 728,
-				.fullscreen = false
+				.fullscreen = false,
 			});
 
 	alice_init_default_resources();
@@ -75,7 +76,7 @@ void main() {
 			alice_load_binary("fonts/opensans.ttf"),
 			18.0f);
 
-	//alice_new_ui_window(ui, on_test_window_create);
+	alice_new_ui_window(ui, on_test_window_create);
 
 	alice_TextRenderer* text_renderer = alice_new_text_renderer(alice_load_binary("fonts/opensans.ttf"),
 			32.0f, alice_load_shader("shaders/text.glsl"));

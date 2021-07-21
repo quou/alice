@@ -17,6 +17,7 @@ project "sandbox"
 	}
 
 	includedirs {
+		"../sdk/extern/glad/include",
 		"../sdk/alice/include"
 	}
 
@@ -25,7 +26,8 @@ project "sandbox"
 	}
 
 	links {
-		"alice"
+		"alice",
+		"glad"
 	}
 
 	filter "configurations:debug"
