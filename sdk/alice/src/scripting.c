@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdlib.h>
 
 #include "alice/scripting.h"
 #include "alice/entity.h"
@@ -26,8 +27,40 @@ static void* alice_get_script_proc(alice_ScriptContext* context, const char* nam
 	return function;
 }
 
+static void alice_deinit_script_context_library(alice_ScriptContext* context) {
+
+}
+
 #else
-#error Scripting only supports Windows
+
+#include <dlfcn.h>
+
+static void alice_init_script_context_library(alice_ScriptContext* context, const char* assembly_path) {
+	assert(context);
+
+	context->handle = dlopen(assembly_path, RTLD_NOW);
+	if (!context->handle) {
+		alice_log_error("Failed to load script assembly: `%s': %s", assembly_path, dlerror());
+	}
+}
+
+static void* alice_get_script_proc(alice_ScriptContext* context, const char* name) {
+	assert(context);
+
+	void* function = dlsym(context->handle, name);
+	if (!function) {
+		alice_log_error("Failed to locate function `%s'", name);
+	}
+
+	return function;
+}
+
+static void alice_deinit_script_context_library(alice_ScriptContext* context) {
+	assert(context);
+
+	dlclose(context->handle);
+}
+
 #endif
 
 alice_ScriptContext* alice_new_script_context(alice_Scene* scene, const char* assembly_path) {
@@ -49,6 +82,8 @@ alice_ScriptContext* alice_new_script_context(alice_Scene* scene, const char* as
 void alice_free_script_context(alice_ScriptContext* context) {
 	assert(context);
 
+	alice_deinit_script_context_library(context);
+
 	if (context->script_capacity > 0) {
 		free(context->scripts);
 	}
@@ -61,7 +96,7 @@ alice_Script* alice_new_script(alice_ScriptContext* context, alice_EntityHandle 
 		const char* on_init_name,
 		const char* on_update_name,
 		const char* on_free_name, bool init_on_create) {
-	assert(entity);
+	assert(context);
 
 	if (context->script_count >= context->script_capacity) {
 		context->script_capacity = alice_grow_capacity(context->script_capacity);

@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <string.h>
 
 #include "alice/sceneserialise.h"
 #include "alice/dtable.h"

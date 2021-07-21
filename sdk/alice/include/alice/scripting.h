@@ -35,7 +35,7 @@ typedef struct alice_ScriptContext {
 
 ALICE_API alice_ScriptContext* alice_new_script_context(alice_Scene* scene, const char* assembly_path);
 ALICE_API void alice_free_script_context(alice_ScriptContext* context);
-ALICE_API alice_Script* alice_new_script(alice_EntityHandle entity, alice_ScriptContext* context,
+ALICE_API alice_Script* alice_new_script(alice_ScriptContext* context, alice_EntityHandle entity,
 		const char* get_instance_size_name,
 		const char* on_init_name,
 		const char* on_update_name,

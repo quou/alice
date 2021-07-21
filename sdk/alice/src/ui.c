@@ -351,7 +351,7 @@ alice_v2f alice_calculate_ui_element_dimentions(alice_UIContext* context, alice_
 
 	switch (element->type) {
 		case ALICE_UIELEMENT_BUTTON: {
-			alice_UIButton* button = (alice_UILabel*)element;
+			alice_UIButton* button = (alice_UIButton*)element;
 
 			alice_v2f text_dimentions =
 				alice_calculate_text_dimentions(context->text_renderer, button->text);

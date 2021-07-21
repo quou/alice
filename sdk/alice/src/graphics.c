@@ -908,7 +908,6 @@ alice_Camera3D* alice_get_scene_camera(alice_Scene* scene) {
 
 	for (alice_entity_iter(scene, iter, alice_Camera3D)) {
 		alice_Camera3D* entity = iter.current_ptr;
-
 		if (entity->active) {
 			camera = entity;
 			break;

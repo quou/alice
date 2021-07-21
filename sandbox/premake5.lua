@@ -2,8 +2,7 @@ include "scripts"
 
 project "sandbox"
 	kind "ConsoleApp"
-	language "C"
-	cdialect "C99"
+	language "C++"
 
 	staticruntime "on"
 

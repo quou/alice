@@ -49,7 +49,13 @@ void main() {
 
 	alice_init_default_resources();
 
-	alice_Scene* scene = alice_new_scene("scripts.dll");
+#ifdef ALICE_PLATFORM_WINDOWS
+	const char* script_lib_name = "scripts.dll";
+#else
+	const char* script_lib_name = "./libscripts.so";
+#endif
+
+	alice_Scene* scene = alice_new_scene(script_lib_name);
 	alice_deserialise_scene(scene, "scenes/lottamonkeys.ascn");
 
 	alice_init_scripts(scene->script_context);
