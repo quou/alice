@@ -91,8 +91,9 @@ type `alice_Renderable3D`, and draws them to the screen.
 The only disadvantage that this gives is that entities of different types cannot
 be combined like in a pure ECS - thus, we are stuck with a similar issue that the 
 traditional inheritance model had. Alice gets around this in a similar way to Godot
-(another engine that uses an inheritance model instead of ECS) - by harnessing entity
-parenting in order to combine different entity behaviours. This does create the issue
-that more entities have to be created in order to achieve a similar effect,
-though since iteration of said entities is quick and cache-friendly, these extra
-entities are more than made up for.
+(another engine that uses an inheritance model instead of ECS 
+[[Source](https://godotengine.org/article/why-isnt-godot-ecs-based-game-engine)]) - 
+by harnessing entity parenting in order to combine different entity behaviours.
+This does create the issue that more entities have to be created in order to
+achieve a similar effect, though since iteration of said entities is quick and
+cache-friendly, these extra entities are more than made up for.
