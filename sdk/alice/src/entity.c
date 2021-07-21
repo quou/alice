@@ -87,7 +87,7 @@ void alice_entity_unparent(alice_Scene* scene, alice_EntityHandle entity) {
 	}
 }
 
-static alice_EntityHandle alice_find_entity(alice_Scene* scene, alice_Entity* parent, const char* name) {
+alice_EntityHandle alice_find_entity_by_name(alice_Scene* scene, alice_Entity* parent, const char* name) {
 	assert(scene);
 
 	if (parent == alice_null) {
@@ -121,7 +121,7 @@ static alice_EntityHandle alice_find_entity(alice_Scene* scene, alice_Entity* pa
 	return alice_null_entity_handle;
 }
 
-alice_EntityHandle alice_get_entity(alice_Scene* scene, const char* path) {
+alice_EntityHandle alice_find_entity_by_path(alice_Scene* scene, const char* path) {
 	assert(scene);
 
 	char* copied_path = alice_copy_string(path);
@@ -131,7 +131,7 @@ alice_EntityHandle alice_get_entity(alice_Scene* scene, const char* path) {
 	alice_EntityHandle current_handle = alice_null_entity_handle;
 
 	while (token) {
-		current_handle = alice_find_entity(scene, last, token);
+		current_handle = alice_find_entity_by_name(scene, last, token);
 		if (current_handle == alice_null_entity_handle) {
 			alice_log_error("Failed to find entity with path `%s'", path);
 			return alice_null_entity_handle;
