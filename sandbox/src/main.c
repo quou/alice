@@ -56,7 +56,8 @@ void main() {
 #endif
 
 	alice_Scene* scene = alice_new_scene(script_lib_name);
-	alice_deserialise_scene(scene, "scenes/lottamonkeys.ascn");
+	alice_deserialise_scene(scene, "scenes/monkey.ascn");
+	alice_serialise_scene(scene, "scenes/monkey.ascn");
 
 	alice_init_scripts(scene->script_context);
 

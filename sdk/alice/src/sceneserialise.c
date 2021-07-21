@@ -220,7 +220,7 @@ static void alice_serialise_entity(alice_DTable* table, alice_Scene* scene, alic
 			alice_dtable_add_child(&entity_table, gamma_table);
 
 			alice_DTable active_table = alice_new_bool_dtable("active", camera->active);
-			alice_dtable_add_child(&active_table, active_table);
+			alice_dtable_add_child(&entity_table, active_table);
 			break;
 		}
 	}
