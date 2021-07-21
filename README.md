@@ -82,7 +82,7 @@ as enough memory has been allocated for the "inherited" struct. This way, generi
 can be created that take in `alice_Entity` pointers, for things such as calculating a
 transform matrix for a given entity.
 
-A scene contains an array of "component pools", one entry for each unique type of entity,
+A scene contains an array of "entity pools", one entry for each unique type of entity,
 and within each pool, entities are sub-allocated from a contiguous block.
 This way, by iterating a pool for a specific entity type, logic can be applied to
 all entities of that type - for example the 3D renderer iterates all entities of
