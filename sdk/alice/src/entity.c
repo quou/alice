@@ -400,6 +400,10 @@ void alice_destroy_entity(alice_Scene* scene, alice_EntityHandle handle) {
 		alice_destroy_entity(scene, ptr->children[i]);
 	}
 
+	if (ptr->script) {
+		alice_delete_script(scene->script_context, ptr->script);
+	}
+
 	if (pool->destroy) {
 		pool->destroy(scene, handle, ptr);
 	}

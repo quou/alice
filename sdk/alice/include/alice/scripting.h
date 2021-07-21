@@ -41,6 +41,7 @@ ALICE_API alice_Script* alice_new_script(alice_ScriptContext* context, alice_Ent
 		const char* on_update_name,
 		const char* on_free_name, bool init_on_create);
 ALICE_API void alice_delete_script(alice_ScriptContext* context, alice_Script* script);
+ALICE_API void alice_deinit_script(alice_ScriptContext* context, alice_Script* script);
 ALICE_API void alice_init_scripts(alice_ScriptContext* context);
 ALICE_API void alice_update_scripts(alice_ScriptContext* context, double timestep);
 ALICE_API void alice_free_scripts(alice_ScriptContext* context);

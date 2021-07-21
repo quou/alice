@@ -172,22 +172,34 @@ void alice_delete_script(alice_ScriptContext* context, alice_Script* script) {
 		return;
 	}
 
-	if (script->on_free) {
-		script->on_free(context->scene, script->entity, script->instance);
-	}
-
-	free(script->get_instance_size_name);
-	free(script->on_init);
-	free(script->on_update);
-	free(script->on_free);
-
-	alice_Entity* entity_ptr = alice_get_entity_ptr(context->scene, script->entity);
-	entity_ptr->script = alice_null;
-	free(script->instance);
+	alice_deinit_script(context, &context->scripts[index]);
 
 	for (u32 i = index; i < context->script_count - 1; i++) {
 		context->scripts[i] = context->scripts[i + 1];
 	}
+
+	context->script_count--;
+}
+
+void alice_deinit_script(alice_ScriptContext* context, alice_Script* script) {
+	assert(context);
+	assert(script);
+
+	if (script->on_free) {
+		script->on_free(context->scene, script->entity, script->instance);
+	}
+
+	if (script->instance) {
+		free(script->instance);
+	}
+
+	alice_Entity* entity_ptr = alice_get_entity_ptr(context->scene, script->entity);
+	entity_ptr->script = alice_null;
+
+	free(script->get_instance_size_name);
+	free(script->on_init_name);
+	free(script->on_update_name);
+	free(script->on_free_name);
 }
 
 void alice_init_scripts(alice_ScriptContext* context) {
@@ -217,20 +229,6 @@ void alice_free_scripts(alice_ScriptContext* context) {
 
 	for (u32 i = 0; i < context->script_count; i++) {
 		alice_Script* script = &context->scripts[i];
-		if (script->on_free) {
-			script->on_free(context->scene, script->entity, script->instance);
-		}
-
-		if (script->instance) {
-			free(script->instance);
-		}
-
-		alice_Entity* entity_ptr = alice_get_entity_ptr(context->scene, script->entity);
-		entity_ptr->script = alice_null;
-
-		free(script->get_instance_size_name);
-		free(script->on_init_name);
-		free(script->on_update_name);
-		free(script->on_free_name);
+		alice_deinit_script(context, script);
 	}
 }

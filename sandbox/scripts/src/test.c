@@ -20,7 +20,7 @@ on_test_script_init(alice_Scene* scene, alice_EntityHandle entity, void* instanc
 ALICE_API void ALICE_CALL
 on_test_script_update(alice_Scene* scene, alice_EntityHandle entity, void* instance, double timestep) {
 	alice_Entity* entity_ptr = alice_get_entity_ptr(scene, entity);
-	
+
 	if (alice_key_pressed(ALICE_KEY_LEFT)) {
 		entity_ptr->position.x += 3.0f * timestep;
 	} else if (alice_key_pressed(ALICE_KEY_RIGHT)) {
@@ -39,6 +39,10 @@ on_test_script_update(alice_Scene* scene, alice_EntityHandle entity, void* insta
 		alice_Renderable3D* renderable = (alice_Renderable3D*)entity_ptr;
 
 		renderable->materials[0]->albedo = ALICE_COLOR_YELLOW;
+	}
+
+	if (alice_key_just_pressed(ALICE_KEY_D)) {
+		alice_destroy_entity(scene, entity);
 	}
 }
 
