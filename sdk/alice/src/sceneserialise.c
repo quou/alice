@@ -590,7 +590,7 @@ static alice_EntityHandle alice_deserialise_entity(alice_DTable* table, alice_Sc
 
 			alice_DTable* box_table = alice_dtable_find_child(table, "box");
 			if (box_table) {
-				alice_DTable* dimentions_table = alice_dtable_find_child(table, "dimentions");
+				alice_DTable* dimentions_table = alice_dtable_find_child(box_table, "dimentions");
 				if (dimentions_table) {
 					alice_DTable* x_table = alice_dtable_find_child(dimentions_table, "x");
 					if (x_table && x_table->value.type == ALICE_DTABLE_NUMBER) {
