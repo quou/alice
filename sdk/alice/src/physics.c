@@ -153,6 +153,8 @@ alice_PhysicsEngine* alice_new_physics_engine(alice_Scene* scene) {
 	new->unique_pair_count = 0;
 	new->unique_pair_capacity = 0;
 
+	new->accumulator = 0.0f;
+
 	new->scene = scene;
 
 	new->gravity = -10.0f;
@@ -174,7 +176,7 @@ void alice_free_physics_engine(alice_PhysicsEngine* engine) {
 	free(engine);
 }
 
-void alice_update_physics_engine(alice_PhysicsEngine* engine, double timestep) {
+static void alice_tick_physics_engine(alice_PhysicsEngine* engine, double timestep) {
 	assert(engine);
 
 	engine->pair_count = 0;
@@ -303,5 +305,23 @@ void alice_update_physics_engine(alice_PhysicsEngine* engine, double timestep) {
 		};
 
 		alice_correct_rigidbody_positions(pair);
+	}
+}
+
+void alice_update_physics_engine(alice_PhysicsEngine* engine, double timestep) {
+	assert(engine);
+
+	const float fps = 60.0f;
+	const float dt = 1.0f / fps;
+
+	engine->accumulator += timestep;
+
+	if (engine->accumulator > 0.2f) {
+		engine->accumulator = 0.2f;
+	}
+
+	while (engine->accumulator > dt) {
+		alice_tick_physics_engine(engine, dt);
+		engine->accumulator -= dt;
 	}
 }

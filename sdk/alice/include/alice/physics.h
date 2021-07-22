@@ -54,6 +54,8 @@ typedef struct alice_PhysicsEngine {
 	alice_Scene* scene;
 
 	float gravity;
+
+	float accumulator;
 } alice_PhysicsEngine;
 
 ALICE_API alice_PhysicsEngine* alice_new_physics_engine(alice_Scene* scene);
