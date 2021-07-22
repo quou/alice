@@ -1,0 +1,89 @@
+scene {
+	camera_3d {
+		position {
+			x 0;
+			y 3;
+			z 0;
+		}
+		rotation {
+			x -45;
+			y 0;
+			z 0;
+		}
+		scale {
+			x 1;
+			y 1;
+			z 1;
+		}
+		fov 45;
+		near 0.1;
+		far 1000;
+		exposure 1;
+		gamma 1.4;
+		active true;
+	}
+	directional_light {
+		position {
+			x 1;
+			y -1;
+			z 0;
+		}
+		rotation {
+			x 0;
+			y 0;
+			z 0;
+		}
+		scale {
+			x 1;
+			y 1;
+			z 1;
+		}
+		color {
+			r 1;
+			g 1;
+			b 1;
+		}
+		intensity 10;
+	}
+	entity {
+		position {
+			x 0;
+			y 0;
+			z 3;
+		}
+		rotation {
+			x 0;
+			y 0;
+			z 0;
+		}
+		scale {
+			x 1;
+			y 1;
+			z 1;
+		}
+		children {
+			renderable_3d {
+				position {
+					x 0;
+					y 0;
+					z 0;
+				}
+				rotation {
+					x 0;
+					y 180;
+					z 0;
+				}
+				scale {
+					x 1;
+					y 1;
+					z 1;
+				}
+				model "models/monkey.glb";
+				materials [
+					"default_material";
+				]
+
+			}
+		}
+	}
+}

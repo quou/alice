@@ -6,6 +6,7 @@
 #include "alice/entity.h"
 #include "alice/graphics.h"
 #include "alice/scripting.h"
+#include "alice/physics.h"
 
 alice_m4f alice_get_entity_transform(alice_Scene* scene, alice_Entity* entity) {
 	assert(entity);
@@ -292,6 +293,7 @@ alice_Scene* alice_new_scene(const char* script_assembly) {
 	alice_register_entity_type(new, alice_Renderable3D);
 	alice_register_entity_type(new, alice_PointLight);
 	alice_register_entity_type(new, alice_DirectionalLight);
+	alice_register_entity_type(new, alice_Rigidbody3D);
 
 	alice_set_entity_create_function(new, alice_Renderable3D, alice_on_renderable_3d_create);
 	alice_set_entity_destroy_function(new, alice_Renderable3D, alice_on_renderable_3d_destroy);

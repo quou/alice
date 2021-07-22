@@ -9,6 +9,7 @@
 #include <alice/ui.h>
 #include <alice/input.h>
 #include <alice/scripting.h>
+#include <alice/physics.h>
 
 #include <glad/glad.h>
 
@@ -57,10 +58,107 @@ void main() {
 #endif
 
 	alice_Scene* scene = alice_new_scene(script_lib_name);
-	alice_deserialise_scene(scene, "scenes/monkey.ascn");
-	alice_serialise_scene(scene, "scenes/monkey.ascn");
+/*	alice_deserialise_scene(scene, "scenes/monkey.ascn");
+ *	alice_serialise_scene(scene, "scenes/monkey.ascn"); */
+
+	{
+		alice_EntityHandle monkey_handle = alice_new_entity(scene, alice_Rigidbody3D);
+		alice_Rigidbody3D* monkey = alice_get_entity_ptr(scene, monkey_handle);
+		monkey->base.position.y = 5.0f;
+		monkey->base.position.z = 3.0f;
+
+		monkey->mass = 1.0f;
+		monkey->restitution = 1.0f;
+
+		monkey->velocity = (alice_v3f){0.0f, 0.0f, 0.0f};
+		monkey->force = (alice_v3f){0.0f, 0.0f, 0.0f};
+
+		monkey->gravity_scale = 1.0f;
+
+		monkey->box = (alice_BoxCollider) {
+			.dimentions = (alice_v3f) {
+				.x = 2.0f,
+				.y = 2.0f,
+				.z = 2.0f
+			}
+		};
+
+		alice_EntityHandle monkey_visible_handle = alice_new_entity(scene, alice_Renderable3D);
+		alice_Renderable3D* monkey_visible = alice_get_entity_ptr(scene, monkey_visible_handle);
+
+		monkey_visible->base.rotation.y = 180.0f;
+
+		monkey_visible->model = alice_load_model("models/monkey.glb");
+		alice_renderable_3d_add_material(monkey_visible, "default_material");
+
+		alice_entity_parent_to(scene, monkey_visible_handle, monkey_handle);
+	}
+
+	{
+		alice_EntityHandle ground_handle = alice_new_entity(scene, alice_Rigidbody3D);
+		alice_Rigidbody3D* ground = alice_get_entity_ptr(scene, ground_handle);
+		ground->base.position.z = 3.0f;
+		ground->base.position.y = -1.0f;
+
+		ground->mass = 0.0f;
+		ground->restitution = 0.3f;
+
+		ground->velocity = (alice_v3f){0.0, 0.0f, 0.0f};
+		ground->force = (alice_v3f){0.0f, 0.0f, 0.0f};
+
+		ground->gravity_scale = 0.0f;
+
+		ground->box = (alice_BoxCollider) {
+			.dimentions = (alice_v3f) {
+				.x = 10.0f,
+				.y = 0.4f,
+				.z = 10.0f
+			}
+		};
+
+		alice_EntityHandle ground_visible_handle = alice_new_entity(scene, alice_Renderable3D);
+		alice_Renderable3D* ground_visible = alice_get_entity_ptr(scene, ground_visible_handle);
+
+		ground_visible->base.scale = (alice_v3f) {
+			.x = 10.0f,
+			.y = 0.4f,
+			.z = 10.0f
+		};
+
+		ground_visible->model = alice_load_model("cube");
+		alice_renderable_3d_add_material(ground_visible, "default_material");
+
+		alice_entity_parent_to(scene, ground_visible_handle, ground_handle);
+	}
+
+	{
+		alice_EntityHandle sun_handle = alice_new_entity(scene, alice_DirectionalLight);
+		alice_DirectionalLight* sun = alice_get_entity_ptr(scene, sun_handle);
+
+		sun->base.position = (alice_v3f){ 1.0f, -1.0f, 0.0f };
+
+		sun->intensity = 10.0f;
+		sun->color = ALICE_COLOR_WHITE;
+	}
+
+	{
+		alice_EntityHandle camera_handle = alice_new_entity(scene, alice_Camera3D);
+		alice_Camera3D* camera = alice_get_entity_ptr(scene, camera_handle);
+
+		camera->base.position.y = 3.0f;
+		camera->base.rotation.x = -45.0f;
+
+		camera->fov = 45.0f;
+		camera->near = 0.1f;
+		camera->far = 1000.0f;
+		camera->exposure = 1.0f;
+		camera->gamma = 1.4f;
+		camera->active = true;
+	}
 
 	alice_init_scripts(scene->script_context);
+
+	alice_PhysicsEngine* physics = alice_new_physics_engine(scene);
 
 	alice_SceneRenderer3D* renderer = alice_new_scene_renderer_3d(
 			alice_load_shader("shaders/postprocess.glsl"),
@@ -76,7 +174,7 @@ void main() {
 			alice_load_binary("fonts/opensans.ttf"),
 			18.0f);
 
-	alice_new_ui_window(ui, on_test_window_create);
+//	alice_new_ui_window(ui, on_test_window_create);
 
 	alice_TextRenderer* text_renderer = alice_new_text_renderer(alice_load_binary("fonts/opensans.ttf"),
 			32.0f, alice_load_shader("shaders/text.glsl"));
@@ -108,6 +206,8 @@ void main() {
 
 		alice_update_scripts(scene->script_context, app->timestep);
 
+		alice_update_physics_engine(physics, app->timestep);
+
 		alice_render_scene_3d(renderer, app->width, app->height, scene, alice_null);
 
 		alice_set_text_renderer_dimentions(text_renderer, (alice_v2f){app->width, app->height});
@@ -122,6 +222,8 @@ void main() {
 	alice_free_text_renderer(text_renderer);
 
 	alice_free_scene_renderer_3d(renderer);
+
+	alice_free_physics_engine(physics);
 
 	alice_free_scene(scene);
 

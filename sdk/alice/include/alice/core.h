@@ -72,6 +72,9 @@ ALICE_API void alice_log(const char* fmt, ...);
 ALICE_API void alice_log_warning(const char* fmt, ...);
 ALICE_API void alice_log_error(const char* fmt, ...);
 
+#define alice_min(x_, y_) (((x_) < (y_)) ? (x_) : (y_))
+#define alice_max(x_, y_) (((x_) > (y_)) ? (x_) : (y_))
+
 typedef struct alice_TypeInfo {
 	u32 id;
 	u32 size;
