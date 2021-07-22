@@ -61,3 +61,5 @@ typedef struct alice_PhysicsEngine {
 ALICE_API alice_PhysicsEngine* alice_new_physics_engine(alice_Scene* scene);
 ALICE_API void alice_free_physics_engine(alice_PhysicsEngine* engine);
 ALICE_API void alice_update_physics_engine(alice_PhysicsEngine* engine, double timestep);
+
+ALICE_API void alice_on_rigidbody_3d_create(alice_Scene* scene, alice_EntityHandle handle, void* ptr);

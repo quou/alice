@@ -58,8 +58,41 @@ void main() {
 #endif
 
 	alice_Scene* scene = alice_new_scene(script_lib_name);
-/*	alice_deserialise_scene(scene, "scenes/monkey.ascn");
- *	alice_serialise_scene(scene, "scenes/monkey.ascn"); */
+	alice_deserialise_scene(scene, "scenes/physicstest.ascn");
+	alice_serialise_scene(scene, "scenes/physicstest.ascn");
+
+/*	{
+		alice_EntityHandle monkey_handle = alice_new_entity(scene, alice_Rigidbody3D);
+		alice_Rigidbody3D* monkey = alice_get_entity_ptr(scene, monkey_handle);
+		monkey->base.position.y = 10.0f;
+		monkey->base.position.z = 3.0f;
+
+		monkey->mass = 1.0f;
+		monkey->restitution = 0.3f;
+
+		monkey->velocity = (alice_v3f){0.0f, 0.0f, 0.0f};
+		monkey->force = (alice_v3f){0.0f, 0.0f, 0.0f};
+
+		monkey->gravity_scale = 1.0f;
+
+		monkey->box = (alice_BoxCollider) {
+			.dimentions = (alice_v3f) {
+				.x = 2.0f,
+				.y = 2.0f,
+				.z = 2.0f
+			}
+		};
+
+		alice_EntityHandle monkey_visible_handle = alice_new_entity(scene, alice_Renderable3D);
+		alice_Renderable3D* monkey_visible = alice_get_entity_ptr(scene, monkey_visible_handle);
+
+		monkey_visible->base.rotation.y = 180.0f;
+
+		monkey_visible->model = alice_load_model("models/monkey.glb");
+		alice_renderable_3d_add_material(monkey_visible, "default_material");
+
+		alice_entity_parent_to(scene, monkey_visible_handle, monkey_handle);
+	}
 
 	{
 		alice_EntityHandle monkey_handle = alice_new_entity(scene, alice_Rigidbody3D);
@@ -68,7 +101,7 @@ void main() {
 		monkey->base.position.z = 3.0f;
 
 		monkey->mass = 1.0f;
-		monkey->restitution = 1.0f;
+		monkey->restitution = 0.3f;
 
 		monkey->velocity = (alice_v3f){0.0f, 0.0f, 0.0f};
 		monkey->force = (alice_v3f){0.0f, 0.0f, 0.0f};
@@ -155,6 +188,9 @@ void main() {
 		camera->gamma = 1.4f;
 		camera->active = true;
 	}
+
+	alice_serialise_scene(scene, "scenes/physicstest.ascn");
+*/
 
 	alice_init_scripts(scene->script_context);
 

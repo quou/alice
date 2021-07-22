@@ -298,6 +298,8 @@ alice_Scene* alice_new_scene(const char* script_assembly) {
 	alice_set_entity_create_function(new, alice_Renderable3D, alice_on_renderable_3d_create);
 	alice_set_entity_destroy_function(new, alice_Renderable3D, alice_on_renderable_3d_destroy);
 
+	alice_set_entity_create_function(new, alice_Rigidbody3D, alice_on_rigidbody_3d_create);
+
 	return new;
 }
 

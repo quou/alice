@@ -5,13 +5,15 @@
 #include "alice/dtable.h"
 #include "alice/graphics.h"
 #include "alice/scripting.h"
+#include "alice/physics.h"
 
 typedef enum alice_SerialisableType {
 	ALICE_ST_ENTITY,
 	ALICE_ST_RENDERABLE3D,
 	ALICE_ST_POINTLIGHT,
 	ALICE_ST_DIRECTIONALLIGHT,
-	ALICE_ST_CAMERA3D
+	ALICE_ST_CAMERA3D,
+	ALICE_ST_RIGIDBODY3D
 } alice_SerialisableType;
 
 static alice_SerialisableType alice_determine_entity_type(alice_EntityHandle handle) {
@@ -25,6 +27,8 @@ static alice_SerialisableType alice_determine_entity_type(alice_EntityHandle han
 		return ALICE_ST_CAMERA3D;
 	} else if (type_id == alice_get_type_info(alice_DirectionalLight).id) {
 		return ALICE_ST_DIRECTIONALLIGHT;
+	} else if (type_id == alice_get_type_info(alice_Rigidbody3D).id) {
+		return ALICE_ST_RIGIDBODY3D;
 	}
 
 	return ALICE_ST_ENTITY;
@@ -50,6 +54,9 @@ static void alice_serialise_entity(alice_DTable* table, alice_Scene* scene, alic
 			break;
 		case ALICE_ST_DIRECTIONALLIGHT:
 			type_name = "directional_light";
+			break;
+		case ALICE_ST_RIGIDBODY3D:
+			type_name = "rigidbody_3d";
 			break;
 	}
 
@@ -223,6 +230,38 @@ static void alice_serialise_entity(alice_DTable* table, alice_Scene* scene, alic
 			alice_dtable_add_child(&entity_table, active_table);
 			break;
 		}
+		case ALICE_ST_RIGIDBODY3D: {
+			alice_Rigidbody3D* rigidbody = (alice_Rigidbody3D*)entity;
+
+			alice_DTable mass_table = alice_new_number_dtable("mass", rigidbody->mass);
+			alice_dtable_add_child(&entity_table, mass_table);
+
+			alice_DTable restitution_table = alice_new_number_dtable("restitution",
+					rigidbody->restitution);
+			alice_dtable_add_child(&entity_table, restitution_table);
+
+			alice_DTable gravity_scale_table = alice_new_number_dtable("gravity_scale",
+					rigidbody->gravity_scale);
+			alice_dtable_add_child(&entity_table, gravity_scale_table);
+
+			alice_DTable box_table = alice_new_empty_dtable("box");
+
+			alice_DTable dimentions_table = alice_new_empty_dtable("dimentions");
+
+			alice_DTable x_table = alice_new_number_dtable("x", rigidbody->box.dimentions.x);
+			alice_dtable_add_child(&dimentions_table, x_table);
+
+			alice_DTable y_table = alice_new_number_dtable("y", rigidbody->box.dimentions.y);
+			alice_dtable_add_child(&dimentions_table, y_table);
+
+			alice_DTable z_table = alice_new_number_dtable("z", rigidbody->box.dimentions.z);
+			alice_dtable_add_child(&dimentions_table, z_table);
+
+			alice_dtable_add_child(&box_table, dimentions_table);
+			alice_dtable_add_child(&entity_table, box_table);
+
+			break;
+		}
 	}
 
 	if (entity->child_count > 0) {
@@ -270,6 +309,8 @@ static alice_SerialisableType alice_determine_dtable_type(alice_DTable* table) {
 		return ALICE_ST_POINTLIGHT;
 	} else if (strcmp(table->name, "directional_light") == 0) {
 		return ALICE_ST_DIRECTIONALLIGHT;
+	} else if (strcmp(table->name, "rigidbody_3d") == 0) {
+		return ALICE_ST_RIGIDBODY3D;
 	}
 
 	return ALICE_ST_ENTITY;
@@ -296,6 +337,8 @@ static alice_EntityHandle alice_deserialise_entity(alice_DTable* table, alice_Sc
 		case ALICE_ST_DIRECTIONALLIGHT:
 			create_type = alice_get_type_info(alice_DirectionalLight);
 			break;
+		case ALICE_ST_RIGIDBODY3D:
+			create_type = alice_get_type_info(alice_Rigidbody3D);
 		default:
 			break;
 	}
@@ -523,6 +566,47 @@ static alice_EntityHandle alice_deserialise_entity(alice_DTable* table, alice_Sc
 				}
 
 				light->color = alice_color_from_rgb_color(color);
+			}
+
+			break;
+		}
+		case ALICE_ST_RIGIDBODY3D: {
+			alice_Rigidbody3D* rigidbody = (alice_Rigidbody3D*)entity;
+
+			alice_DTable* mass_table = alice_dtable_find_child(table, "mass");
+			if (mass_table && mass_table->value.type == ALICE_DTABLE_NUMBER) {
+				rigidbody->mass = mass_table->value.as.number;
+			}
+
+			alice_DTable* restitution_table = alice_dtable_find_child(table, "restitution");
+			if (restitution_table && restitution_table->value.type == ALICE_DTABLE_NUMBER) {
+				rigidbody->restitution = restitution_table->value.as.number;
+			}
+
+			alice_DTable* gravity_scale_table = alice_dtable_find_child(table, "gravity_scale");
+			if (gravity_scale_table && gravity_scale_table->value.type == ALICE_DTABLE_NUMBER) {
+				rigidbody->gravity_scale = gravity_scale_table->value.as.number;
+			}
+
+			alice_DTable* box_table = alice_dtable_find_child(table, "box");
+			if (box_table) {
+				alice_DTable* dimentions_table = alice_dtable_find_child(table, "dimentions");
+				if (dimentions_table) {
+					alice_DTable* x_table = alice_dtable_find_child(dimentions_table, "x");
+					if (x_table && x_table->value.type == ALICE_DTABLE_NUMBER) {
+						rigidbody->box.dimentions.x = x_table->value.as.number;
+					}
+
+					alice_DTable* y_table = alice_dtable_find_child(dimentions_table, "y");
+					if (y_table && y_table->value.type == ALICE_DTABLE_NUMBER) {
+						rigidbody->box.dimentions.y = y_table->value.as.number;
+					}
+
+					alice_DTable* z_table = alice_dtable_find_child(dimentions_table, "z");
+					if (z_table && z_table->value.type == ALICE_DTABLE_NUMBER) {
+						rigidbody->box.dimentions.z = z_table->value.as.number;
+					}
+				}
 			}
 
 			break;

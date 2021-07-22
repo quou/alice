@@ -325,3 +325,23 @@ void alice_update_physics_engine(alice_PhysicsEngine* engine, double timestep) {
 		engine->accumulator -= dt;
 	}
 }
+
+void alice_on_rigidbody_3d_create(alice_Scene* scene, alice_EntityHandle handle, void* ptr) {
+	alice_Rigidbody3D* rigidbody = ptr;
+
+	rigidbody->mass = 1.0f;
+	rigidbody->restitution = 0.3f;
+
+	rigidbody->velocity = (alice_v3f){0.0f, 0.0f, 0.0f};
+	rigidbody->force = (alice_v3f){0.0f, 0.0f, 0.0f};
+
+	rigidbody->gravity_scale = 1.0f;
+
+	rigidbody->box = (alice_BoxCollider) {
+		.dimentions = (alice_v3f) {
+			.x = 2.0f,
+			.y = 2.0f,
+			.z = 2.0f
+		}
+	};
+}
