@@ -21,11 +21,11 @@ doesn't have.
  - Custom text serialisation format
  - Scene serialisation
  - Scripting
+ - Physics
 
 ## Roadmap
  - GUI
  - Level editor
- - Physics
  - Audio
  - Custom shading language
  - Vulkan renderer
