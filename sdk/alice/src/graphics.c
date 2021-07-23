@@ -930,7 +930,7 @@ alice_m4f alice_get_camera_3d_matrix(alice_Scene* scene, alice_Camera3D* camera)
 		.z = cosf(rotation.x) * cosf(rotation.y)
 	};
 
-	alice_m4f view = alice_m4f_lookat(camera->base.position,
+	alice_m4f view = alice_m4f_lookat(position,
 		(alice_v3f){
 			.x = position.x + direction.x,
 			.y = position.y + direction.y,
