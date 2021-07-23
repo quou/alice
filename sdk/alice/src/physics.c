@@ -215,7 +215,7 @@ static void alice_tick_physics_engine(alice_PhysicsEngine* engine, double timest
 			alice_Rigidbody3D* a = i.current_ptr;
 			alice_Rigidbody3D* b = j.current_ptr;
 
-			if (a == b) {
+			if (a == b || a->mass == 0.0f && b->mass == 0.0f) {
 				continue;
 			}
 

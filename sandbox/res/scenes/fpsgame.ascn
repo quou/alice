@@ -1,0 +1,244 @@
+scene {	
+	
+	rigidbody_3d {
+		name "player";
+		position {
+			x 0;
+			y 5;
+			z 0;
+		}
+		rotation {
+			x 0;
+			y 0;
+			z 0;
+		}
+		scale {
+			x 1;
+			y 1;
+			z 1;
+		}
+		script {
+			get_instance_size "get_fps_controller_size";
+			on_init "init_fps_controller";
+			on_update "update_fps_controller";
+		}
+
+		mass 1;
+		dynamic_friction 0.3;
+		static_friction 0.3;
+		restitution 0;
+		gravity_scale 1;
+		box {
+			dimentions {
+				x 1;
+				y 2;
+				z 1;
+			}
+			position {
+				x 0;
+				y 0;
+				z 0;
+			}
+		}
+		children {	
+			camera_3d {
+				name "camera";
+				position {
+					x 0;
+					y 0;
+					z 0;
+				}
+				rotation {
+					x 0;
+					y 0;
+					z 0;
+				}
+				scale {
+					x 1;
+					y 1;
+					z 1;
+				}
+				fov 45;
+				near 0.1;
+				far 1000;
+				exposure 1;
+				gamma 1.4;
+				active true;
+			}
+		}
+	}	
+	rigidbody_3d {
+		name "ground";
+		position {
+			x 0;
+			y 0;
+			z 0;
+		}
+		rotation {
+			x 0;
+			y 0;
+			z 0;
+		}
+		scale {
+			x 1;
+			y 1;
+			z 1;
+		}
+		mass 0;
+		dynamic_friction 0.3;
+		static_friction 0.3;
+		restitution 0.3;
+		gravity_scale 0;
+		box {
+			dimentions {
+				x 10;
+				y 0.4;
+				z 10;
+			}
+			position {
+				x 0;
+				y 0;
+				z 0;
+			}
+		}
+		children {
+			renderable_3d {
+				position {
+					x 0;
+					y 0;
+					z 0;
+				}
+				rotation {
+					x 0;
+					y 0;
+					z 0;
+				}
+				scale {
+					x 10;
+					y 0.4;
+					z 10;
+				}
+				model "cube";
+				materials [
+					"default_material";
+				]
+
+			}
+		}
+	}
+
+	rigidbody_3d {
+		name "box";
+		position {
+			x 4;
+			y 0.6;
+			z 0;
+		}
+		rotation {
+			x 0;
+			y 0;
+			z 0;
+		}
+		scale {
+			x 1;
+			y 1;
+			z 1;
+		}
+		mass 0;
+		dynamic_friction 0.3;
+		static_friction 0.3;
+		restitution 0.3;
+		gravity_scale 0;
+		box {
+			dimentions {
+				x 1;
+				y 1;
+				z 1;
+			}
+			position {
+				x 0;
+				y 0;
+				z 0;
+			}
+		}
+		children {
+			renderable_3d {
+				position {
+					x 0;
+					y 0;
+					z 0;
+				}
+				rotation {
+					x 0;
+					y 0;
+					z 0;
+				}
+				scale {
+					x 1;
+					y 1;
+					z 1;
+				}
+				model "cube";
+				materials [
+					"default_material";
+				]
+
+			}
+		}
+	}
+
+	point_light {
+		name "red light";
+		position {
+			x 3;
+			y 0.6;
+			z 1;
+		}
+		rotation {
+			x 0;
+			y 0;
+			z 0;
+		}
+		scale {
+			x 1;
+			y 1;
+			z 1;
+		}
+
+		intensity 1;
+		range 4;
+		color {
+			r 1;
+			g 0;
+			b 0;
+		}
+	}
+
+
+	point_light {
+		name "blue light";
+		position {
+			x 3;
+			y 0.6;
+			z -1;
+		}
+		rotation {
+			x 0;
+			y 0;
+			z 0;
+		}
+		scale {
+			x 1;
+			y 1;
+			z 1;
+		}
+
+		intensity 1;
+		range 15;
+		color {
+			r 0;
+			g 0;
+			b 1;
+		}
+	}
+}

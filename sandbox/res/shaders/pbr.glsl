@@ -145,7 +145,7 @@ vec3 fresnel_schlick(float cosTheta, vec3 F0) {
 }
 
 vec3 calculate_point_light(PointLight light, vec3 N, vec3 V, vec3 F0) {
-	vec3 position = vec3(-light.position.x, light.position.y, -light.position.z);
+	vec3 position = vec3(light.position.x, light.position.y, light.position.z);
 
 	vec3 L = normalize(position - fs_in.world_pos);
 	vec3 H = normalize(V + L);
@@ -219,7 +219,7 @@ void main() {
 	}
 
 	vec3 F0 = vec3(0.04);
-	F0 = mix(F0, albedo, material.metallic);
+	F0 = mix(F0, albedo, metallic);
 
 	vec3 lighting_result = vec3(0.0);
 
@@ -237,7 +237,7 @@ void main() {
 		ao = texture(material.ambient_occlusion_map, fs_in.uv).r;
 	}
 
-	vec3 ambient = vec3(0.003 + material.emissive) * albedo * ao;
+	vec3 ambient = vec3(0.03 + material.emissive) * albedo * ao;
 
 	color = vec4(ambient + lighting_result, 1.0);
 }
