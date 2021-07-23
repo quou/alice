@@ -1,5 +1,4 @@
 scene {	
-	
 	rigidbody_3d {
 		name "player";
 		position {
@@ -20,7 +19,7 @@ scene {
 		script {
 			get_instance_size "get_fps_controller_size";
 			on_init "init_fps_controller";
-			on_update "update_fps_controller";
+			on_physics_update "update_fps_controller";
 		}
 
 		mass 1;

@@ -374,6 +374,9 @@ void alice_update_physics_engine(alice_PhysicsEngine* engine, double timestep) {
 	}
 
 	while (engine->accumulator > dt) {
+		if (engine->scene->script_context) {
+			alice_physics_update_scripts(engine->scene->script_context, dt);
+		}
 		alice_tick_physics_engine(engine, dt);
 		engine->accumulator -= dt;
 	}

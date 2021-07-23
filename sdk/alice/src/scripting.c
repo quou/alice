@@ -95,6 +95,7 @@ alice_Script* alice_new_script(alice_ScriptContext* context, alice_EntityHandle 
 		const char* get_instance_size_name,
 		const char* on_init_name,
 		const char* on_update_name,
+		const char* on_physics_update_name,
 		const char* on_free_name, bool init_on_create) {
 	assert(context);
 
@@ -115,6 +116,7 @@ alice_Script* alice_new_script(alice_ScriptContext* context, alice_EntityHandle 
 	new->get_instance_size_name = alice_null;
 	new->on_init_name = alice_null;
 	new->on_update_name = alice_null;
+	new->on_physics_update_name = alice_null;
 	new->on_free_name = alice_null;
 
 	new->on_init = alice_null;
@@ -136,7 +138,11 @@ alice_Script* alice_new_script(alice_ScriptContext* context, alice_EntityHandle 
 	if (on_update_name) {
 		new->on_update_name = alice_copy_string(on_update_name);
 		new->on_update = alice_get_script_proc(context, on_update_name);
+	}
 
+	if (on_physics_update_name) {
+		new->on_physics_update_name = alice_copy_string(on_physics_update_name);
+		new->on_physics_update = alice_get_script_proc(context, on_physics_update_name);
 	}
 
 	if (on_free_name) {
@@ -220,6 +226,17 @@ void alice_update_scripts(alice_ScriptContext* context, double timestep) {
 		alice_Script* script = &context->scripts[i];
 		if (script->on_update) {
 			script->on_update(context->scene, script->entity, script->instance, timestep);
+		}
+	}
+}
+
+void alice_physics_update_scripts(alice_ScriptContext* context, double timestep) {
+	assert(context);
+
+	for (u32 i = 0; i < context->script_count; i++) {
+		alice_Script* script = &context->scripts[i];
+		if (script->on_physics_update) {
+			script->on_physics_update(context->scene, script->entity, script->instance, timestep);
 		}
 	}
 }

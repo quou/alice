@@ -122,6 +122,11 @@ static void alice_serialise_entity(alice_DTable* table, alice_Scene* scene, alic
 			alice_dtable_add_child(&script_table, on_update_table);
 		}
 
+		if (entity->script->on_physics_update_name) {
+			alice_DTable on_physics_update_table = alice_new_string_dtable("on_physics_update", entity->script->on_physics_update_name);
+			alice_dtable_add_child(&script_table, on_physics_update_table);
+		}
+
 		if (entity->script->on_free_name) {
 			alice_DTable on_free_table = alice_new_string_dtable("on_free", entity->script->on_free_name);
 			alice_dtable_add_child(&script_table, on_free_table);
@@ -437,11 +442,13 @@ static alice_EntityHandle alice_deserialise_entity(alice_DTable* table, alice_Sc
 		alice_DTable* get_instance_size_table = alice_dtable_find_child(script_table, "get_instance_size");
 		alice_DTable* on_init_table = alice_dtable_find_child(script_table, "on_init");
 		alice_DTable* on_update_table = alice_dtable_find_child(script_table, "on_update");
+		alice_DTable* on_physics_update_table = alice_dtable_find_child(script_table, "on_physics_update");
 		alice_DTable* on_free_table = alice_dtable_find_child(script_table, "on_free");
 
 		const char* get_instance_size_name = alice_null;
 		const char* on_init_name = alice_null;
 		const char* on_update_name = alice_null;
+		const char* on_physics_update_name = alice_null;
 		const char* on_free_name = alice_null;
 
 		if (get_instance_size_table && get_instance_size_table->value.type == ALICE_DTABLE_STRING) {
@@ -449,21 +456,26 @@ static alice_EntityHandle alice_deserialise_entity(alice_DTable* table, alice_Sc
 		}
 
 		if (on_init_table && on_init_table->value.type == ALICE_DTABLE_STRING) {
-			on_init_name = alice_copy_string(on_init_table->value.as.string);
+			on_init_name = on_init_table->value.as.string;
 		}
 
 		if (on_update_table && on_update_table->value.type == ALICE_DTABLE_STRING) {
-			on_update_name = alice_copy_string(on_update_table->value.as.string);
+			on_update_name = on_update_table->value.as.string;
+		}
+
+		if (on_physics_update_table && on_physics_update_table->value.type == ALICE_DTABLE_STRING) {
+			on_physics_update_name = on_physics_update_table->value.as.string;
 		}
 
 		if (on_free_table && on_free_table->value.type == ALICE_DTABLE_STRING) {
-			on_free_name = alice_copy_string(on_free_table->value.as.string);
+			on_free_name = on_free_table->value.as.string;
 		}
 
 		entity->script = alice_new_script(scene->script_context, handle,
 				get_instance_size_name,
 				on_init_name,
 				on_update_name,
+				on_physics_update_name,
 				on_free_name, false);
 
 	}

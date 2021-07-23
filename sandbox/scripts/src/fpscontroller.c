@@ -57,7 +57,7 @@ update_fps_controller(alice_Scene* scene, alice_EntityHandle handle, void* insta
 
 	alice_Rigidbody3D* rigidbody = alice_get_entity_ptr(scene, handle);
 
-	if (alice_key_just_pressed(ALICE_KEY_SPACE)) {
+	if (alice_key_pressed(ALICE_KEY_SPACE)) {
 		rigidbody->velocity.y = fps->jump_height;
 	}
 
