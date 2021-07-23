@@ -31,7 +31,7 @@ ALICE_API void alice_entity_add_child(alice_Scene* scene, alice_EntityHandle ent
 ALICE_API void alice_entity_remove_child(alice_Scene* scene, alice_EntityHandle entity, alice_EntityHandle child);
 ALICE_API void alice_entity_unparent(alice_Scene* scene, alice_EntityHandle entity);
 
-ALICE_API alice_EntityHandle alice_find_entity_by_name(alice_Scene* scene, alice_Entity* parent, const char* name);
+ALICE_API alice_EntityHandle alice_find_entity_by_name(alice_Scene* scene, alice_EntityHandle parent_handle, const char* name);
 ALICE_API alice_EntityHandle alice_find_entity_by_path(alice_Scene* scene, const char* path);
 
 ALICE_API alice_v3f alice_get_entity_world_position(alice_Scene* scene, alice_Entity* entity);

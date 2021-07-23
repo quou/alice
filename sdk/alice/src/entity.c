@@ -88,8 +88,10 @@ void alice_entity_unparent(alice_Scene* scene, alice_EntityHandle entity) {
 	}
 }
 
-alice_EntityHandle alice_find_entity_by_name(alice_Scene* scene, alice_Entity* parent, const char* name) {
+alice_EntityHandle alice_find_entity_by_name(alice_Scene* scene, alice_EntityHandle parent_handle, const char* name) {
 	assert(scene);
+
+	alice_Entity* parent = alice_get_entity_ptr(scene, parent_handle);
 
 	if (parent == alice_null) {
 		for (u32 i = 0; i < scene->pool_count; i++) {
@@ -128,7 +130,7 @@ alice_EntityHandle alice_find_entity_by_path(alice_Scene* scene, const char* pat
 	char* copied_path = alice_copy_string(path);
 
 	char* token = strtok(copied_path, "/");
-	alice_Entity* last = alice_null;
+	alice_EntityHandle last = alice_null;
 	alice_EntityHandle current_handle = alice_null_entity_handle;
 
 	while (token) {
@@ -138,7 +140,7 @@ alice_EntityHandle alice_find_entity_by_path(alice_Scene* scene, const char* pat
 			return alice_null_entity_handle;
 		}
 
-		last = alice_get_entity_ptr(scene, current_handle);
+		last = current_handle;
 
 		token = strtok(alice_null, "/");
 	}
