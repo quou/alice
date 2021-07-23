@@ -364,8 +364,8 @@ static void alice_tick_physics_engine(alice_PhysicsEngine* engine, double timest
 void alice_update_physics_engine(alice_PhysicsEngine* engine, double timestep) {
 	assert(engine);
 
-	const float fps = 60.0f;
-	const float dt = 1.0f / fps;
+	const double fps = 60.0f;
+	const double dt = 1.0f / fps;
 
 	engine->accumulator += timestep;
 
@@ -378,7 +378,7 @@ void alice_update_physics_engine(alice_PhysicsEngine* engine, double timestep) {
 		engine->accumulator -= dt;
 	}
 
-	const float alpha = engine->accumulator / dt;
+	const double alpha = engine->accumulator / dt;
 
 	for (alice_entity_iter(engine->scene, iter, alice_Rigidbody3D)) {
 		alice_Rigidbody3D* rigidbody = iter.current_ptr;
