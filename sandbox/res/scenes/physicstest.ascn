@@ -2,7 +2,7 @@ scene {
 	camera_3d {
 		position {
 			x 0;
-			y 3;
+			y 10;
 			z 0;
 		}
 		rotation {
@@ -46,10 +46,11 @@ scene {
 		intensity 10;
 	}
 	rigidbody_3d {
+		name "monkey #1";
 		position {
 			x 0;
 			y 10;
-			z 3;
+			z 10;
 		}
 		rotation {
 			x 0;
@@ -97,10 +98,11 @@ scene {
 		}
 	}
 	rigidbody_3d {
+		name "monkey #2";
 		position {
 			x 2;
 			y 5;
-			z 3;
+			z 10;
 		}
 		rotation {
 			x 0;
@@ -112,13 +114,11 @@ scene {
 			y 1;
 			z 1;
 		}
-		
 		script {
 			get_instance_size "alice_get_monkey_physics_size";
 			on_init "monkey_physics_init";
 			on_update "monkey_physics_update";
 		}
-		
 		mass 1;
 		restitution 0.3;
 		gravity_scale 1;
@@ -155,10 +155,11 @@ scene {
 		}
 	}
 	rigidbody_3d {
+		name "ground";
 		position {
 			x 0;
-			y -1;
-			z 3;
+			y 0;
+			z 10;
 		}
 		rotation {
 			x 0;
@@ -175,9 +176,9 @@ scene {
 		gravity_scale 0;
 		box {
 			dimentions {
-				x 8;
+				x 10;
 				y 0.4;
-				z 8;
+				z 10;
 			}
 		}
 		children {

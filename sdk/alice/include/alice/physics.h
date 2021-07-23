@@ -28,6 +28,9 @@ typedef struct alice_Rigidbody3D {
 
 	float restitution;
 
+	float dynamic_friction;
+	float static_friction;
+
 	alice_v3f velocity;
 	alice_v3f force;
 
