@@ -376,10 +376,26 @@ void alice_update_physics_engine(alice_PhysicsEngine* engine, double timestep) {
 		alice_tick_physics_engine(engine, dt);
 		engine->accumulator -= dt;
 	}
+
+	const float alpha = engine->accumulator / dt;
+
+	for (alice_entity_iter(engine->scene, iter, alice_Rigidbody3D)) {
+		alice_Rigidbody3D* rigidbody = iter.current_ptr;
+
+		rigidbody->base.position = (alice_v3f) {
+			.x = rigidbody->old_position.x * alpha + rigidbody->base.position.x * (1.0f - alpha),
+			.y = rigidbody->old_position.y * alpha + rigidbody->base.position.y * (1.0f - alpha),
+			.z = rigidbody->old_position.z * alpha + rigidbody->base.position.z * (1.0f - alpha),
+		};
+
+		rigidbody->old_position = rigidbody->base.position;
+	}
 }
 
 void alice_on_rigidbody_3d_create(alice_Scene* scene, alice_EntityHandle handle, void* ptr) {
 	alice_Rigidbody3D* rigidbody = ptr;
+
+	rigidbody->old_position = rigidbody->base.position;
 
 	rigidbody->mass = 1.0f;
 	rigidbody->restitution = 0.3f;

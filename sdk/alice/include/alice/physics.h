@@ -23,6 +23,8 @@ typedef struct alice_BoxCollider {
 typedef struct alice_Rigidbody3D {
 	alice_Entity base;
 
+	alice_v3f old_position;
+
 	float mass;
 	float inverse_mass;
 
