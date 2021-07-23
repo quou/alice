@@ -46,7 +46,7 @@ scene {
 		intensity 10;
 	}
 	rigidbody_3d {
-		name "monkey #1";
+		name "cube";
 		position {
 			x 0;
 			y 10;
@@ -63,6 +63,8 @@ scene {
 			z 1;
 		}
 		mass 1;
+		dynamic_friction 0.3;
+		static_friction 0.3;
 		restitution 0.3;
 		gravity_scale 1;
 		box {
@@ -70,6 +72,11 @@ scene {
 				x 2;
 				y 2;
 				z 2;
+			}
+			position {
+				x 0;
+				y 0;
+				z 0;
 			}
 		}
 		children {
@@ -81,15 +88,15 @@ scene {
 				}
 				rotation {
 					x 0;
-					y 180;
+					y 0;
 					z 0;
 				}
 				scale {
-					x 1;
-					y 1;
-					z 1;
+					x 2;
+					y 2;
+					z 2;
 				}
-				model "models/monkey.glb";
+				model "cube";
 				materials [
 					"default_material";
 				]
@@ -98,7 +105,7 @@ scene {
 		}
 	}
 	rigidbody_3d {
-		name "monkey #2";
+		name "monkey";
 		position {
 			x 2;
 			y 5;
@@ -120,6 +127,8 @@ scene {
 			on_update "monkey_physics_update";
 		}
 		mass 1;
+		dynamic_friction 0.3;
+		static_friction 0.3;
 		restitution 0.3;
 		gravity_scale 1;
 		box {
@@ -127,6 +136,11 @@ scene {
 				x 2;
 				y 2;
 				z 2;
+			}
+			position {
+				x 0;
+				y 0;
+				z 0;
 			}
 		}
 		children {
@@ -172,6 +186,8 @@ scene {
 			z 1;
 		}
 		mass 0;
+		dynamic_friction 0.3;
+		static_friction 0.3;
 		restitution 0.3;
 		gravity_scale 0;
 		box {
@@ -179,6 +195,11 @@ scene {
 				x 10;
 				y 0.4;
 				z 10;
+			}
+			position {
+				x 0;
+				y 0;
+				z 0;
 			}
 		}
 		children {

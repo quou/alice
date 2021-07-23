@@ -236,6 +236,14 @@ static void alice_serialise_entity(alice_DTable* table, alice_Scene* scene, alic
 			alice_DTable mass_table = alice_new_number_dtable("mass", rigidbody->mass);
 			alice_dtable_add_child(&entity_table, mass_table);
 
+			alice_DTable static_friction_table = alice_new_number_dtable(
+					"dynamic_friction", rigidbody->dynamic_friction);
+			alice_dtable_add_child(&entity_table, static_friction_table);
+
+			alice_DTable dynamic_friction_table = alice_new_number_dtable(
+					"static_friction", rigidbody->static_friction);
+			alice_dtable_add_child(&entity_table, dynamic_friction_table);
+
 			alice_DTable restitution_table = alice_new_number_dtable("restitution",
 					rigidbody->restitution);
 			alice_dtable_add_child(&entity_table, restitution_table);
@@ -246,18 +254,36 @@ static void alice_serialise_entity(alice_DTable* table, alice_Scene* scene, alic
 
 			alice_DTable box_table = alice_new_empty_dtable("box");
 
-			alice_DTable dimentions_table = alice_new_empty_dtable("dimentions");
+			{
+				alice_DTable dimentions_table = alice_new_empty_dtable("dimentions");
 
-			alice_DTable x_table = alice_new_number_dtable("x", rigidbody->box.dimentions.x);
-			alice_dtable_add_child(&dimentions_table, x_table);
+				alice_DTable x_table = alice_new_number_dtable("x", rigidbody->box.dimentions.x);
+				alice_dtable_add_child(&dimentions_table, x_table);
 
-			alice_DTable y_table = alice_new_number_dtable("y", rigidbody->box.dimentions.y);
-			alice_dtable_add_child(&dimentions_table, y_table);
+				alice_DTable y_table = alice_new_number_dtable("y", rigidbody->box.dimentions.y);
+				alice_dtable_add_child(&dimentions_table, y_table);
 
-			alice_DTable z_table = alice_new_number_dtable("z", rigidbody->box.dimentions.z);
-			alice_dtable_add_child(&dimentions_table, z_table);
+				alice_DTable z_table = alice_new_number_dtable("z", rigidbody->box.dimentions.z);
+				alice_dtable_add_child(&dimentions_table, z_table);
 
-			alice_dtable_add_child(&box_table, dimentions_table);
+				alice_dtable_add_child(&box_table, dimentions_table);
+			}
+
+			{
+				alice_DTable position_table = alice_new_empty_dtable("position");
+
+				alice_DTable x_table = alice_new_number_dtable("x", rigidbody->box.position.x);
+				alice_dtable_add_child(&position_table, x_table);
+
+				alice_DTable y_table = alice_new_number_dtable("y", rigidbody->box.position.y);
+				alice_dtable_add_child(&position_table, y_table);
+
+				alice_DTable z_table = alice_new_number_dtable("z", rigidbody->box.position.z);
+				alice_dtable_add_child(&position_table, z_table);
+
+				alice_dtable_add_child(&box_table, position_table);
+			}
+
 			alice_dtable_add_child(&entity_table, box_table);
 
 			break;
@@ -588,6 +614,16 @@ static alice_EntityHandle alice_deserialise_entity(alice_DTable* table, alice_Sc
 				rigidbody->gravity_scale = gravity_scale_table->value.as.number;
 			}
 
+			alice_DTable* dynamic_friction_table = alice_dtable_find_child(table, "dynamic_friction");
+			if (dynamic_friction_table && dynamic_friction_table->value.type == ALICE_DTABLE_NUMBER) {
+				rigidbody->dynamic_friction = dynamic_friction_table->value.as.number;
+			}
+
+			alice_DTable* static_friction_table = alice_dtable_find_child(table, "static_friction");
+			if (static_friction_table && dynamic_friction_table->value.type == ALICE_DTABLE_NUMBER) {
+				rigidbody->static_friction = static_friction_table->value.as.number;
+			}
+
 			alice_DTable* box_table = alice_dtable_find_child(table, "box");
 			if (box_table) {
 				alice_DTable* dimentions_table = alice_dtable_find_child(box_table, "dimentions");
@@ -605,6 +641,24 @@ static alice_EntityHandle alice_deserialise_entity(alice_DTable* table, alice_Sc
 					alice_DTable* z_table = alice_dtable_find_child(dimentions_table, "z");
 					if (z_table && z_table->value.type == ALICE_DTABLE_NUMBER) {
 						rigidbody->box.dimentions.z = z_table->value.as.number;
+					}
+				}
+
+				alice_DTable* position_table = alice_dtable_find_child(box_table, "position");
+				if (position_table) {
+					alice_DTable* x_table = alice_dtable_find_child(position_table, "x");
+					if (x_table && x_table->value.type == ALICE_DTABLE_NUMBER) {
+						rigidbody->box.position.x = x_table->value.as.number;
+					}
+
+					alice_DTable* y_table = alice_dtable_find_child(position_table, "y");
+					if (y_table && y_table->value.type == ALICE_DTABLE_NUMBER) {
+						rigidbody->box.position.y = y_table->value.as.number;
+					}
+
+					alice_DTable* z_table = alice_dtable_find_child(position_table, "z");
+					if (z_table && z_table->value.type == ALICE_DTABLE_NUMBER) {
+						rigidbody->box.position.z = z_table->value.as.number;
 					}
 				}
 			}

@@ -12,14 +12,14 @@ static void alice_calculate_body_aabb(alice_PhysicsEngine* engine, alice_Rigidbo
 	alice_v3f position = alice_get_entity_world_position(engine->scene, (alice_Entity*)body);
 
 	aabb->min = (alice_v3f) {
-		.x = position.x,
-		.y = position.y,
-		.z = position.z,
+		.x = body->box.position.x + position.x,
+		.y = body->box.position.y + position.y,
+		.z = body->box.position.z + position.z,
 	};
 	aabb->max = (alice_v3f) {
-		.x = position.x + body->box.dimentions.x,
-		.y = position.y + body->box.dimentions.y,
-		.z = position.z + body->box.dimentions.z,
+		.x = body->box.position.x + position.x + body->box.dimentions.x,
+		.y = body->box.position.y + position.y + body->box.dimentions.y,
+		.z = body->box.position.z + position.z + body->box.dimentions.z,
 	};
 }
 
@@ -325,7 +325,8 @@ static void alice_tick_physics_engine(alice_PhysicsEngine* engine, double timest
 		float jt = -alice_v3f_dot(relative_velocity, tangent_vector);
 		jt /= a->inverse_mass + b->inverse_mass;
 
-		float mu = sqrt((a->static_friction * a->static_friction) + (b->static_friction * b->static_friction));
+		const float mu = sqrt((a->static_friction * a->static_friction)
+				+ (b->static_friction * b->static_friction));
 
 		alice_v3f friction_impulse;
 		if (fabs(jt) < j * mu) {
@@ -335,7 +336,7 @@ static void alice_tick_physics_engine(alice_PhysicsEngine* engine, double timest
 				.z = jt * tangent_vector.z,
 			};
 		} else {
-			float dynamic_friction = sqrt((a->dynamic_friction * a->dynamic_friction) +
+			const float dynamic_friction = sqrt((a->dynamic_friction * a->dynamic_friction) +
 					(b->dynamic_friction * b->dynamic_friction));
 			friction_impulse = (alice_v3f){
 				.x = -j * dynamic_friction * tangent_vector.x,
@@ -409,6 +410,11 @@ void alice_on_rigidbody_3d_create(alice_Scene* scene, alice_EntityHandle handle,
 	rigidbody->static_friction = 0.3f;
 
 	rigidbody->box = (alice_BoxCollider) {
+		.position = (alice_v3f) {
+			.x = 0.0f,
+			.y = 0.0f,
+			.z = 0.0f
+		},
 		.dimentions = (alice_v3f) {
 			.x = 2.0f,
 			.y = 2.0f,

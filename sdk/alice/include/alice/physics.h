@@ -17,6 +17,7 @@ typedef struct alice_Manifold {
 ALICE_API bool alice_aabb_vs_aabb(alice_AABB a, alice_AABB b, alice_Manifold* manifold);
 
 typedef struct alice_BoxCollider {
+	alice_v3f position;
 	alice_v3f dimentions;
 } alice_BoxCollider;
 
