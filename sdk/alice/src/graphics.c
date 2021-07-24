@@ -1064,7 +1064,7 @@ void alice_apply_point_lights(alice_Scene* scene, alice_AABB mesh_aabb, alice_Ma
 	for (alice_entity_iter(scene, iter, alice_PointLight)) {
 		alice_PointLight* light = iter.current_ptr;
 
-		if (!alice_sphere_vs_aabb(mesh_aabb, light->base.position, light->range)) {
+		if (!alice_sphere_vs_aabb(mesh_aabb, light->base.position, light->range * 2)) {
 			continue;
 		}
 

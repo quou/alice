@@ -205,14 +205,13 @@ scene {
 		}
 
 		intensity 1;
-		range 10;
+		range 2;
 		color {
 			r 1;
 			g 0;
 			b 0;
 		}
 	}
-
 
 	point_light {
 		name "blue light";
@@ -233,7 +232,7 @@ scene {
 		}
 
 		intensity 1;
-		range 15;
+		range 4;
 		color {
 			r 0;
 			g 0;
