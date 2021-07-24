@@ -33,8 +33,8 @@ init_fps_controller(alice_Scene* scene, alice_EntityHandle handle, void* instanc
 		alice_log_error("FPS controller script must be applied to a rigidbody");
 	}
 
-	fps->speed = 4.0f;
-	fps->jump_height = 4.0f;
+	fps->speed = 30.0f;
+	fps->jump_height = 40.0f;
 
 	fps->camera = alice_get_entity_ptr(scene, alice_find_entity_by_name(scene, handle, "camera"));
 
@@ -58,7 +58,9 @@ update_fps_controller(alice_Scene* scene, alice_EntityHandle handle, void* insta
 	alice_Rigidbody3D* rigidbody = alice_get_entity_ptr(scene, handle);
 
 	if (alice_key_pressed(ALICE_KEY_SPACE)) {
-		rigidbody->velocity.y = fps->jump_height;
+		rigidbody->force.y = fps->jump_height;
+	} else {
+		rigidbody->force.y = 0.0f;
 	}
 
 	if (fps->first_move) {
@@ -114,6 +116,6 @@ update_fps_controller(alice_Scene* scene, alice_EntityHandle handle, void* insta
 		velocity.z += right.z * fps->speed;
 	}
 
-	rigidbody->velocity.x = velocity.x;
-	rigidbody->velocity.z = velocity.z;
+	rigidbody->force.x = velocity.x;
+	rigidbody->force.z = velocity.z;
 }

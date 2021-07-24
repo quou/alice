@@ -84,8 +84,8 @@ scene {
 			z 1;
 		}
 		mass 0;
-		dynamic_friction 0.3;
-		static_friction 0.3;
+		dynamic_friction 1.0;
+		static_friction 1.0;
 		restitution 0.3;
 		gravity_scale 0;
 		box {
@@ -144,8 +144,8 @@ scene {
 			z 1;
 		}
 		mass 0;
-		dynamic_friction 0.3;
-		static_friction 0.3;
+		dynamic_friction 1.0;
+		static_friction 1.0;
 		restitution 0.3;
 		gravity_scale 0;
 		box {
