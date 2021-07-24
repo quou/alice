@@ -6,6 +6,8 @@
 #include "alice/entity.h"
 #include "alice/physics.h"
 
+typedef struct alice_DebugRenderer alice_DebugRenderer;
+
 typedef struct alice_RGBColor {
 	float r, g, b;
 } alice_RGBColor;
@@ -164,7 +166,7 @@ ALICE_API alice_Model* alice_new_model();
 ALICE_API void alice_free_model(alice_Model* model);
 ALICE_API void alice_model_add_mesh(alice_Model* model, alice_Mesh mesh);
 
-ALICE_API alice_calculate_aabb_from_mesh(alice_AABB* aabb, alice_m4f transform,
+ALICE_API void alice_calculate_aabb_from_mesh(alice_AABB* aabb, alice_m4f transform,
 		float* vertices, u32 position_count, u32 position_stride);
 
 typedef struct alice_Camera3D {
@@ -243,6 +245,9 @@ typedef struct alice_SceneRenderer3D {
 	alice_Shader* extract;
 	alice_Shader* blur;
 
+	bool debug;
+	alice_DebugRenderer* debug_renderer;
+
 	bool use_bloom;
 	bool use_antialiasing;
 
@@ -250,7 +255,8 @@ typedef struct alice_SceneRenderer3D {
 } alice_SceneRenderer3D;
 
 ALICE_API alice_SceneRenderer3D* alice_new_scene_renderer_3d(alice_Shader* postprocess_shader,
-		alice_Shader* extract_shader, alice_Shader* blur_shader);
+		alice_Shader* extract_shader, alice_Shader* blur_shader,
+		bool debug, alice_Shader* debug_shader);
 ALICE_API void alice_free_scene_renderer_3d(alice_SceneRenderer3D* renderer);
 ALICE_API void alice_render_scene_3d(alice_SceneRenderer3D* renderer, u32 width, u32 height,
 		alice_Scene* scene, alice_RenderTarget* render_target);

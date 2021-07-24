@@ -27,32 +27,18 @@ scene {
 		exposure 1;
 		gamma 1.4;
 		active true;
-	}
-	
-	entity {
-		name "test entity";
-		children {
-			entity {
-				name "test child";
-				children {
-					entity {
-						name "test child 2";
-					}
-				}
-			}
-		}
-	}
+	}	
 
 	entity {
 		name "monkey_spawner";
 		position {
 			x 0;
 			y 0;
-			z 3;
+			z 0;
 		}
 		rotation {
 			x 0;
-			y 180;
+			y 0;
 			z 0;
 		}
 		scale {
@@ -93,7 +79,7 @@ scene {
 		name "red lamp";
 		position {
 			x 10;
-			y 3;
+			y 0;
 			z 10;
 		}
 		rotation {
@@ -112,14 +98,14 @@ scene {
 			b 0;
 		}
 		intensity 100;
-		range 3;
+		range 10;
 	}
 
 	point_light {
 		name "blue lamp";
 		position {
 			x 30;
-			y 3;
+			y 0;
 			z 10;
 		}
 		rotation {
@@ -138,14 +124,14 @@ scene {
 			b 1;
 		}
 		intensity 100;
-		range 3;
+		range 10;
 	}
 
 	point_light {
 		name "green lamp";
 		position {
 			x 30;
-			y 3;
+			y 0;
 			z 30;
 		}
 		rotation {
@@ -164,6 +150,6 @@ scene {
 			b 0;
 		}
 		intensity 100;
-		range 3;
+		range 10;
 	}
 }

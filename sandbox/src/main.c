@@ -10,6 +10,7 @@
 #include <alice/input.h>
 #include <alice/scripting.h>
 #include <alice/physics.h>
+#include <alice/debugrenderer.h>
 
 #include <glad/glad.h>
 
@@ -199,7 +200,8 @@ void main() {
 	alice_SceneRenderer3D* renderer = alice_new_scene_renderer_3d(
 			alice_load_shader("shaders/postprocess.glsl"),
 			alice_load_shader("shaders/bright_extract.glsl"),
-			alice_load_shader("shaders/blur.glsl"));
+			alice_load_shader("shaders/blur.glsl"),
+			true, alice_load_shader("shaders/line.glsl"));
 
 	renderer->use_bloom = true;
 	renderer->use_antialiasing = true;

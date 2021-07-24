@@ -8,7 +8,7 @@
 #include <stb_image.h>
 
 #include "alice/graphics.h"
-#include "alice/physics.h"
+#include "alice/debugrenderer.h"
 
 alice_Color alice_color_from_rgb_color(alice_RGBColor rgb) {
 	i8 r = (i8)(rgb.r * 255.0);
@@ -890,7 +890,7 @@ void alice_model_add_mesh(alice_Model* model, alice_Mesh mesh) {
 	model->meshes[model->mesh_count++] = mesh;
 }
 
-alice_calculate_aabb_from_mesh(alice_AABB* aabb, alice_m4f transform,
+void alice_calculate_aabb_from_mesh(alice_AABB* aabb, alice_m4f transform,
 		float* vertices, u32 position_count, u32 position_stride) {
 	assert(aabb);
 	assert(vertices);
@@ -898,7 +898,7 @@ alice_calculate_aabb_from_mesh(alice_AABB* aabb, alice_m4f transform,
 	aabb->min = (alice_v3f) { 0.0f, 0.0f, 0.0f };
 	aabb->max = (alice_v3f) { 0.0f, 0.0f, 0.0f };
 
-	for (u32 i = 0; i < position_count; i += 3 * position_stride) {
+	for (u32 i = 0; i < position_count; i += position_stride) {
 		alice_v3f position = (alice_v3f) {
 			.x = vertices[i],
 			.y = vertices[i + 1],
@@ -907,15 +907,15 @@ alice_calculate_aabb_from_mesh(alice_AABB* aabb, alice_m4f transform,
 
 		position = alice_v3f_transform(position, transform);
 
-		if (position.x < aabb->min.x &&
-				position.y < aabb->min.y,
-				position.z < aabb->min.z) {
+		if (position.x <= aabb->min.x &&
+				position.y <= aabb->min.y &&
+				position.z <= aabb->min.z) {
 			aabb->min = position;
 		}
 
-		if (position.x > aabb->max.x &&
-				position.y > aabb->max.y &&
-				position.z > aabb->max.z) {
+		if (position.x >= aabb->max.x &&
+				position.y >= aabb->max.y &&
+				position.z >= aabb->max.z) {
 			aabb->max = position;
 		}
 	}
@@ -1064,7 +1064,7 @@ void alice_apply_point_lights(alice_Scene* scene, alice_AABB mesh_aabb, alice_Ma
 	for (alice_entity_iter(scene, iter, alice_PointLight)) {
 		alice_PointLight* light = iter.current_ptr;
 
-		if (!alice_sphere_vs_aabb(mesh_aabb, light->base.position, light->range * 2)) {
+		if (!alice_sphere_vs_aabb(mesh_aabb, light->base.position, light->range)) {
 			continue;
 		}
 
@@ -1117,7 +1117,8 @@ void alice_renderable_3d_add_material(alice_Renderable3D* renderable, const char
 }
 
 alice_SceneRenderer3D* alice_new_scene_renderer_3d(alice_Shader* postprocess_shader,
-		alice_Shader* extract_shader, alice_Shader* blur_shader) {
+		alice_Shader* extract_shader, alice_Shader* blur_shader,
+		bool debug, alice_Shader* debug_shader) {
 	assert(postprocess_shader);
 	assert(extract_shader);
 	assert(blur_shader);
@@ -1135,6 +1136,11 @@ alice_SceneRenderer3D* alice_new_scene_renderer_3d(alice_Shader* postprocess_sha
 
 	new->use_bloom = false;
 	new->use_antialiasing = false;
+
+	new->debug = debug;
+	if (debug && debug_shader) {
+		new->debug_renderer = alice_new_debug_renderer(debug_shader);
+	}
 
 	new->color_mod = ALICE_COLOR_WHITE;
 
@@ -1171,6 +1177,7 @@ void alice_free_scene_renderer_3d(alice_SceneRenderer3D* renderer) {
 	alice_free_render_target(renderer->bloom_ping_pong[0]);
 	alice_free_render_target(renderer->bloom_ping_pong[1]);
 	alice_free_vertex_buffer(renderer->quad);
+	alice_free_debug_renderer(renderer->debug_renderer);
 	free(renderer);
 }
 
@@ -1189,6 +1196,11 @@ void alice_render_scene_3d(alice_SceneRenderer3D* renderer, u32 width, u32 heigh
 
 	alice_resize_render_target(renderer->output, width, height);
 	alice_bind_render_target(renderer->output, width, height);
+
+	if (renderer->debug) {
+		renderer->debug_renderer->scene = scene;
+		renderer->debug_renderer->camera = camera;
+	}
 
 	alice_enable_depth();
 
@@ -1218,11 +1230,17 @@ void alice_render_scene_3d(alice_SceneRenderer3D* renderer, u32 width, u32 heigh
 				goto renderable_iter_continue;
 			}
 
-			alice_apply_material(scene, material);
-
 			alice_AABB mesh_aabb = mesh->aabb;
 			mesh_aabb.min = alice_v3f_transform(mesh_aabb.min, transform_matrix);
 			mesh_aabb.max = alice_v3f_transform(mesh_aabb.max, transform_matrix);
+
+			if (renderer->debug) {
+				alice_disable_depth();
+				alice_debug_renderer_draw_aabb(renderer->debug_renderer, mesh_aabb);
+				alice_enable_depth();
+			}
+
+			alice_apply_material(scene, material);
 
 			alice_apply_point_lights(scene, mesh_aabb, material);
 
@@ -1243,8 +1261,33 @@ renderable_iter_continue:
 		continue;
 	}
 
-	alice_unbind_render_target(renderer->output);
+	alice_disable_depth();
 
+	if (renderer->debug) {
+		for (alice_entity_iter(scene, iter, alice_Renderable3D)) {
+			alice_Renderable3D* renderable = iter.current_ptr;
+
+			alice_m4f transform_matrix = alice_get_entity_transform(scene, (alice_Entity*)renderable);
+
+			alice_Model* model = renderable->model;
+			if (!model) {
+				continue;
+			}
+
+			for (u32 i = 0; i < model->mesh_count; i++) {
+				alice_Mesh* mesh = &model->meshes[i];
+
+				alice_AABB mesh_aabb = mesh->aabb;
+				mesh_aabb.min = alice_v3f_transform(mesh_aabb.min, transform_matrix);
+				mesh_aabb.max = alice_v3f_transform(mesh_aabb.max, transform_matrix);
+
+				alice_debug_renderer_draw_aabb(renderer->debug_renderer, mesh_aabb);
+			}
+		}
+
+	}
+
+	alice_unbind_render_target(renderer->output);
 
 	alice_RenderTarget* bloom_output;
 	if (renderer->use_bloom) {
@@ -1336,6 +1379,4 @@ renderable_iter_continue:
 	if (render_target) {
 		alice_unbind_render_target(render_target);
 	}
-
-	alice_disable_depth();
 }

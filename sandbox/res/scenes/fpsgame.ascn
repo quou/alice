@@ -129,8 +129,8 @@ scene {
 	rigidbody_3d {
 		name "box";
 		position {
-			x 4;
-			y 0.6;
+			x 0;
+			y 0;
 			z 0;
 		}
 		rotation {
@@ -169,15 +169,15 @@ scene {
 				}
 				rotation {
 					x 0;
-					y -90;
+					y 0;
 					z 0;
 				}
 				scale {
-					x 0.5;
-					y 0.5;
-					z 0.5;
+					x 1;
+					y 1;
+					z 1;
 				}
-				model "models/monkey.glb";
+				model "cube";
 				materials [
 					"default_material";
 				]
@@ -190,7 +190,7 @@ scene {
 		name "red light";
 		position {
 			x 3;
-			y 2;
+			y 0.3;
 			z 1;
 		}
 		rotation {
@@ -205,7 +205,7 @@ scene {
 		}
 
 		intensity 1;
-		range 2;
+		range 1;
 		color {
 			r 1;
 			g 0;

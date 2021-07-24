@@ -121,6 +121,7 @@ alice_Script* alice_new_script(alice_ScriptContext* context, alice_EntityHandle 
 
 	new->on_init = alice_null;
 	new->on_update = alice_null;
+	new->on_physics_update = alice_null;
 	new->on_free = alice_null;
 
 	alice_ScriptGetInstanceSizeFunction get_size = alice_null;
