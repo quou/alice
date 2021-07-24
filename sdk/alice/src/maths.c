@@ -477,3 +477,11 @@ void alice_m4f_decompose(alice_m4f matrix, alice_v3f* translation, alice_v3f* ro
 				matrix.elements[2][2] * matrix.elements[2][2]));
 	rotation->z = (180.0f / alice_pi) * atan2f(matrix.elements[0][1], matrix.elements[0][0]);
 }
+
+alice_v3f alice_v3f_transform(alice_v3f v, alice_m4f m) {
+	return (alice_v3f) {
+		.x = m.elements[0][0] * v.x + m.elements[0][1] * v.y + m.elements[0][2] * v.z + m.elements[0][3],
+		.y = m.elements[1][0] * v.x + m.elements[1][1] * v.y + m.elements[1][2] * v.z + m.elements[1][3],
+		.z = m.elements[2][0] * v.x + m.elements[2][1] * v.y + m.elements[2][2] * v.z + m.elements[2][3],
+	};
+}

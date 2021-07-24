@@ -8,6 +8,7 @@
 #include <stb_image.h>
 
 #include "alice/graphics.h"
+#include "alice/physics.h"
 
 alice_Color alice_color_from_rgb_color(alice_RGBColor rgb) {
 	i8 r = (i8)(rgb.r * 255.0);
@@ -745,6 +746,8 @@ alice_Mesh alice_new_cube_mesh() {
 
 	alice_init_mesh(&mesh, cube);
 
+	alice_calculate_aabb_from_mesh(&mesh.aabb, mesh.transform, verts, sizeof(verts) / sizeof(float), 8);
+
 	return mesh;
 }
 
@@ -828,12 +831,14 @@ alice_Mesh alice_new_sphere_mesh() {
 	alice_configure_vertex_buffer(sphere, 2, 2, 8, 6); /* vec2 uv */
 	alice_bind_vertex_buffer_for_edit(NULL);
 
-	free(vertices);
-	free(indices);
-
 	alice_Mesh mesh;
 
 	alice_init_mesh(&mesh, sphere);
+
+	alice_calculate_aabb_from_mesh(&mesh.aabb, mesh.transform, vertices, vertex_count, 8);
+
+	free(vertices);
+	free(indices);
 
 	return mesh;
 }
@@ -883,6 +888,37 @@ void alice_model_add_mesh(alice_Model* model, alice_Mesh mesh) {
 	}
 
 	model->meshes[model->mesh_count++] = mesh;
+}
+
+alice_calculate_aabb_from_mesh(alice_AABB* aabb, alice_m4f transform,
+		float* vertices, u32 position_count, u32 position_stride) {
+	assert(aabb);
+	assert(vertices);
+
+	aabb->min = (alice_v3f) { 0.0f, 0.0f, 0.0f };
+	aabb->max = (alice_v3f) { 0.0f, 0.0f, 0.0f };
+
+	for (u32 i = 0; i < position_count; i += 3 * position_stride) {
+		alice_v3f position = (alice_v3f) {
+			.x = vertices[i],
+			.y = vertices[i + 1],
+			.z = vertices[i + 2]
+		};
+
+		position = alice_v3f_transform(position, transform);
+
+		if (position.x < aabb->min.x &&
+				position.y < aabb->min.y,
+				position.z < aabb->min.z) {
+			aabb->min = position;
+		}
+
+		if (position.x > aabb->max.x &&
+				position.y > aabb->max.y &&
+				position.z > aabb->max.z) {
+			aabb->max = position;
+		}
+	}
 }
 
 void alice_render_clear() {
@@ -1020,26 +1056,15 @@ void alice_apply_material(alice_Scene* scene, alice_Material* material) {
 	alice_shader_set_uint(material->shader, "directional_light_count", light_count);
 }
 
-void alice_apply_point_lights(alice_Scene* scene, alice_Entity* entity, alice_Material* material) {
+void alice_apply_point_lights(alice_Scene* scene, alice_AABB mesh_aabb, alice_Material* material) {
 	assert(scene);
-	assert(entity);
 	assert(material);
 
 	u32 light_count = 0;
 	for (alice_entity_iter(scene, iter, alice_PointLight)) {
 		alice_PointLight* light = iter.current_ptr;
 
-		const float dist_to_entity_sqrd =
-			(light->base.position.x - entity->position.x)
-			* (light->base.position.x - entity->position.x) +
-			(light->base.position.y - entity->position.y)
-			* (light->base.position.y - entity->position.y) +
-			(light->base.position.z - entity->position.z)
-			* (light->base.position.z - entity->position.z);
-
-		const float light_range_sqrd = light->range * light->range;
-
-		if (dist_to_entity_sqrd > light_range_sqrd * light_range_sqrd) {
+		if (!alice_sphere_vs_aabb(mesh_aabb, light->base.position, light->range)) {
 			continue;
 		}
 
@@ -1194,7 +1219,12 @@ void alice_render_scene_3d(alice_SceneRenderer3D* renderer, u32 width, u32 heigh
 			}
 
 			alice_apply_material(scene, material);
-			alice_apply_point_lights(scene, (alice_Entity*)renderable, material);
+
+			alice_AABB mesh_aabb = mesh->aabb;
+			mesh_aabb.min = alice_v3f_transform(mesh_aabb.min, transform_matrix);
+			mesh_aabb.max = alice_v3f_transform(mesh_aabb.max, transform_matrix);
+
+			alice_apply_point_lights(scene, mesh_aabb, material);
 
 			alice_Shader* shader = material->shader;
 

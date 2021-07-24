@@ -4,6 +4,7 @@
 #include "alice/core.h"
 #include "alice/resource.h"
 #include "alice/entity.h"
+#include "alice/physics.h"
 
 typedef struct alice_RGBColor {
 	float r, g, b;
@@ -140,6 +141,8 @@ typedef struct alice_Mesh {
 	alice_m4f transform;
 
 	alice_VertexBuffer* vb;
+
+	alice_AABB aabb;
 } alice_Mesh;
 
 ALICE_API void alice_init_mesh(alice_Mesh* mesh, alice_VertexBuffer* vb);
@@ -160,6 +163,9 @@ ALICE_API void alice_deinit_model(alice_Model* model);
 ALICE_API alice_Model* alice_new_model();
 ALICE_API void alice_free_model(alice_Model* model);
 ALICE_API void alice_model_add_mesh(alice_Model* model, alice_Mesh mesh);
+
+ALICE_API alice_calculate_aabb_from_mesh(alice_AABB* aabb, alice_m4f transform,
+		float* vertices, u32 position_count, u32 position_stride);
 
 typedef struct alice_Camera3D {
 	alice_Entity base;
@@ -222,7 +228,7 @@ typedef struct alice_Renderable3D {
 	alice_Model* model;
 } alice_Renderable3D;
 
-ALICE_API void alice_apply_point_lights(alice_Scene* scene, alice_Entity* entity, alice_Material* material);
+ALICE_API void alice_apply_point_lights(alice_Scene* scene, alice_AABB mesh_aabb, alice_Material* material);
 
 ALICE_API void alice_on_renderable_3d_create(alice_Scene* scene, alice_EntityHandle handle, void* ptr);
 ALICE_API void alice_on_renderable_3d_destroy(alice_Scene* scene, alice_EntityHandle handle, void* ptr);

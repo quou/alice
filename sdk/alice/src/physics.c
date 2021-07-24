@@ -146,6 +146,30 @@ bool alice_aabb_vs_aabb(alice_AABB a, alice_AABB b, alice_Manifold* manifold) {
 	return false;
 }
 
+bool alice_sphere_vs_aabb(alice_AABB aabb, alice_v3f sphere_position, float sphere_radius) {
+	float dist_squared = sphere_radius * sphere_radius;
+
+	if (sphere_position.x < aabb.min.x) {
+		dist_squared -= alice_squared(sphere_position.x - aabb.min.x);
+	} else if (sphere_position.x > aabb.max.x) {
+		dist_squared -= alice_squared(sphere_position.x - aabb.max.x);
+	}
+
+	if (sphere_position.y < aabb.min.y) {
+		dist_squared -= alice_squared(sphere_position.y - aabb.min.y);
+	} else if (sphere_position.y > aabb.max.y) {
+		dist_squared -= alice_squared(sphere_position.y - aabb.max.y);
+	}
+
+	if (sphere_position.z < aabb.min.z) {
+		dist_squared -= alice_squared(sphere_position.z - aabb.min.z);
+	} else if (sphere_position.z > aabb.max.z) {
+		dist_squared -= alice_squared(sphere_position.z - aabb.max.z);
+	}
+
+	return dist_squared > 0.0f;
+}
+
 alice_PhysicsEngine* alice_new_physics_engine(alice_Scene* scene) {
 	alice_PhysicsEngine* new = malloc(sizeof(alice_PhysicsEngine));
 

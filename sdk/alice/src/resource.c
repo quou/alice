@@ -271,7 +271,7 @@ void alice_init_default_resources() {
 		*((alice_Material*)default_material_resource->payload) = (alice_Material) {
 			.shader = alice_load_shader("shaders/pbr.glsl"),
 			.albedo = 0xffffff,
-			.roughness = 1.0f,
+			.roughness = 0.3f,
 			.metallic = 1.0f,
 			.emissive = 0.0f,
 
@@ -668,9 +668,6 @@ static alice_Mesh alice_process_model_mesh(aiNode* node, aiMesh* ai_mesh, const 
 	alice_configure_vertex_buffer(vb, 2, 2, 8, 6); /* vec2 uv */
 	alice_bind_vertex_buffer_for_edit(NULL);
 
-	free(indices);
-	free(vertices);
-
 	alice_Mesh mesh;
 
 	alice_init_mesh(&mesh, vb);
@@ -696,6 +693,11 @@ static alice_Mesh alice_process_model_mesh(aiNode* node, aiMesh* ai_mesh, const 
 	mesh.transform.elements[1][3] = ai_transform.d2;
 	mesh.transform.elements[2][3] = ai_transform.d3;
 	mesh.transform.elements[3][3] = ai_transform.d4;
+
+	alice_calculate_aabb_from_mesh(&mesh.aabb, mesh.transform, vertices, current_vertex, 8);
+
+	free(indices);
+	free(vertices);
 
 	return mesh;
 }

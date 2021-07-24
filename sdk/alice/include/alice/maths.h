@@ -4,6 +4,8 @@
 
 #define alice_pi 3.14159265358f
 
+#define alice_squared(a_) ((a_) * (a_))
+
 typedef struct alice_v2f {
 	float x, y;
 } alice_v2f;
@@ -120,5 +122,7 @@ ALICE_API alice_m4f alice_m4f_persp(float fov, float aspect, float near, float f
 ALICE_API alice_m4f alice_m4f_lookat(alice_v3f camera, alice_v3f object, alice_v3f up);
 
 ALICE_API void alice_m4f_decompose(alice_m4f matrix, alice_v3f* translation, alice_v3f* rotation, alice_v3f* scale);
+
+ALICE_API alice_v3f alice_v3f_transform(alice_v3f v, alice_m4f m);
 
 /* TODO: signed and unsigned integer matrices */
