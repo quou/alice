@@ -907,16 +907,28 @@ void alice_calculate_aabb_from_mesh(alice_AABB* aabb, alice_m4f transform,
 
 		position = alice_v3f_transform(position, transform);
 
-		if (position.x <= aabb->min.x &&
-				position.y <= aabb->min.y &&
-				position.z <= aabb->min.z) {
-			aabb->min = position;
+		if (position.x < aabb->min.x) {
+			aabb->min.x = position.x;
 		}
 
-		if (position.x >= aabb->max.x &&
-				position.y >= aabb->max.y &&
-				position.z >= aabb->max.z) {
-			aabb->max = position;
+		if (position.y < aabb->min.y) {
+			aabb->min.y = position.y;
+		}
+
+		if (position.z < aabb->min.z) {
+			aabb->min.z = position.z;
+		}
+
+		if (position.x > aabb->max.x) {
+			aabb->max.x = position.x;
+		}
+
+		if (position.y > aabb->max.y) {
+			aabb->max.y = position.y;
+		}
+
+		if (position.z > aabb->max.z) {
+			aabb->max.z = position.z;
 		}
 	}
 }

@@ -177,7 +177,7 @@ scene {
 					y 1;
 					z 1;
 				}
-				model "cube";
+				model "models/monkey.glb";
 				materials [
 					"default_material";
 				]
@@ -205,7 +205,7 @@ scene {
 		}
 
 		intensity 1;
-		range 1;
+		range 10;
 		color {
 			r 1;
 			g 0;
