@@ -145,11 +145,9 @@ vec3 fresnel_schlick(float cosTheta, vec3 F0) {
 }
 
 vec3 calculate_point_light(PointLight light, vec3 N, vec3 V, vec3 F0) {
-	vec3 position = vec3(light.position.x, light.position.y, light.position.z);
-
-	vec3 L = normalize(position - fs_in.world_pos);
+	vec3 L = normalize(light.position - fs_in.world_pos);
 	vec3 H = normalize(V + L);
-	float distance = length(position - fs_in.world_pos);
+	float distance = length(light.position - fs_in.world_pos);
 	float attenuation = (1.0 / (distance * distance)) * light.range;
 	vec3 radiance = light.color * light.intensity * attenuation;
 
