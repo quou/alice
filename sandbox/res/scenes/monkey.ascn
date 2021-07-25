@@ -1,4 +1,17 @@
 scene {
+	settings {
+		postprocess_shader "shaders/postprocess.glsl";
+		bright_extract_shader "shaders/bright_extract.glsl";
+		blur_shader "shaders/blur.glsl";
+		debug false;
+		line_shader "shaders/line.glsl";
+		use_bloom true;
+		bloom_threshold 100;
+		bloom_blur_iterations 10;
+		use_antialiasing true;
+		gravity -10;
+	}
+
 	camera_3d {
 		name "main camera";
 		position {

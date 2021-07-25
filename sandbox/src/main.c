@@ -60,8 +60,8 @@ void main() {
 
 	alice_Scene* scene = alice_new_scene(script_lib_name);
 
-	alice_deserialise_scene(scene, "scenes/physicstest.ascn");
-	alice_serialise_scene(scene, "scenes/physicstest.ascn");
+	alice_deserialise_scene(scene, "scenes/lottamonkeys.ascn");
+	//alice_serialise_scene(scene, "scenes/physicstest.ascn");
 
 /*	{
 		alice_EntityHandle monkey_handle = alice_new_entity(scene, alice_Rigidbody3D);
