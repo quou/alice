@@ -3,6 +3,7 @@
 #include <math.h>
 
 #include "alice/physics.h"
+#include "alice/scripting.h"
 
 static void alice_calculate_body_aabb(alice_PhysicsEngine* engine, alice_Rigidbody3D* body, alice_AABB* aabb) {
 	assert(engine);
@@ -23,7 +24,7 @@ static void alice_calculate_body_aabb(alice_PhysicsEngine* engine, alice_Rigidbo
 	};
 }
 
-static bool alice_compare_rigidbody_pair(const void* a, const void* b) {
+static i32 alice_compare_rigidbody_pair(const void* a, const void* b) {
 	const alice_RigidbodyPair* lhs = a;
 	const alice_RigidbodyPair* rhs = b;
 

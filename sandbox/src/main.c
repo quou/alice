@@ -12,8 +12,6 @@
 #include <alice/physics.h>
 #include <alice/debugrenderer.h>
 
-#include <glad/glad.h>
-
 static void on_button_hover(alice_UIContext* context, alice_UIElement* button) {
 	alice_log("hover");
 }
@@ -60,7 +58,7 @@ void main() {
 
 	alice_Scene* scene = alice_new_scene(script_lib_name);
 
-	alice_deserialise_scene(scene, "scenes/lottamonkeys.ascn");
+	alice_deserialise_scene(scene, "scenes/fpsgame.ascn");
 	//alice_serialise_scene(scene, "scenes/physicstest.ascn");
 
 /*	{

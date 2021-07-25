@@ -1271,7 +1271,7 @@ void alice_render_scene_3d(alice_SceneRenderer3D* renderer, u32 width, u32 heigh
 			alice_shader_set_m4f(shader, "transform", model);
 			alice_shader_set_v3f(shader, "camera_position", alice_get_entity_world_position(scene, camera));
 			alice_shader_set_float(shader, "gamma", camera->gamma);
-			alice_shader_set_m4f(shader, "camera", alice_get_camera_3d_matrix(scene, camera));
+			alice_shader_set_m4f(shader, "camera", alice_get_camera_3d_matrix(scene, (alice_Entity*)camera));
 
 			alice_bind_vertex_buffer_for_draw(vb);
 			alice_draw_vertex_buffer(vb);
