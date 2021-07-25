@@ -59,7 +59,7 @@ void main() {
 #endif
 
 	alice_Scene* scene = alice_new_scene(script_lib_name);
-	alice_deserialise_scene(scene, "scenes/fpsgame.ascn");
+	alice_deserialise_scene(scene, "scenes/physicstest.ascn");
 	/* alice_serialise_scene(scene, "scenes/physicstest.ascn"); */
 
 /*	{
@@ -201,7 +201,7 @@ void main() {
 			alice_load_shader("shaders/postprocess.glsl"),
 			alice_load_shader("shaders/bright_extract.glsl"),
 			alice_load_shader("shaders/blur.glsl"),
-			true, alice_load_shader("shaders/line.glsl"));
+			false, alice_null);
 
 	renderer->use_bloom = true;
 	renderer->use_antialiasing = true;

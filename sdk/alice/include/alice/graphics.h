@@ -249,6 +249,9 @@ typedef struct alice_SceneRenderer3D {
 	alice_DebugRenderer* debug_renderer;
 
 	bool use_bloom;
+	float bloom_threshold;
+	u32 bloom_blur_iterations;
+
 	bool use_antialiasing;
 
 	alice_Color color_mod;

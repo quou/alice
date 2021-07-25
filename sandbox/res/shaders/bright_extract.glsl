@@ -31,11 +31,13 @@ uniform sampler2D input_color;
 uniform float input_width;
 uniform float input_height;
 
+uniform float threshold = 25.0;
+
 void main() {
 	vec4 texture_color = texture(input_color, fs_in.uv);
 
 	float pixel_brightness = dot(texture_color.rgb, vec3(0.2126, 0.7152, 0.0722));
-	if (pixel_brightness > 1.0) {
+	if (pixel_brightness > threshold) {
 		color = texture_color;
 	} else {
 		color = vec4(0.0, 0.0, 0.0, 1.0);

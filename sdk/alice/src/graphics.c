@@ -1147,6 +1147,9 @@ alice_SceneRenderer3D* alice_new_scene_renderer_3d(alice_Shader* postprocess_sha
 	new->blur = blur_shader;
 
 	new->use_bloom = false;
+	new->bloom_threshold = 100.0f;
+	new->bloom_blur_iterations = 10;
+
 	new->use_antialiasing = false;
 
 	new->debug = debug;
@@ -1328,6 +1331,8 @@ renderable_iter_continue:
 		alice_shader_set_float(renderer->extract, "input_width", renderer->output->width);
 		alice_shader_set_float(renderer->extract, "input_height", renderer->output->height);
 
+		alice_shader_set_float(renderer->extract, "threshold", renderer->bloom_threshold);
+
 		alice_bind_vertex_buffer_for_draw(renderer->quad);
 		alice_draw_vertex_buffer(renderer->quad);
 		alice_bind_vertex_buffer_for_draw(alice_null);
@@ -1337,7 +1342,7 @@ renderable_iter_continue:
 		/* Blur the bloom target */
 		bool horizontal = true;
 		bool first_iteration = true;
-		for (u32 i = 0; i < 10; i++) {
+		for (u32 i = 0; i < renderer->bloom_blur_iterations; i++) {
 			bloom_output = renderer->bloom_ping_pong[horizontal];
 
 			alice_resize_render_target(bloom_output, width, height);

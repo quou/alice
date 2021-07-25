@@ -79,7 +79,7 @@ scene {
 		name "red lamp";
 		position {
 			x 10;
-			y 0;
+			y 3;
 			z 10;
 		}
 		rotation {
@@ -105,7 +105,7 @@ scene {
 		name "blue lamp";
 		position {
 			x 30;
-			y 0;
+			y 3;
 			z 10;
 		}
 		rotation {
@@ -131,7 +131,7 @@ scene {
 		name "green lamp";
 		position {
 			x 30;
-			y 0;
+			y 3;
 			z 30;
 		}
 		rotation {
