@@ -1,4 +1,83 @@
 scene {
+	settings {
+		postprocess_shader "shaders/postprocess.glsl";
+		bright_extract_shader "shaders/bright_extract.glsl";
+		blur_shader "shaders/blur.glsl";
+		debug false;
+		use_bloom true;
+		bloom_threshold 100;
+		bloom_blur_iterations 10;
+		use_antialiasing true;
+		gravity -10;
+	}
+	entity {
+		position {
+			x 0;
+			y 0;
+			z 0;
+		}
+		rotation {
+			x 0;
+			y 0;
+			z 0;
+		}
+		scale {
+			x 1;
+			y 1;
+			z 1;
+		}
+	}
+	entity {
+		position {
+			x 0;
+			y 0;
+			z 0;
+		}
+		rotation {
+			x 0;
+			y 0;
+			z 0;
+		}
+		scale {
+			x 1;
+			y 1;
+			z 1;
+		}
+	}
+	entity {
+		position {
+			x 0;
+			y 0;
+			z 0;
+		}
+		rotation {
+			x 0;
+			y 0;
+			z 0;
+		}
+		scale {
+			x 1;
+			y 1;
+			z 1;
+		}
+	}
+	entity {
+		position {
+			x 0;
+			y 0;
+			z 0;
+		}
+		rotation {
+			x 0;
+			y 0;
+			z 0;
+		}
+		scale {
+			x 1;
+			y 1;
+			z 1;
+		}
+	}
 	camera_3d {
 		position {
 			x 0;

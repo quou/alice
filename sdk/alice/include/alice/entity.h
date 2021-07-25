@@ -7,6 +7,8 @@
 typedef struct alice_Scene alice_Scene;
 typedef struct alice_Script alice_Script;
 typedef struct alice_ScriptContext alice_ScriptContext;
+typedef struct alice_SceneRenderer3D alice_SceneRenderer3D;
+typedef struct alice_PhysicsEngine alice_PhysicsEngine;
 
 typedef u64 alice_EntityHandle;
 
@@ -72,6 +74,9 @@ struct alice_Scene {
 	u32 pool_capacity;
 
 	alice_ScriptContext* script_context;
+
+	alice_SceneRenderer3D* renderer;
+	alice_PhysicsEngine* physics_engine;
 };
 
 #define alice_register_entity_type(s_, t_) \

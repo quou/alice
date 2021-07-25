@@ -59,8 +59,9 @@ void main() {
 #endif
 
 	alice_Scene* scene = alice_new_scene(script_lib_name);
+
 	alice_deserialise_scene(scene, "scenes/physicstest.ascn");
-	/* alice_serialise_scene(scene, "scenes/physicstest.ascn"); */
+	alice_serialise_scene(scene, "scenes/physicstest.ascn");
 
 /*	{
 		alice_EntityHandle monkey_handle = alice_new_entity(scene, alice_Rigidbody3D);
@@ -195,17 +196,6 @@ void main() {
 
 	alice_init_scripts(scene->script_context);
 
-	alice_PhysicsEngine* physics = alice_new_physics_engine(scene);
-
-	alice_SceneRenderer3D* renderer = alice_new_scene_renderer_3d(
-			alice_load_shader("shaders/postprocess.glsl"),
-			alice_load_shader("shaders/bright_extract.glsl"),
-			alice_load_shader("shaders/blur.glsl"),
-			false, alice_null);
-
-	renderer->use_bloom = true;
-	renderer->use_antialiasing = true;
-
 	alice_UIContext* ui = alice_new_ui_context(
 			alice_load_shader("shaders/uirect.glsl"),
 			alice_load_shader("shaders/text.glsl"),
@@ -244,9 +234,9 @@ void main() {
 
 		alice_update_scripts(scene->script_context, app->timestep);
 
-		alice_update_physics_engine(physics, app->timestep);
+		alice_update_physics_engine(scene->physics_engine, app->timestep);
 
-		alice_render_scene_3d(renderer, app->width, app->height, scene, alice_null);
+		alice_render_scene_3d(scene->renderer, app->width, app->height, scene, alice_null);
 
 		alice_set_text_renderer_dimentions(text_renderer, (alice_v2f){app->width, app->height});
 		alice_render_text(text_renderer, (alice_v2f){0, 0}, fps_buffer);
@@ -258,10 +248,6 @@ void main() {
 
 	alice_free_ui_context(ui);
 	alice_free_text_renderer(text_renderer);
-
-	alice_free_scene_renderer_3d(renderer);
-
-	alice_free_physics_engine(physics);
 
 	alice_free_scene(scene);
 

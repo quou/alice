@@ -6,6 +6,7 @@
 #include "alice/graphics.h"
 #include "alice/scripting.h"
 #include "alice/physics.h"
+#include "alice/debugrenderer.h"
 
 typedef enum alice_SerialisableType {
 	ALICE_ST_ENTITY,
@@ -310,6 +311,59 @@ static void alice_serialise_entity(alice_DTable* table, alice_Scene* scene, alic
 
 void alice_serialise_scene(alice_Scene* scene, const char* file_path) {
 	alice_DTable table = alice_new_empty_dtable("scene");
+
+	alice_DTable settings_table = alice_new_empty_dtable("settings");
+	if (scene->renderer) {
+		if (scene->renderer->postprocess) {
+			alice_DTable shader_table = alice_new_string_dtable("postprocess_shader",
+					alice_get_shader_resource_filename(scene->renderer->postprocess));
+			alice_dtable_add_child(&settings_table, shader_table);
+		}
+
+		if (scene->renderer->extract) {
+			alice_DTable shader_table = alice_new_string_dtable("bright_extract_shader",
+					alice_get_shader_resource_filename(scene->renderer->extract));
+			alice_dtable_add_child(&settings_table, shader_table);
+		}
+
+		if (scene->renderer->blur) {
+			alice_DTable shader_table = alice_new_string_dtable("blur_shader",
+					alice_get_shader_resource_filename(scene->renderer->blur));
+			alice_dtable_add_child(&settings_table, shader_table);
+		}
+
+		alice_DTable debug_table = alice_new_bool_dtable("debug", scene->renderer->debug);
+		alice_dtable_add_child(&settings_table, debug_table);
+
+		if (scene->renderer->debug) {
+			alice_DTable shader_table = alice_new_string_dtable("line_shader",
+					alice_get_shader_resource_filename(
+						scene->renderer->debug_renderer->line_shader));
+			alice_dtable_add_child(&settings_table, shader_table);
+		}
+
+		alice_DTable use_bloom_table = alice_new_bool_dtable("use_bloom", scene->renderer->use_bloom);
+		alice_dtable_add_child(&settings_table, use_bloom_table);
+
+		alice_DTable bloom_threshold_table = alice_new_number_dtable("bloom_threshold",
+				scene->renderer->bloom_threshold);
+		alice_dtable_add_child(&settings_table, bloom_threshold_table);
+
+		alice_DTable bloom_blur_iterations_table = alice_new_number_dtable("bloom_blur_iterations",
+				scene->renderer->bloom_blur_iterations);
+		alice_dtable_add_child(&settings_table, bloom_blur_iterations_table);
+
+		alice_DTable use_antialiasing_table = alice_new_bool_dtable("use_antialiasing",
+				scene->renderer->use_antialiasing);
+		alice_dtable_add_child(&settings_table, use_antialiasing_table);
+	}
+
+	if (scene->physics_engine) {
+		alice_DTable gravity_table = alice_new_number_dtable("gravity", scene->physics_engine->gravity);
+		alice_dtable_add_child(&settings_table, gravity_table);
+	}
+
+	alice_dtable_add_child(&table, settings_table);
 
 	for (u32 i = 0; i < scene->pool_count; i++) {
 		alice_EntityPool* pool = &scene->pools[i];
@@ -698,6 +752,81 @@ void alice_deserialise_scene(alice_Scene* scene, const char* file_path) {
 
 	alice_DTable* table = alice_read_dtable(alice_load_string(file_path));
 	if (!table) { return; }
+
+	alice_DTable* settings_table = alice_dtable_find_child(table, "settings");
+	if (settings_table) {
+		alice_Shader* postprocess = alice_null;
+		alice_Shader* blur = alice_null;
+		alice_Shader* extract = alice_null;
+		alice_Shader* debug_shader = alice_null;
+		bool debug = false;
+
+		alice_DTable* postprocess_shader_table = alice_dtable_find_child(settings_table,
+				"postprocess_shader");
+		if (postprocess_shader_table && postprocess_shader_table->value.type == ALICE_DTABLE_STRING) {
+			postprocess = alice_load_shader(postprocess_shader_table->value.as.string);
+		}
+
+		alice_DTable* bright_extract_shader_table = alice_dtable_find_child(settings_table,
+				"bright_extract_shader");
+		if (bright_extract_shader_table &&
+				bright_extract_shader_table->value.type == ALICE_DTABLE_STRING) {
+			extract = alice_load_shader(bright_extract_shader_table->value.as.string);
+		}
+
+		alice_DTable* blur_shader_table = alice_dtable_find_child(settings_table,
+				"blur_shader");
+		if (blur_shader_table && blur_shader_table->value.type == ALICE_DTABLE_STRING) {
+			blur = alice_load_shader(blur_shader_table->value.as.string);
+		}
+
+		alice_DTable* debug_shader_table = alice_dtable_find_child(settings_table,
+				"line_shader");
+		if (debug_shader_table && debug_shader_table->value.type == ALICE_DTABLE_STRING) {
+			debug_shader = alice_load_shader(debug_shader_table->value.as.string);
+		}
+
+		alice_DTable* debug_table = alice_dtable_find_child(settings_table, "debug");
+		if (debug_table && debug_table->value.type == ALICE_DTABLE_BOOL) {
+			debug = debug_table->value.as.boolean;
+		}
+
+		scene->renderer = alice_new_scene_renderer_3d(postprocess, extract, blur, debug, debug_shader);
+		scene->renderer->use_antialiasing = true;
+		scene->renderer->use_bloom = true;
+
+		alice_DTable* use_bloom_table = alice_dtable_find_child(settings_table,
+				"use_bloom");
+		if (use_bloom_table && use_bloom_table->value.type == ALICE_DTABLE_BOOL) {
+			scene->renderer->use_bloom = use_bloom_table->value.as.boolean;
+		}
+
+		alice_DTable* bloom_threshold_table = alice_dtable_find_child(settings_table, "bloom_threshold");
+		if (bloom_threshold_table && bloom_threshold_table->value.type == ALICE_DTABLE_NUMBER) {
+			scene->renderer->bloom_threshold = bloom_threshold_table->value.as.number;
+		}
+
+		alice_DTable* bloom_blur_iterations_table = alice_dtable_find_child(settings_table,
+				"bloom_blur_iterations");
+		if (bloom_blur_iterations_table &&
+				bloom_blur_iterations_table->value.type == ALICE_DTABLE_NUMBER) {
+			scene->renderer->bloom_blur_iterations =
+				(u32)bloom_blur_iterations_table->value.as.number;
+		}
+
+		alice_DTable* use_antialiasing_table = alice_dtable_find_child(settings_table,
+				"use_antialiasing");
+		if (use_antialiasing_table && use_antialiasing_table->value.type == ALICE_DTABLE_BOOL) {
+			scene->renderer->use_antialiasing = use_antialiasing_table->value.as.boolean;
+		}
+
+		scene->physics_engine = alice_new_physics_engine(scene);
+
+		alice_DTable* gravity_table = alice_dtable_find_child(settings_table, "gravity");
+		if (gravity_table && gravity_table->value.type == ALICE_DTABLE_NUMBER) {
+			scene->physics_engine->gravity = gravity_table->value.as.number;
+		}
+	}
 
 	for (u32 i = 0; i < table->child_count; i++) {
 		alice_DTable* child_table = &table->children[i];

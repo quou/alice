@@ -287,7 +287,10 @@ alice_Scene* alice_new_scene(const char* script_assembly) {
 		.pool_count = 0,
 		.pool_capacity = 0,
 
-		.script_context = alice_new_script_context(new, script_assembly)
+		.script_context = alice_new_script_context(new, script_assembly),
+
+		.renderer = alice_null,
+		.physics_engine = alice_null
 	};
 
 	alice_register_entity_type(new, alice_Entity);
@@ -309,6 +312,14 @@ void alice_free_scene(alice_Scene* scene) {
 	assert(scene);
 
 	alice_free_scripts(scene->script_context);
+
+	if (scene->renderer) {
+		alice_free_scene_renderer_3d(scene->renderer);
+	}
+
+	if (scene->physics_engine) {
+		alice_free_physics_engine(scene->physics_engine);
+	}
 
 	for (u32 i = 0; i < scene->pool_count; i++) {
 		alice_EntityPool* pool = &scene->pools[i];
