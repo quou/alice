@@ -1189,7 +1189,11 @@ void alice_free_scene_renderer_3d(alice_SceneRenderer3D* renderer) {
 	alice_free_render_target(renderer->bloom_ping_pong[0]);
 	alice_free_render_target(renderer->bloom_ping_pong[1]);
 	alice_free_vertex_buffer(renderer->quad);
-	alice_free_debug_renderer(renderer->debug_renderer);
+
+	if (renderer->debug) {
+		alice_free_debug_renderer(renderer->debug_renderer);
+	}
+
 	free(renderer);
 }
 
@@ -1246,14 +1250,15 @@ void alice_render_scene_3d(alice_SceneRenderer3D* renderer, u32 width, u32 heigh
 			mesh_aabb.min = alice_v3f_transform(mesh_aabb.min, transform_matrix);
 			mesh_aabb.max = alice_v3f_transform(mesh_aabb.max, transform_matrix);
 
-			if (renderer->debug) {
-				alice_disable_depth();
-				alice_debug_renderer_draw_aabb(renderer->debug_renderer, mesh_aabb);
-				alice_enable_depth();
-			}
+			mesh_aabb.min.x += transform_matrix.elements[3][0];
+			mesh_aabb.min.y += transform_matrix.elements[3][1];
+			mesh_aabb.min.z += transform_matrix.elements[3][2];
+
+			mesh_aabb.max.x += transform_matrix.elements[3][0];
+			mesh_aabb.max.y += transform_matrix.elements[3][1];
+			mesh_aabb.max.z += transform_matrix.elements[3][2];
 
 			alice_apply_material(scene, material);
-
 			alice_apply_point_lights(scene, mesh_aabb, material);
 
 			alice_Shader* shader = material->shader;
@@ -1292,6 +1297,14 @@ renderable_iter_continue:
 				alice_AABB mesh_aabb = mesh->aabb;
 				mesh_aabb.min = alice_v3f_transform(mesh_aabb.min, transform_matrix);
 				mesh_aabb.max = alice_v3f_transform(mesh_aabb.max, transform_matrix);
+
+				mesh_aabb.min.x += transform_matrix.elements[3][0];
+				mesh_aabb.min.y += transform_matrix.elements[3][1];
+				mesh_aabb.min.z += transform_matrix.elements[3][2];
+
+				mesh_aabb.max.x += transform_matrix.elements[3][0];
+				mesh_aabb.max.y += transform_matrix.elements[3][1];
+				mesh_aabb.max.z += transform_matrix.elements[3][2];
 
 				alice_debug_renderer_draw_aabb(renderer->debug_renderer, mesh_aabb);
 			}
