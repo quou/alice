@@ -28,7 +28,9 @@ static void* alice_get_script_proc(alice_ScriptContext* context, const char* nam
 }
 
 static void alice_deinit_script_context_library(alice_ScriptContext* context) {
+	assert(context);
 
+	FreeLibrary(context->handle);
 }
 
 #else
