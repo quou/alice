@@ -504,6 +504,39 @@ static bool impl_alice_load_shader(alice_Resource* resource, const char* path, b
 	return true;
 }
 
+static alice_Texture* impl_alice_load_texture_from_dtable(alice_DTable* parent_table, const char* name) {
+	assert(parent_table);
+
+	alice_DTable* texture_table = alice_dtable_find_child(parent_table, name);
+
+	if (texture_table) {
+		alice_TextureFlags flags = 0;
+
+		alice_DTable* is_antialiased_table = alice_dtable_find_child(texture_table, "is_antialiased");
+		if (is_antialiased_table && is_antialiased_table->value.type == ALICE_DTABLE_BOOL &&
+				is_antialiased_table->value.as.boolean) {
+			flags |= ALICE_TEXTURE_ANTIALIASED;
+		} else {
+			flags |= ALICE_TEXTURE_ALIASED;
+		}
+
+		alice_DTable* is_hdr_table = alice_dtable_find_child(texture_table, "is_hdr");
+		if (is_hdr_table && is_antialiased_table->value.type == ALICE_DTABLE_BOOL &&
+				is_hdr_table->value.as.boolean) {
+			flags |= ALICE_TEXTURE_HDR;
+		} else {
+			flags |= ALICE_TEXTURE_NORMAL;
+		}
+
+		alice_DTable* path_table = alice_dtable_find_child(texture_table, "path");
+		if (path_table && path_table->value.type == ALICE_DTABLE_STRING) {
+			return alice_load_texture(path_table->value.as.string, flags);
+		}
+	}
+
+	return alice_null;
+}
+
 static bool impl_alice_load_material(alice_Resource* resource, const char* path, bool new) {
 	alice_Resource* raw = malloc(sizeof(alice_Resource));
 	if (!impl_alice_load_string(raw, path)) {
@@ -547,30 +580,11 @@ static bool impl_alice_load_material(alice_Resource* resource, const char* path,
 		alice_log_warning("Material does not have a shader, so objects with this material won't render");
 	}
 
-	alice_DTable* albedo_map_table = alice_dtable_find_child(table, "albedo_map");
-	if (albedo_map_table && albedo_map_table->value.type == ALICE_DTABLE_STRING) {
-		material->albedo_map = alice_load_texture(albedo_map_table->value.as.string, ALICE_TEXTURE_ANTIALIASED);
-	}
-
-	alice_DTable* normal_map_table = alice_dtable_find_child(table, "normal_map");
-	if (normal_map_table && normal_map_table->value.type == ALICE_DTABLE_STRING) {
-		material->normal_map = alice_load_texture(normal_map_table->value.as.string, ALICE_TEXTURE_ANTIALIASED);
-	}
-
-	alice_DTable* metallic_map_table = alice_dtable_find_child(table, "metallic_map");
-	if (metallic_map_table && metallic_map_table->value.type == ALICE_DTABLE_STRING) {
-		material->metallic_map = alice_load_texture(metallic_map_table->value.as.string, ALICE_TEXTURE_ANTIALIASED);
-	}
-
-	alice_DTable* roughness_map_table = alice_dtable_find_child(table, "roughness_map");
-	if (roughness_map_table && roughness_map_table->value.type == ALICE_DTABLE_STRING) {
-		material->roughness_map = alice_load_texture(roughness_map_table->value.as.string, ALICE_TEXTURE_ANTIALIASED);
-	}
-
-	alice_DTable* ao_map_table = alice_dtable_find_child(table, "ao_map");
-	if (ao_map_table && ao_map_table->value.type == ALICE_DTABLE_STRING) {
-		material->ambient_occlusion_map = alice_load_texture(ao_map_table->value.as.string, ALICE_TEXTURE_ANTIALIASED);
-	}
+	material->albedo_map = impl_alice_load_texture_from_dtable(table, "albedo_map");
+	material->normal_map = impl_alice_load_texture_from_dtable(table, "normal_map");
+	material->metallic_map = impl_alice_load_texture_from_dtable(table, "metallic_map");
+	material->roughness_map = impl_alice_load_texture_from_dtable(table, "roughness_map");
+	material->ambient_occlusion_map = impl_alice_load_texture_from_dtable(table, "ao_map");
 
 	alice_DTable* albedo_table = alice_dtable_find_child(table, "albedo");
 	if (albedo_table && albedo_table->child_count == 3) {
@@ -972,6 +986,26 @@ void alice_iterate_resource_directory(const char* directory, alice_ResourceItera
 	PHYSFS_freeList(iterator);
 }
 
+static void impl_alice_save_material_texture(alice_DTable* parent_table,
+		const char* name, alice_Texture* texture) {
+	if (!texture) { return; }
+
+	const char* texture_path = alice_get_texture_resource_filename(texture);
+	alice_DTable texture_table = alice_new_empty_dtable(name);
+
+	alice_DTable path_table = alice_new_string_dtable("path", texture_path);
+	alice_dtable_add_child(&texture_table, path_table);
+
+	alice_DTable is_antialiased_table = alice_new_bool_dtable("is_antialiased",
+			texture->flags & ALICE_TEXTURE_ANTIALIASED);
+	alice_dtable_add_child(&texture_table, is_antialiased_table);
+
+	alice_DTable is_hdr_table = alice_new_bool_dtable("is_hdr", texture->flags & ALICE_TEXTURE_HDR);
+	alice_dtable_add_child(&texture_table, is_hdr_table);
+
+	alice_dtable_add_child(parent_table, texture_table);
+}
+
 void alice_save_material(alice_Material* material, const char* path) {
 	assert(material);
 
@@ -981,35 +1015,11 @@ void alice_save_material(alice_Material* material, const char* path) {
 	alice_DTable shader_table = alice_new_string_dtable("shader", shader_path);
 	alice_dtable_add_child(&material_table, shader_table);
 
-	if (material->albedo_map) {
-		const char* albedo_map_path = alice_get_texture_resource_filename(material->albedo_map);
-		alice_DTable albedo_map_table = alice_new_string_dtable("albedo_map", albedo_map_path);
-		alice_dtable_add_child(&material_table, albedo_map_table);
-	}
-
-	if (material->normal_map) {
-		const char* normal_map_path = alice_get_texture_resource_filename(material->normal_map);
-		alice_DTable normal_map_table = alice_new_string_dtable("normal_map", normal_map_path);
-		alice_dtable_add_child(&material_table, normal_map_table);
-	}
-
-	if (material->metallic_map) {
-		const char* metallic_map_path = alice_get_texture_resource_filename(material->metallic_map);
-		alice_DTable metallic_map_table = alice_new_string_dtable("metallic_map", metallic_map_path);
-		alice_dtable_add_child(&material_table, metallic_map_table);
-	}
-
-	if (material->roughness_map) {
-		const char* roughness_map_path = alice_get_texture_resource_filename(material->roughness_map);
-		alice_DTable roughness_map_table = alice_new_string_dtable("roughness_map", roughness_map_path);
-		alice_dtable_add_child(&material_table, roughness_map_table);
-	}
-
-	if (material->ambient_occlusion_map) {
-		const char* ao_map_path = alice_get_texture_resource_filename(material->ambient_occlusion_map);
-		alice_DTable ao_map_table = alice_new_string_dtable("ao_map", ao_map_path);
-		alice_dtable_add_child(&material_table, ao_map_table);
-	}
+	impl_alice_save_material_texture(&material_table, "albedo_map", material->albedo_map);
+	impl_alice_save_material_texture(&material_table, "normal_map", material->normal_map);
+	impl_alice_save_material_texture(&material_table, "roughness_map", material->roughness_map);
+	impl_alice_save_material_texture(&material_table, "metallic_map", material->metallic_map);
+	impl_alice_save_material_texture(&material_table, "ao_map", material->ambient_occlusion_map);
 
 	alice_RGBColor color = alice_rgb_color_from_color(material->albedo);
 

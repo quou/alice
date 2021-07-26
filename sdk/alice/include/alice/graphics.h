@@ -92,7 +92,9 @@ ALICE_API void alice_disable_depth();
 
 typedef enum alice_TextureFlags {
 	ALICE_TEXTURE_ALIASED = 1 << 0,
-	ALICE_TEXTURE_ANTIALIASED = 1 << 1
+	ALICE_TEXTURE_ANTIALIASED = 1 << 1,
+	ALICE_TEXTURE_NORMAL = 1 << 2,
+	ALICE_TEXTURE_HDR = 1 << 3
 } alice_TextureFlags;
 
 typedef struct alice_Texture {

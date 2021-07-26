@@ -632,7 +632,12 @@ void alice_init_texture_from_memory_uncompressed(alice_Texture* texture, unsigne
 
 	u32 format = GL_SRGB;
 	u32 internal_format = GL_RGB;
-	if (texture->component_count == 4) {
+	if (texture->flags & ALICE_TEXTURE_HDR) {
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_LINEAR);
+		format = GL_RGB16F;
+		internal_format = GL_RGB;
+	} else if (texture->component_count == 4) {
 		internal_format = GL_RGBA;
 		format = GL_SRGB_ALPHA;
 	}
