@@ -603,6 +603,7 @@ static bool impl_alice_load_material(alice_Resource* resource, const char* path,
 	alice_Material* material = resource->payload;
 	*material = (alice_Material){
 		.shader = alice_null,
+		.type = ALICE_MATERIAL_PBR,
 		.as.pbr = {
 				.albedo = 0xffffff,
 				.roughness = 0.3f,
@@ -627,6 +628,7 @@ static bool impl_alice_load_material(alice_Resource* resource, const char* path,
 
 	alice_DTable* pbr_table = alice_dtable_find_child(table, "pbr_material");
 	if (pbr_table) {
+		material->type = ALICE_MATERIAL_PBR;
 		alice_load_pbr_material(pbr_table, &material->as.pbr);
 	}
 
