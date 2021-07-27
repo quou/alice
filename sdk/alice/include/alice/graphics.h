@@ -99,8 +99,6 @@ typedef struct alice_Texture {
 	u32 id;
 	i32 width, height, component_count;
 
-	alice_Resource* resource;
-
 	alice_TextureFlags flags;
 } alice_Texture;
 
