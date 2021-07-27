@@ -1,31 +1,33 @@
 material {
 	shader "/shaders/pbr.glsl";
-	albedo_map {
-		path "textures/pirate-gold_albedo.png";
-		is_antialiased true;
+	pbr_material {
+		albedo_map {
+			path "textures/pirate-gold_albedo.png";
+			is_antialiased true;
+		}
+		normal_map {
+			path "textures/pirate-gold_normal-ogl.png";
+			is_antialiased true;
+		}
+		roughness_map {
+			path "textures/pirate-gold_roughness.png";
+			is_antialiased true;
+		}
+		metallic_map {
+			path "textures/pirate-gold_metallic.png";
+			is_antialiased true;
+		}
+		ao_map {
+			path "textures/pirate-gold_ao.png";
+			is_antialiased true;
+		}
+		albedo {
+			r 1;
+			g 1;
+			b 1;
+		}
+		metallic 0.97;
+		roughness 1;
+		emissive 0;
 	}
-	normal_map {
-		path "textures/pirate-gold_normal-ogl.png";
-		is_antialiased true;
-	}
-	roughness_map {
-		path "textures/pirate-gold_roughness.png";
-		is_antialiased true;
-	}
-	metallic_map {
-		path "textures/pirate-gold_metallic.png";
-		is_antialiased true;
-	}
-	ao_map {
-		path "textures/pirate-gold_ao.png";
-		is_antialiased true;
-	}
-	albedo {
-		r 1;
-		g 1;
-		b 1;
-	}
-	metallic 0.97;
-	roughness 1;
-	emissive 0;
 }

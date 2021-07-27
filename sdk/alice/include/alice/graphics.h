@@ -204,9 +204,7 @@ typedef struct alice_DirectionalLight {
 	float intensity;
 } alice_DirectionalLight;
 
-typedef struct alice_Material {
-	alice_Shader* shader;
-
+typedef struct alice_PBRMaterial {
 	alice_Color albedo;
 	float metallic;
 	float roughness;
@@ -218,6 +216,20 @@ typedef struct alice_Material {
 	alice_Texture* metallic_map;
 	alice_Texture* roughness_map;
 	alice_Texture* ambient_occlusion_map;
+} alice_PBRMaterial;
+
+typedef enum alice_MaterialType {
+	ALICE_MATERIAL_PBR
+} alice_MaterialType;
+
+typedef struct alice_Material {
+	alice_Shader* shader;
+
+	alice_MaterialType type;
+
+	union {
+		alice_PBRMaterial pbr;
+	} as;
 } alice_Material;
 
 ALICE_API void alice_apply_material(alice_Scene* scene, alice_Material* material);

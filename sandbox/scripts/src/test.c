@@ -38,7 +38,7 @@ on_test_script_update(alice_Scene* scene, alice_EntityHandle entity, void* insta
 		alice_get_entity_handle_type(entity) == alice_get_type_info(alice_Renderable3D).id) {
 		alice_Renderable3D* renderable = (alice_Renderable3D*)entity_ptr;
 
-		renderable->materials[0]->albedo = ALICE_COLOR_YELLOW;
+		renderable->materials[0]->as.pbr.albedo = ALICE_COLOR_YELLOW;
 	}
 
 	if (alice_key_just_pressed(ALICE_KEY_D)) {

@@ -1,27 +1,29 @@
 material {
 	shader "/shaders/pbr.glsl";
-	albedo_map {
-		path "textures/rustediron2_basecolor.png";
-		is_antialiased true;
+	pbr_material {
+		albedo_map {
+			path "textures/rustediron2_basecolor.png";
+			is_antialiased true;
+		}
+		normal_map {
+			path "textures/rustediron2_normal.png";
+			is_antialiased true;
+		}
+		roughness_map {
+			path "textures/rustediron2_roughness.png";
+			is_antialiased true;
+		}
+		metallic_map {
+			path "textures/rustediron2_metallic.png";
+			is_antialiased true;
+		}
+		albedo {
+			r 0.34902;
+			g 0.603922;
+			b 0.439216;
+		}
+		metallic 1;
+		roughness 1;
+		emissive 0;
 	}
-	normal_map {
-		path "textures/rustediron2_normal.png";
-		is_antialiased true;
-	}
-	roughness_map {
-		path "textures/rustediron2_roughness.png";
-		is_antialiased true;
-	}
-	metallic_map {
-		path "textures/rustediron2_metallic.png";
-		is_antialiased true;
-	}
-	albedo {
-		r 0.34902;
-		g 0.603922;
-		b 0.439216;
-	}
-	metallic 1;
-	roughness 1;
-	emissive 0;
 }

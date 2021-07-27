@@ -270,16 +270,18 @@ void alice_init_default_resources() {
 
 		*((alice_Material*)default_material_resource->payload) = (alice_Material) {
 			.shader = alice_load_shader("shaders/pbr.glsl"),
-			.albedo = 0xffffff,
-			.roughness = 0.3f,
-			.metallic = 1.0f,
-			.emissive = 0.0f,
+			.as.pbr = {
+				.albedo = 0xffffff,
+				.roughness = 0.3f,
+				.metallic = 1.0f,
+				.emissive = 0.0f,
 
-			.albedo_map = alice_null,
-			.normal_map = alice_null,
-			.metallic_map = alice_null,
-			.roughness_map = alice_null,
-			.ambient_occlusion_map = alice_null
+				.albedo_map = alice_null,
+				.normal_map = alice_null,
+				.metallic_map = alice_null,
+				.roughness_map = alice_null,
+				.ambient_occlusion_map = alice_null
+			}
 		};
 
 		alice_resource_manager_add(default_material_resource);
@@ -529,48 +531,9 @@ static alice_Texture* impl_alice_load_texture_from_dtable(alice_DTable* parent_t
 	return alice_null;
 }
 
-static bool impl_alice_load_material(alice_Resource* resource, const char* path, bool new) {
-	alice_Resource* raw = malloc(sizeof(alice_Resource));
-	if (!impl_alice_load_string(raw, path)) {
-		free(raw);
-		return false;
-	}
-
-	alice_DTable* table = alice_read_dtable(raw);
-
-	resource->type = ALICE_RESOURCE_MATERIAL;
-	resource->payload_size = sizeof(alice_Material);
-	resource->modtime = raw->modtime;
-	resource->file_name = malloc(strlen(path) + 1);
-	resource->file_name_hash = raw->file_name_hash;
-
-	strcpy(resource->file_name, path);
-
-	if (new) {
-		resource->payload = malloc(sizeof(alice_Material));
-	}
-
-	alice_Material* material = resource->payload;
-	*material = (alice_Material){
-		.shader = NULL,
-		.albedo_map = NULL,
-		.normal_map = NULL,
-		.roughness_map = NULL,
-		.metallic_map = NULL,
-		.ambient_occlusion_map = NULL,
-		.albedo = 0xffffff,
-		.metallic = 1.0,
-		.roughness = 1.0,
-		.emissive = 0.0
-	};
-
-	alice_DTable* shader_table = alice_dtable_find_child(table, "shader");
-	if (shader_table && shader_table->value.type == ALICE_DTABLE_STRING) {
-		material->shader = alice_load_shader(shader_table->value.as.string);
-	}
-	else {
-		alice_log_warning("Material does not have a shader, so objects with this material won't render");
-	}
+static void alice_load_pbr_material(alice_DTable* table, alice_PBRMaterial* material) {
+	assert(table);
+	assert(material);
 
 	material->albedo_map = impl_alice_load_texture_from_dtable(table, "albedo_map");
 	material->normal_map = impl_alice_load_texture_from_dtable(table, "normal_map");
@@ -613,6 +576,58 @@ static bool impl_alice_load_material(alice_Resource* resource, const char* path,
 	alice_DTable* emissive_table = alice_dtable_find_child(table, "emissive");
 	if (emissive_table && emissive_table->value.type == ALICE_DTABLE_NUMBER) {
 		material->emissive = emissive_table->value.as.number;
+	}
+}
+
+static bool impl_alice_load_material(alice_Resource* resource, const char* path, bool new) {
+	alice_Resource* raw = malloc(sizeof(alice_Resource));
+	if (!impl_alice_load_string(raw, path)) {
+		free(raw);
+		return false;
+	}
+
+	alice_DTable* table = alice_read_dtable(raw);
+
+	resource->type = ALICE_RESOURCE_MATERIAL;
+	resource->payload_size = sizeof(alice_Material);
+	resource->modtime = raw->modtime;
+	resource->file_name = malloc(strlen(path) + 1);
+	resource->file_name_hash = raw->file_name_hash;
+
+	strcpy(resource->file_name, path);
+
+	if (new) {
+		resource->payload = malloc(sizeof(alice_Material));
+	}
+
+	alice_Material* material = resource->payload;
+	*material = (alice_Material){
+		.shader = alice_null,
+		.as.pbr = {
+				.albedo = 0xffffff,
+				.roughness = 0.3f,
+				.metallic = 1.0f,
+				.emissive = 0.0f,
+
+				.albedo_map = alice_null,
+				.normal_map = alice_null,
+				.metallic_map = alice_null,
+				.roughness_map = alice_null,
+				.ambient_occlusion_map = alice_null
+			}
+	};
+
+	alice_DTable* shader_table = alice_dtable_find_child(table, "shader");
+	if (shader_table && shader_table->value.type == ALICE_DTABLE_STRING) {
+		material->shader = alice_load_shader(shader_table->value.as.string);
+	}
+	else {
+		alice_log_warning("Material does not have a shader, so objects with this material won't render");
+	}
+
+	alice_DTable* pbr_table = alice_dtable_find_child(table, "pbr_material");
+	if (pbr_table) {
+		alice_load_pbr_material(pbr_table, &material->as.pbr);
 	}
 
 	alice_free_dtable(table);
@@ -995,14 +1010,11 @@ static void impl_alice_save_material_texture(alice_DTable* parent_table,
 	alice_dtable_add_child(parent_table, texture_table);
 }
 
-void alice_save_material(alice_Material* material, const char* path) {
+static void alice_save_pbr_material(alice_DTable* table, alice_PBRMaterial* material) {
+	assert(table);
 	assert(material);
 
-	alice_DTable material_table = alice_new_empty_dtable("material");
-
-	const char* shader_path = alice_get_shader_resource_filename(material->shader);
-	alice_DTable shader_table = alice_new_string_dtable("shader", shader_path);
-	alice_dtable_add_child(&material_table, shader_table);
+	alice_DTable material_table = alice_new_empty_dtable("pbr_material");
 
 	impl_alice_save_material_texture(&material_table, "albedo_map", material->albedo_map);
 	impl_alice_save_material_texture(&material_table, "normal_map", material->normal_map);
@@ -1030,6 +1042,25 @@ void alice_save_material(alice_Material* material, const char* path) {
 	alice_dtable_add_child(&material_table, metallic_table);
 	alice_dtable_add_child(&material_table, roughness_table);
 	alice_dtable_add_child(&material_table, emissive_table);
+
+	alice_dtable_add_child(table, material_table);
+}
+
+void alice_save_material(alice_Material* material, const char* path) {
+	assert(material);
+
+	alice_DTable material_table = alice_new_empty_dtable("material");
+
+	const char* shader_path = alice_get_shader_resource_filename(material->shader);
+	alice_DTable shader_table = alice_new_string_dtable("shader", shader_path);
+	alice_dtable_add_child(&material_table, shader_table);
+
+	switch (material->type) {
+		case ALICE_MATERIAL_PBR:
+			alice_save_pbr_material(&material_table, &material->as.pbr);
+			break;
+		default: break;
+	}
 
 	alice_write_dtable(&material_table, path);
 

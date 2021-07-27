@@ -994,6 +994,56 @@ alice_m4f alice_get_camera_3d_matrix(alice_Scene* scene, alice_Camera3D* camera)
 	return alice_m4f_multiply(projection, view);
 }
 
+static void alice_apply_pbr_material(alice_Shader* shader, alice_PBRMaterial* material) {
+	assert(shader);
+	assert(material);
+
+	alice_shader_set_color(shader, "material.albedo", material->albedo);
+	alice_shader_set_float(shader, "material.metallic", material->metallic);
+	alice_shader_set_float(shader, "material.roughness", material->roughness);
+	alice_shader_set_float(shader, "material.emissive", material->emissive);
+
+	if (material->albedo_map) {
+		alice_shader_set_int(shader, "material.use_albedo_map", 1);
+		alice_shader_set_int(shader, "material.albedo_map", 0);
+		alice_bind_texture(material->albedo_map, 0);
+	} else {
+		alice_shader_set_int(shader, "material.use_albedo_map", 0);
+	}
+
+	if (material->normal_map) {
+		alice_shader_set_int(shader, "material.use_normal_map", 1);
+		alice_shader_set_int(shader, "material.normal_map", 1);
+		alice_bind_texture(material->normal_map, 1);
+	} else {
+		alice_shader_set_int(shader, "material.use_normal_map", 0);
+	}
+
+	if (material->metallic_map) {
+		alice_shader_set_int(shader, "material.use_metallic_map", 1);
+		alice_shader_set_int(shader, "material.metallic_map", 2);
+		alice_bind_texture(material->metallic_map, 2);
+	} else {
+		alice_shader_set_int(shader, "material.use_metallic_map", 0);
+	}
+
+	if (material->roughness_map) {
+		alice_shader_set_int(shader, "material.use_roughness_map", 1);
+		alice_shader_set_int(shader, "material.roughness_map", 3);
+		alice_bind_texture(material->roughness_map, 3);
+	} else {
+		alice_shader_set_int(shader, "material.use_roughness_map", 0);
+	}
+
+	if (material->ambient_occlusion_map) {
+		alice_shader_set_int(shader, "material.use_ambient_occlusion_map", 1);
+		alice_shader_set_int(shader, "material.ambient_occlusion_map", 4);
+		alice_bind_texture(material->ambient_occlusion_map, 4);
+	} else {
+		alice_shader_set_int(shader, "material.use_ambient_occlusion_map", 0);
+	}
+}
+
 void alice_apply_material(alice_Scene* scene, alice_Material* material) {
 	assert(material);
 
@@ -1003,49 +1053,12 @@ void alice_apply_material(alice_Scene* scene, alice_Material* material) {
 	}
 
 	alice_bind_shader(material->shader);
-	alice_shader_set_color(material->shader, "material.albedo", material->albedo);
-	alice_shader_set_float(material->shader, "material.metallic", material->metallic);
-	alice_shader_set_float(material->shader, "material.roughness", material->roughness);
-	alice_shader_set_float(material->shader, "material.emissive", material->emissive);
 
-	if (material->albedo_map) {
-		alice_shader_set_int(material->shader, "material.use_albedo_map", 1);
-		alice_shader_set_int(material->shader, "material.albedo_map", 0);
-		alice_bind_texture(material->albedo_map, 0);
-	} else {
-		alice_shader_set_int(material->shader, "material.use_albedo_map", 0);
-	}
-
-	if (material->normal_map) {
-		alice_shader_set_int(material->shader, "material.use_normal_map", 1);
-		alice_shader_set_int(material->shader, "material.normal_map", 1);
-		alice_bind_texture(material->normal_map, 1);
-	} else {
-		alice_shader_set_int(material->shader, "material.use_normal_map", 0);
-	}
-
-	if (material->metallic_map) {
-		alice_shader_set_int(material->shader, "material.use_metallic_map", 1);
-		alice_shader_set_int(material->shader, "material.metallic_map", 2);
-		alice_bind_texture(material->metallic_map, 2);
-	} else {
-		alice_shader_set_int(material->shader, "material.use_metallic_map", 0);
-	}
-
-	if (material->roughness_map) {
-		alice_shader_set_int(material->shader, "material.use_roughness_map", 1);
-		alice_shader_set_int(material->shader, "material.roughness_map", 3);
-		alice_bind_texture(material->roughness_map, 3);
-	} else {
-		alice_shader_set_int(material->shader, "material.use_roughness_map", 0);
-	}
-
-	if (material->ambient_occlusion_map) {
-		alice_shader_set_int(material->shader, "material.use_ambient_occlusion_map", 1);
-		alice_shader_set_int(material->shader, "material.ambient_occlusion_map", 4);
-		alice_bind_texture(material->ambient_occlusion_map, 4);
-	} else {
-		alice_shader_set_int(material->shader, "material.use_ambient_occlusion_map", 0);
+	switch (material->type) {
+		case ALICE_MATERIAL_PBR:
+			alice_apply_pbr_material(material->shader, &material->as.pbr);
+			break;
+		default: break;
 	}
 
 	/* Apply directional lights */
