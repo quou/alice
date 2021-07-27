@@ -143,10 +143,10 @@ void alice_init_application(alice_ApplicationConfig cfg) {
 
 		float verts[] = {
 			/* position     UV */
-			 0.5,  0.5, 	1.0f, 1.0f,
-			 0.5, -0.5, 	1.0f, 0.0f,
-			-0.5, -0.5, 	0.0f, 0.0f,
-			-0.5,  0.5, 	0.0f, 1.0f
+			 0.5,  0.5, 	1.0f, 0.0f,
+			 0.5, -0.5, 	1.0f, 1.0f,
+			-0.5, -0.5, 	0.0f, 1.0f,
+			-0.5,  0.5, 	0.0f, 0.0f
 		};
 
 		u32 indices[] = {

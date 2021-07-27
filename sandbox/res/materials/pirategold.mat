@@ -3,27 +3,22 @@ material {
 	albedo_map {
 		path "textures/pirate-gold_albedo.png";
 		is_antialiased true;
-		is_hdr false;
 	}
 	normal_map {
 		path "textures/pirate-gold_normal-ogl.png";
 		is_antialiased true;
-		is_hdr false;
 	}
 	roughness_map {
 		path "textures/pirate-gold_roughness.png";
 		is_antialiased true;
-		is_hdr false;
 	}
 	metallic_map {
 		path "textures/pirate-gold_metallic.png";
 		is_antialiased true;
-		is_hdr false;
 	}
 	ao_map {
 		path "textures/pirate-gold_ao.png";
 		is_antialiased true;
-		is_hdr false;
 	}
 	albedo {
 		r 1;

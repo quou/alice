@@ -520,14 +520,6 @@ static alice_Texture* impl_alice_load_texture_from_dtable(alice_DTable* parent_t
 			flags |= ALICE_TEXTURE_ALIASED;
 		}
 
-		alice_DTable* is_hdr_table = alice_dtable_find_child(texture_table, "is_hdr");
-		if (is_hdr_table && is_antialiased_table->value.type == ALICE_DTABLE_BOOL &&
-				is_hdr_table->value.as.boolean) {
-			flags |= ALICE_TEXTURE_HDR;
-		} else {
-			flags |= ALICE_TEXTURE_NORMAL;
-		}
-
 		alice_DTable* path_table = alice_dtable_find_child(texture_table, "path");
 		if (path_table && path_table->value.type == ALICE_DTABLE_STRING) {
 			return alice_load_texture(path_table->value.as.string, flags);
@@ -999,9 +991,6 @@ static void impl_alice_save_material_texture(alice_DTable* parent_table,
 	alice_DTable is_antialiased_table = alice_new_bool_dtable("is_antialiased",
 			texture->flags & ALICE_TEXTURE_ANTIALIASED);
 	alice_dtable_add_child(&texture_table, is_antialiased_table);
-
-	alice_DTable is_hdr_table = alice_new_bool_dtable("is_hdr", texture->flags & ALICE_TEXTURE_HDR);
-	alice_dtable_add_child(&texture_table, is_hdr_table);
 
 	alice_dtable_add_child(parent_table, texture_table);
 }
