@@ -752,15 +752,7 @@ static alice_Mesh alice_process_model_mesh(aiNode* node, aiMesh* ai_mesh, const 
 	mesh.transform.elements[2][3] = ai_transform.d3;
 	mesh.transform.elements[3][3] = ai_transform.d4;
 
-	alice_calculate_aabb_from_mesh(&mesh.aabb, mesh.transform, vertices, current_vertex, 8);
-
-	mesh.aabb = alice_transform_aabb(mesh.aabb, mesh.transform);
-	mesh.aabb.min.x += mesh.transform.elements[3][0];
-	mesh.aabb.min.y += mesh.transform.elements[3][1];
-	mesh.aabb.min.z += mesh.transform.elements[3][2];
-	mesh.aabb.max.x += mesh.transform.elements[3][0];
-	mesh.aabb.max.y += mesh.transform.elements[3][1];
-	mesh.aabb.max.z += mesh.transform.elements[3][2];
+	alice_calculate_aabb_from_mesh(&mesh.aabb, vertices, current_vertex, 8);
 
 	free(indices);
 	free(vertices);

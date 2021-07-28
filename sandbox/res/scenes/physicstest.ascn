@@ -177,7 +177,7 @@ scene {
 						y 1;
 						z 1;
 					}
-					model "models/monkey.glb";
+					model "models/complex.glb";
 					materials [
 						"materials/basicphong.mat";
 					]

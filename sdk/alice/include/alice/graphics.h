@@ -168,7 +168,7 @@ ALICE_API alice_Model* alice_new_model();
 ALICE_API void alice_free_model(alice_Model* model);
 ALICE_API void alice_model_add_mesh(alice_Model* model, alice_Mesh mesh);
 
-ALICE_API void alice_calculate_aabb_from_mesh(alice_AABB* aabb, alice_m4f transform,
+ALICE_API void alice_calculate_aabb_from_mesh(alice_AABB* aabb,
 		float* vertices, u32 position_count, u32 position_stride);
 
 typedef struct alice_Camera3D {

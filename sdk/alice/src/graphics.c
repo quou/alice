@@ -748,7 +748,7 @@ alice_Mesh alice_new_cube_mesh() {
 
 	alice_init_mesh(&mesh, cube);
 
-	alice_calculate_aabb_from_mesh(&mesh.aabb, mesh.transform, verts, sizeof(verts) / sizeof(float), 8);
+	alice_calculate_aabb_from_mesh(&mesh.aabb, verts, sizeof(verts) / sizeof(float), 8);
 
 	return mesh;
 }
@@ -837,7 +837,7 @@ alice_Mesh alice_new_sphere_mesh() {
 
 	alice_init_mesh(&mesh, sphere);
 
-	alice_calculate_aabb_from_mesh(&mesh.aabb, mesh.transform, vertices, vertex_count, 8);
+	alice_calculate_aabb_from_mesh(&mesh.aabb, vertices, vertex_count, 8);
 
 	free(vertices);
 	free(indices);
@@ -892,7 +892,7 @@ void alice_model_add_mesh(alice_Model* model, alice_Mesh mesh) {
 	model->meshes[model->mesh_count++] = mesh;
 }
 
-void alice_calculate_aabb_from_mesh(alice_AABB* aabb, alice_m4f transform,
+void alice_calculate_aabb_from_mesh(alice_AABB* aabb,
 		float* vertices, u32 position_count, u32 position_stride) {
 	assert(aabb);
 	assert(vertices);
@@ -906,8 +906,6 @@ void alice_calculate_aabb_from_mesh(alice_AABB* aabb, alice_m4f transform,
 			.y = vertices[i + 1],
 			.z = vertices[i + 2]
 		};
-
-		position = alice_v3f_transform(position, transform);
 
 		if (position.x < aabb->min.x) {
 			aabb->min.x = position.x;
@@ -1336,13 +1334,15 @@ void alice_render_scene_3d(alice_SceneRenderer3D* renderer, u32 width, u32 heigh
 				goto renderable_iter_continue;
 			}
 
-			alice_AABB mesh_aabb = alice_transform_aabb(mesh->aabb, transform_matrix);
-			mesh_aabb.min.x += transform_matrix.elements[3][0];
-			mesh_aabb.min.y += transform_matrix.elements[3][1];
-			mesh_aabb.min.z += transform_matrix.elements[3][2];
-			mesh_aabb.max.x += transform_matrix.elements[3][0];
-			mesh_aabb.max.y += transform_matrix.elements[3][1];
-			mesh_aabb.max.z += transform_matrix.elements[3][2];
+			alice_m4f mesh_transform = alice_m4f_multiply(transform_matrix, mesh->transform);
+
+			alice_AABB mesh_aabb = alice_transform_aabb(mesh->aabb, mesh_transform);
+			mesh_aabb.min.x += mesh_transform.elements[3][0];
+			mesh_aabb.min.y += mesh_transform.elements[3][1];
+			mesh_aabb.min.z += mesh_transform.elements[3][2];
+			mesh_aabb.max.x += mesh_transform.elements[3][0];
+			mesh_aabb.max.y += mesh_transform.elements[3][1];
+			mesh_aabb.max.z += mesh_transform.elements[3][2];
 
 			alice_apply_material(scene, material);
 			alice_apply_point_lights(scene, mesh_aabb, material);
@@ -1380,13 +1380,15 @@ renderable_iter_continue:
 			for (u32 i = 0; i < model->mesh_count; i++) {
 				alice_Mesh* mesh = &model->meshes[i];
 
-				alice_AABB mesh_aabb = alice_transform_aabb(mesh->aabb, transform_matrix);
-				mesh_aabb.min.x += transform_matrix.elements[3][0];
-				mesh_aabb.min.y += transform_matrix.elements[3][1];
-				mesh_aabb.min.z += transform_matrix.elements[3][2];
-				mesh_aabb.max.x += transform_matrix.elements[3][0];
-				mesh_aabb.max.y += transform_matrix.elements[3][1];
-				mesh_aabb.max.z += transform_matrix.elements[3][2];
+				alice_m4f mesh_transform = alice_m4f_multiply(transform_matrix, mesh->transform);
+
+				alice_AABB mesh_aabb = alice_transform_aabb(mesh->aabb, mesh_transform);
+				mesh_aabb.min.x += mesh_transform.elements[3][0];
+				mesh_aabb.min.y += mesh_transform.elements[3][1];
+				mesh_aabb.min.z += mesh_transform.elements[3][2];
+				mesh_aabb.max.x += mesh_transform.elements[3][0];
+				mesh_aabb.max.y += mesh_transform.elements[3][1];
+				mesh_aabb.max.z += mesh_transform.elements[3][2];
 
 				alice_debug_renderer_draw_aabb(renderer->debug_renderer, mesh_aabb);
 			}
