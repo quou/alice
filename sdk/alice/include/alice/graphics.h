@@ -285,3 +285,5 @@ ALICE_API alice_SceneRenderer3D* alice_new_scene_renderer_3d(alice_Shader* postp
 ALICE_API void alice_free_scene_renderer_3d(alice_SceneRenderer3D* renderer);
 ALICE_API void alice_render_scene_3d(alice_SceneRenderer3D* renderer, u32 width, u32 height,
 		alice_Scene* scene, alice_RenderTarget* render_target);
+
+ALICE_API alice_AABB alice_transform_aabb(alice_AABB aabb, alice_m4f m);

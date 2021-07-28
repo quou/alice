@@ -1233,6 +1233,58 @@ void alice_free_scene_renderer_3d(alice_SceneRenderer3D* renderer) {
 	free(renderer);
 }
 
+alice_AABB alice_transform_aabb(alice_AABB aabb, alice_m4f m) {
+	alice_v3f corners[]  = {
+		aabb.min,
+		(alice_v3f) { aabb.min.x, aabb.max.y, aabb.min.z },
+		(alice_v3f) { aabb.min.x, aabb.max.y, aabb.max.z },
+		(alice_v3f) { aabb.min.x, aabb.min.y, aabb.max.z },
+		(alice_v3f) { aabb.max.x, aabb.min.y, aabb.min.z },
+		(alice_v3f) { aabb.max.x, aabb.max.y, aabb.min.z },
+		aabb.max,
+		(alice_v3f) { aabb.max.x, aabb.min.y, aabb.max.z }
+	};
+
+	alice_v3f tmin = (alice_v3f) { 0.0f, 0.0f, 0.0f };
+	alice_v3f tmax = tmin;
+
+	for (u32 i = 0; i < 8; i++) {
+		alice_v4f point_4 =
+			alice_v4f_transform((alice_v4f) { corners[i].x, corners[i].y, corners[i].z, 1.0f }, m);
+
+		alice_v3f point = (alice_v3f) { point_4.x, point_4.y, point_4.z };
+
+		if (point.x < tmin.x) {
+			tmin.x = point.x;
+		}
+
+		if (point.y < tmin.y) {
+			tmin.y = point.y;
+		}
+
+		if (point.z < tmin.z) {
+			tmin.z = point.z;
+		}
+
+		if (point.x > tmax.x) {
+			tmax.x = point.x;
+		}
+
+		if (point.y > tmax.y) {
+			tmax.y = point.y;
+		}
+
+		if (point.z > tmax.z) {
+			tmax.z = point.z;
+		}
+	}
+
+	return (alice_AABB) {
+		.min = tmin,
+		.max = tmax
+	};
+}
+
 void alice_render_scene_3d(alice_SceneRenderer3D* renderer, u32 width, u32 height,
 		alice_Scene* scene, alice_RenderTarget* render_target) {
 	assert(renderer);
@@ -1284,14 +1336,10 @@ void alice_render_scene_3d(alice_SceneRenderer3D* renderer, u32 width, u32 heigh
 				goto renderable_iter_continue;
 			}
 
-			alice_AABB mesh_aabb = mesh->aabb;
-			mesh_aabb.min = alice_v3f_transform(mesh_aabb.min, transform_matrix);
-			mesh_aabb.max = alice_v3f_transform(mesh_aabb.max, transform_matrix);
-
+			alice_AABB mesh_aabb = alice_transform_aabb(mesh->aabb, transform_matrix);
 			mesh_aabb.min.x += transform_matrix.elements[3][0];
 			mesh_aabb.min.y += transform_matrix.elements[3][1];
 			mesh_aabb.min.z += transform_matrix.elements[3][2];
-
 			mesh_aabb.max.x += transform_matrix.elements[3][0];
 			mesh_aabb.max.y += transform_matrix.elements[3][1];
 			mesh_aabb.max.z += transform_matrix.elements[3][2];
@@ -1332,14 +1380,10 @@ renderable_iter_continue:
 			for (u32 i = 0; i < model->mesh_count; i++) {
 				alice_Mesh* mesh = &model->meshes[i];
 
-				alice_AABB mesh_aabb = mesh->aabb;
-				mesh_aabb.min = alice_v3f_transform(mesh_aabb.min, transform_matrix);
-				mesh_aabb.max = alice_v3f_transform(mesh_aabb.max, transform_matrix);
-
+				alice_AABB mesh_aabb = alice_transform_aabb(mesh->aabb, transform_matrix);
 				mesh_aabb.min.x += transform_matrix.elements[3][0];
 				mesh_aabb.min.y += transform_matrix.elements[3][1];
 				mesh_aabb.min.z += transform_matrix.elements[3][2];
-
 				mesh_aabb.max.x += transform_matrix.elements[3][0];
 				mesh_aabb.max.y += transform_matrix.elements[3][1];
 				mesh_aabb.max.z += transform_matrix.elements[3][2];

@@ -424,6 +424,7 @@ static alice_EntityHandle alice_deserialise_entity(alice_DTable* table, alice_Sc
 			break;
 		case ALICE_ST_RIGIDBODY3D:
 			create_type = alice_get_type_info(alice_Rigidbody3D);
+			break;
 		default:
 			break;
 	}

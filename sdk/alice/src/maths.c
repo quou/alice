@@ -485,3 +485,12 @@ alice_v3f alice_v3f_transform(alice_v3f v, alice_m4f m) {
 		.z = m.elements[2][0] * v.x + m.elements[2][1] * v.y + m.elements[2][2] * v.z + m.elements[2][3],
 	};
 }
+
+ALICE_API alice_v4f alice_v4f_transform(alice_v4f v, alice_m4f m) {
+	return (alice_v4f) {
+		.x = m.elements[0][0] * v.x + m.elements[0][1] * v.y + m.elements[0][2] * v.z + m.elements[0][3] * v.w,
+		.y = m.elements[1][0] * v.x + m.elements[1][1] * v.y + m.elements[1][2] * v.z + m.elements[1][3] * v.w,
+		.z = m.elements[2][0] * v.x + m.elements[2][1] * v.y + m.elements[2][2] * v.z + m.elements[2][3] * v.w,
+		.w = m.elements[3][0] * v.x + m.elements[3][1] * v.y + m.elements[3][2] * v.z + m.elements[3][3] * v.w,
+	};
+}

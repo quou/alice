@@ -41,5 +41,7 @@ monkey_physics_update(alice_Scene* scene, alice_EntityHandle handle, void* insta
 	} else if (alice_key_pressed(ALICE_KEY_RIGHT)) {
 		rigidbody->velocity.x = -2.0f;
 	}
+
+	rigidbody->base.rotation.y += 20.0f * timestep;
 }
 
