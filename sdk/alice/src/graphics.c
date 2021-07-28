@@ -1044,6 +1044,21 @@ static void alice_apply_pbr_material(alice_Shader* shader, alice_PBRMaterial* ma
 	}
 }
 
+static void alice_apply_phong_material(alice_Shader* shader, alice_PhongMaterial* material) {
+	assert(shader);
+	assert(material);
+
+	alice_shader_set_color(shader, "material.diffuse", material->diffuse);
+
+	if (material->diffuse_map) {
+		alice_shader_set_int(shader, "material.use_diffuse_map", 1);
+		alice_shader_set_int(shader, "material.diffuse_map", 2);
+		alice_bind_texture(material->diffuse_map, 2);
+	} else {
+		alice_shader_set_int(shader, "material.use_diffuse_map", 0);
+	}
+}
+
 void alice_apply_material(alice_Scene* scene, alice_Material* material) {
 	assert(material);
 
@@ -1057,6 +1072,9 @@ void alice_apply_material(alice_Scene* scene, alice_Material* material) {
 	switch (material->type) {
 		case ALICE_MATERIAL_PBR:
 			alice_apply_pbr_material(material->shader, &material->as.pbr);
+			break;
+		case ALICE_MATERIAL_PHONG:
+			alice_apply_phong_material(material->shader, &material->as.phong);
 			break;
 		default: break;
 	}

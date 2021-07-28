@@ -218,8 +218,15 @@ typedef struct alice_PBRMaterial {
 	alice_Texture* ambient_occlusion_map;
 } alice_PBRMaterial;
 
+typedef struct alice_PhongMaterial {
+	alice_Color diffuse;
+
+	alice_Texture* diffuse_map;
+} alice_PhongMaterial;
+
 typedef enum alice_MaterialType {
-	ALICE_MATERIAL_PBR
+	ALICE_MATERIAL_PBR,
+	ALICE_MATERIAL_PHONG
 } alice_MaterialType;
 
 typedef struct alice_Material {
@@ -229,6 +236,7 @@ typedef struct alice_Material {
 
 	union {
 		alice_PBRMaterial pbr;
+		alice_PhongMaterial phong;
 	} as;
 } alice_Material;
 

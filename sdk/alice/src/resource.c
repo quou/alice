@@ -579,6 +579,35 @@ static void alice_load_pbr_material(alice_DTable* table, alice_PBRMaterial* mate
 	}
 }
 
+static void alice_load_phong_material(alice_DTable* table, alice_PhongMaterial* material) {
+	assert(table);
+	assert(material);
+
+	material->diffuse_map = impl_alice_load_texture_from_dtable(table, "diffuse_map");
+
+	alice_DTable* diffuse_table = alice_dtable_find_child(table, "diffuse");
+	if (diffuse_table && diffuse_table->child_count == 3) {
+		float r = 1.0, g = 1.0, b = 1.0;
+
+		alice_DTable* r_table = alice_dtable_find_child(diffuse_table, "r");
+		if (r_table && r_table->value.type == ALICE_DTABLE_NUMBER) {
+			r = (float)r_table->value.as.number;
+		}
+
+		alice_DTable* g_table = alice_dtable_find_child(diffuse_table, "g");
+		if (g_table && g_table->value.type == ALICE_DTABLE_NUMBER) {
+			g = (float)g_table->value.as.number;
+		}
+
+		alice_DTable* b_table = alice_dtable_find_child(diffuse_table, "b");
+		if (b_table && b_table->value.type == ALICE_DTABLE_NUMBER) {
+			b = (float)b_table->value.as.number;
+		}
+
+		material->diffuse = alice_color_from_rgb_color((alice_RGBColor) { r, g, b });
+	}
+}
+
 static bool impl_alice_load_material(alice_Resource* resource, const char* path, bool new) {
 	alice_Resource* raw = malloc(sizeof(alice_Resource));
 	if (!impl_alice_load_string(raw, path)) {
@@ -605,17 +634,17 @@ static bool impl_alice_load_material(alice_Resource* resource, const char* path,
 		.shader = alice_null,
 		.type = ALICE_MATERIAL_PBR,
 		.as.pbr = {
-				.albedo = 0xffffff,
-				.roughness = 0.3f,
-				.metallic = 1.0f,
-				.emissive = 0.0f,
+			.albedo = 0xffffff,
+			.roughness = 0.3f,
+			.metallic = 1.0f,
+			.emissive = 0.0f,
 
-				.albedo_map = alice_null,
-				.normal_map = alice_null,
-				.metallic_map = alice_null,
-				.roughness_map = alice_null,
-				.ambient_occlusion_map = alice_null
-			}
+			.albedo_map = alice_null,
+			.normal_map = alice_null,
+			.metallic_map = alice_null,
+			.roughness_map = alice_null,
+			.ambient_occlusion_map = alice_null
+		}
 	};
 
 	alice_DTable* shader_table = alice_dtable_find_child(table, "shader");
@@ -630,6 +659,12 @@ static bool impl_alice_load_material(alice_Resource* resource, const char* path,
 	if (pbr_table) {
 		material->type = ALICE_MATERIAL_PBR;
 		alice_load_pbr_material(pbr_table, &material->as.pbr);
+	}
+
+	alice_DTable* phong_table = alice_dtable_find_child(table, "phong_material");
+	if (phong_table) {
+		material->type = ALICE_MATERIAL_PHONG;
+		alice_load_phong_material(phong_table, &material->as.phong);
 	}
 
 	alice_free_dtable(table);
@@ -1048,6 +1083,30 @@ static void alice_save_pbr_material(alice_DTable* table, alice_PBRMaterial* mate
 	alice_dtable_add_child(table, material_table);
 }
 
+static void alice_save_phong_matarial(alice_DTable* table, alice_PhongMaterial* material) {
+	assert(table);
+	assert(material);
+
+	alice_DTable material_table = alice_new_empty_dtable("phong_material");
+
+	impl_alice_save_material_texture(&material_table, "diffuse_map", material->diffuse_map);
+
+	alice_RGBColor color = alice_rgb_color_from_color(material->diffuse);
+
+	alice_DTable color_table = alice_new_empty_dtable("diffuse");
+	alice_DTable r_table = alice_new_number_dtable("r", color.r);
+	alice_DTable g_table = alice_new_number_dtable("g", color.g);
+	alice_DTable b_table = alice_new_number_dtable("b", color.b);
+
+	alice_dtable_add_child(&color_table, r_table);
+	alice_dtable_add_child(&color_table, g_table);
+	alice_dtable_add_child(&color_table, b_table);
+
+	alice_dtable_add_child(&material_table, color_table);
+
+	alice_dtable_add_child(table, material_table);
+}
+
 void alice_save_material(alice_Material* material, const char* path) {
 	assert(material);
 
@@ -1060,6 +1119,9 @@ void alice_save_material(alice_Material* material, const char* path) {
 	switch (material->type) {
 		case ALICE_MATERIAL_PBR:
 			alice_save_pbr_material(&material_table, &material->as.pbr);
+			break;
+		case ALICE_MATERIAL_PHONG:
+			alice_save_phong_matarial(&material_table, &material->as.phong);
 			break;
 		default: break;
 	}
