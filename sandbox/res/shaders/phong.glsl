@@ -95,11 +95,12 @@ uniform float gamma = 2.2;
 
 vec3 calculate_directional_light(DirectionalLight light, vec3 normal, vec3 view_dir) {
 	vec3 light_dir = normalize(-light.direction);
+	vec3 halfway_dir = normalize(light_dir + view_dir);
 
 	float diff = max(dot(normal, light_dir), 0.0);
 
 	vec3 reflect_dir = reflect(-light_dir, normal);
-	float spec = pow(max(dot(view_dir, reflect_dir), 0.0), material.shininess);
+	float spec = pow(max(dot(normal, halfway_dir), 0.0), material.shininess);
 
 	vec3 diffuse = light.color * light.intensity * diff * material.diffuse;
 	vec3 specular = light.color * light.intensity * spec * material.specular;
@@ -109,11 +110,12 @@ vec3 calculate_directional_light(DirectionalLight light, vec3 normal, vec3 view_
 
 vec3 calculate_point_light(PointLight light, vec3 normal, vec3 view_dir) {
 	vec3 light_dir = normalize(light.position - fs_in.world_pos);
+	vec3 halfway_dir = normalize(light_dir + view_dir);
 
 	float diff = max(dot(normal, light_dir), 0.0);
 
 	vec3 reflect_dir = reflect(-light_dir, normal);
-	float spec = pow(max(dot(view_dir, reflect_dir), 0.0), material.shininess);
+	float spec = pow(max(dot(normal, halfway_dir), 0.0), material.shininess);
 
 	float dist = length(light.position - fs_in.world_pos);
 	float attenuation = 1.0 / (pow((dist / light.range) * 5.0, 2.0) + 1.0);
