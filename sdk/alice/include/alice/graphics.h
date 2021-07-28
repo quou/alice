@@ -220,6 +220,10 @@ typedef struct alice_PBRMaterial {
 
 typedef struct alice_PhongMaterial {
 	alice_Color diffuse;
+	alice_Color specular;
+	alice_Color ambient;
+
+	float shininess;
 
 	alice_Texture* diffuse_map;
 } alice_PhongMaterial;

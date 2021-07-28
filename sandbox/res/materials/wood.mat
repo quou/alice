@@ -2,8 +2,8 @@ material {
 	shader "/shaders/phong.glsl";
 	phong_material {
 		diffuse_map {
-			path "textures/frog.png";
-			is_antialiased false;
+			path "textures/wood.png";
+			is_antialiased true;
 		}
 		diffuse {
 			r 1;

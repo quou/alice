@@ -579,32 +579,45 @@ static void alice_load_pbr_material(alice_DTable* table, alice_PBRMaterial* mate
 	}
 }
 
+static alice_Color alice_load_color(alice_DTable* table, const char* name) {
+	alice_DTable* color_table = alice_dtable_find_child(table, name);
+	if (color_table) {
+		float r = 1.0, g = 1.0, b = 1.0;
+
+		alice_DTable* r_table = alice_dtable_find_child(color_table, "r");
+		if (r_table && r_table->value.type == ALICE_DTABLE_NUMBER) {
+			r = (float)r_table->value.as.number;
+		}
+
+		alice_DTable* g_table = alice_dtable_find_child(color_table, "g");
+		if (g_table && g_table->value.type == ALICE_DTABLE_NUMBER) {
+			g = (float)g_table->value.as.number;
+		}
+
+		alice_DTable* b_table = alice_dtable_find_child(color_table, "b");
+		if (b_table && b_table->value.type == ALICE_DTABLE_NUMBER) {
+			b = (float)b_table->value.as.number;
+		}
+
+		return alice_color_from_rgb_color((alice_RGBColor) { r, g, b });
+	}
+
+	return 0xffffff;
+}
+
 static void alice_load_phong_material(alice_DTable* table, alice_PhongMaterial* material) {
 	assert(table);
 	assert(material);
 
 	material->diffuse_map = impl_alice_load_texture_from_dtable(table, "diffuse_map");
 
-	alice_DTable* diffuse_table = alice_dtable_find_child(table, "diffuse");
-	if (diffuse_table && diffuse_table->child_count == 3) {
-		float r = 1.0, g = 1.0, b = 1.0;
+	material->diffuse = alice_load_color(table, "diffuse");
+	material->specular = alice_load_color(table, "specular");
+	material->ambient = alice_load_color(table, "ambient");
 
-		alice_DTable* r_table = alice_dtable_find_child(diffuse_table, "r");
-		if (r_table && r_table->value.type == ALICE_DTABLE_NUMBER) {
-			r = (float)r_table->value.as.number;
-		}
-
-		alice_DTable* g_table = alice_dtable_find_child(diffuse_table, "g");
-		if (g_table && g_table->value.type == ALICE_DTABLE_NUMBER) {
-			g = (float)g_table->value.as.number;
-		}
-
-		alice_DTable* b_table = alice_dtable_find_child(diffuse_table, "b");
-		if (b_table && b_table->value.type == ALICE_DTABLE_NUMBER) {
-			b = (float)b_table->value.as.number;
-		}
-
-		material->diffuse = alice_color_from_rgb_color((alice_RGBColor) { r, g, b });
+	alice_DTable* shininess_table = alice_dtable_find_child(table, "shininess");
+	if (shininess_table && shininess_table->value.type == ALICE_DTABLE_NUMBER) {
+		material->shininess = shininess_table->value.as.number;
 	}
 }
 
@@ -1083,6 +1096,23 @@ static void alice_save_pbr_material(alice_DTable* table, alice_PBRMaterial* mate
 	alice_dtable_add_child(table, material_table);
 }
 
+static void impl_alice_save_color(alice_DTable* table, const char* name, alice_Color color) {
+	assert(table);
+
+	alice_RGBColor rgb = alice_rgb_color_from_color(color);
+
+	alice_DTable color_table = alice_new_empty_dtable(name);
+	alice_DTable r_table = alice_new_number_dtable("r", rgb.r);
+	alice_DTable g_table = alice_new_number_dtable("g", rgb.g);
+	alice_DTable b_table = alice_new_number_dtable("b", rgb.b);
+
+	alice_dtable_add_child(&color_table, r_table);
+	alice_dtable_add_child(&color_table, g_table);
+	alice_dtable_add_child(&color_table, b_table);
+
+	alice_dtable_add_child(table, color_table);
+}
+
 static void alice_save_phong_matarial(alice_DTable* table, alice_PhongMaterial* material) {
 	assert(table);
 	assert(material);
@@ -1091,18 +1121,12 @@ static void alice_save_phong_matarial(alice_DTable* table, alice_PhongMaterial* 
 
 	impl_alice_save_material_texture(&material_table, "diffuse_map", material->diffuse_map);
 
-	alice_RGBColor color = alice_rgb_color_from_color(material->diffuse);
+	impl_alice_save_color(&material_table, "diffuse", material->diffuse);
+	impl_alice_save_color(&material_table, "specular", material->specular);
+	impl_alice_save_color(&material_table, "ambient", material->ambient);
 
-	alice_DTable color_table = alice_new_empty_dtable("diffuse");
-	alice_DTable r_table = alice_new_number_dtable("r", color.r);
-	alice_DTable g_table = alice_new_number_dtable("g", color.g);
-	alice_DTable b_table = alice_new_number_dtable("b", color.b);
-
-	alice_dtable_add_child(&color_table, r_table);
-	alice_dtable_add_child(&color_table, g_table);
-	alice_dtable_add_child(&color_table, b_table);
-
-	alice_dtable_add_child(&material_table, color_table);
+	alice_DTable shininess_table = alice_new_number_dtable("shininess", material->shininess);
+	alice_dtable_add_child(&material_table, shininess_table);
 
 	alice_dtable_add_child(table, material_table);
 }

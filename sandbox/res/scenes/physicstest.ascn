@@ -36,6 +36,30 @@ scene {
 			gamma 1.4;
 			active true;
 		}
+		point_light {
+			position {
+				x -2;
+				y 1;
+				z 0;
+			}
+			rotation {
+				x 0;
+				y 0;
+				z 0;
+			}
+			scale {
+				x 1;
+				y 1;
+				z 1;
+			}
+			color {
+				r 1;
+				g 0;
+				b 0;
+			}
+			range 5;
+			intensity 4;
+		}
 		directional_light {
 			name "sun";
 			position {
@@ -58,7 +82,7 @@ scene {
 				g 1;
 				b 1;
 			}
-			intensity 10;
+			intensity 1;
 		}
 		rigidbody_3d {
 			name "cube";
@@ -177,9 +201,9 @@ scene {
 						y 1;
 						z 1;
 					}
-					model "models/complex.glb";
+					model "models/monkey.glb";
 					materials [
-						"materials/basicphong.mat";
+						"materials/wood.mat";
 					]
 
 				}
@@ -239,7 +263,7 @@ scene {
 					}
 					model "cube";
 					materials [
-						"materials/basicphong.mat";
+						"materials/wood.mat";
 					]
 
 				}

@@ -1047,6 +1047,10 @@ static void alice_apply_phong_material(alice_Shader* shader, alice_PhongMaterial
 	assert(material);
 
 	alice_shader_set_color(shader, "material.diffuse", material->diffuse);
+	alice_shader_set_color(shader, "material.ambient", material->ambient);
+	alice_shader_set_color(shader, "material.specular", material->specular);
+
+	alice_shader_set_float(shader, "material.shininess", material->shininess);
 
 	if (material->diffuse_map) {
 		alice_shader_set_int(shader, "material.use_diffuse_map", 1);
