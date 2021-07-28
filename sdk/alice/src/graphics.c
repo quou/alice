@@ -1353,6 +1353,9 @@ void alice_render_scene_3d(alice_SceneRenderer3D* renderer, u32 width, u32 heigh
 
 			alice_Shader* shader = material->shader;
 
+			alice_shader_set_color(shader, "ambient_color", renderer->ambient_color);
+			alice_shader_set_float(shader, "ambient_intensity", renderer->ambient_intensity);
+
 			alice_m4f model = alice_m4f_multiply(transform_matrix, mesh->transform);
 
 			alice_shader_set_m4f(shader, "transform", model);

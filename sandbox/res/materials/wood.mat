@@ -16,9 +16,9 @@ material {
 			b 1;
 		}
 		ambient {
-			r 0.0901961;
-			g 0.0901961;
-			b 0.0901961;
+			r 1;
+			g 1;
+			b 1;
 		}
 		shininess 32;
 	}

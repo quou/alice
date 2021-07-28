@@ -70,6 +70,8 @@ out vec4 color;
 uniform vec3 camera_position;
 
 uniform Material material;
+uniform float ambient_intensity;
+uniform vec3 ambient_color;
 
 const float PI = 3.14159265359;
 
@@ -99,11 +101,10 @@ vec3 calculate_directional_light(DirectionalLight light, vec3 normal, vec3 view_
 	vec3 reflect_dir = reflect(-light_dir, normal);
 	float spec = pow(max(dot(view_dir, reflect_dir), 0.0), material.shininess);
 
-	vec3 ambient = light.color * material.ambient;
 	vec3 diffuse = light.color * light.intensity * diff * material.diffuse;
 	vec3 specular = light.color * light.intensity * spec * material.specular;
 
-	return (ambient + diffuse + specular);
+	return (diffuse + specular);
 }
 
 vec3 calculate_point_light(PointLight light, vec3 normal, vec3 view_dir) {
@@ -136,7 +137,7 @@ void main() {
 		texture_color = texture(material.diffuse_map, fs_in.uv).rgb;
 	}
 
-	vec3 lighting_result = directional_light_count > 0 ? vec3(0.0) : vec3(1.0);
+	vec3 lighting_result = material.ambient * ambient_intensity * ambient_color;
 
 	for (uint i = 0; i < directional_light_count; i++) {
 		lighting_result += calculate_directional_light(directional_lights[i], normal, view_dir);

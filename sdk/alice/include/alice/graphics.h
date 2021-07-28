@@ -281,6 +281,8 @@ typedef struct alice_SceneRenderer3D {
 	bool use_antialiasing;
 
 	alice_Color color_mod;
+	alice_Color ambient_color;
+	float ambient_intensity;
 } alice_SceneRenderer3D;
 
 ALICE_API alice_SceneRenderer3D* alice_new_scene_renderer_3d(alice_Shader* postprocess_shader,

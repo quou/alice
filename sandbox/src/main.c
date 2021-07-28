@@ -61,6 +61,9 @@ void main() {
 	alice_deserialise_scene(scene, "scenes/physicstest.ascn");
 	alice_serialise_scene(scene, "scenes/physicstest.ascn");
 
+	scene->renderer->ambient_intensity = 0.2f;
+	scene->renderer->ambient_color = 0xadb0ea;
+
 /*	{
 		alice_EntityHandle monkey_handle = alice_new_entity(scene, alice_Rigidbody3D);
 		alice_Rigidbody3D* monkey = alice_get_entity_ptr(scene, monkey_handle);
