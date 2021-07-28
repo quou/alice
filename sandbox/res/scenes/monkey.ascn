@@ -10,6 +10,7 @@ scene {
 		use_antialiasing true;
 		gravity -10;
 	}
+	entities {
 	camera_3d {
 		name "main camera";
 		position {
@@ -87,4 +88,5 @@ scene {
 		}
 		intensity 10;
 	}
+}
 }

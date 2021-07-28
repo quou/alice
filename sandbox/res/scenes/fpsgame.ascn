@@ -11,6 +11,7 @@ scene {
 		use_antialiasing true;
 		gravity -10;
 	}
+	entities {
 	renderable_3d {
 		position {
 			x 0;
@@ -313,4 +314,5 @@ scene {
 			}
 		}
 	}
+}
 }

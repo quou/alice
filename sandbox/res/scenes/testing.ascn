@@ -13,6 +13,7 @@ scene {
 	}
 
 
+	entities {
 	camera_3d {
 		position {
 			x 0;
@@ -100,4 +101,5 @@ scene {
 			}
 		}
 	}
+}
 }

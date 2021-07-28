@@ -365,6 +365,7 @@ void alice_serialise_scene(alice_Scene* scene, const char* file_path) {
 
 	alice_dtable_add_child(&table, settings_table);
 
+	alice_DTable entities_table = alice_new_empty_dtable("entities");
 	for (u32 i = 0; i < scene->pool_count; i++) {
 		alice_EntityPool* pool = &scene->pools[i];
 		for (u32 ii = 0; ii < pool->count; ii++) {
@@ -373,10 +374,12 @@ void alice_serialise_scene(alice_Scene* scene, const char* file_path) {
 			alice_Entity* ptr = alice_entity_pool_get(pool, ii);
 
 			if (ptr->parent == alice_null_entity_handle) {
-				alice_serialise_entity(&table, scene, handle);
+				alice_serialise_entity(&entities_table, scene, handle);
 			}
 		}
 	}
+
+	alice_dtable_add_child(&table, entities_table);
 
 	alice_write_dtable(&table, file_path);
 
@@ -426,6 +429,7 @@ static alice_EntityHandle alice_deserialise_entity(alice_DTable* table, alice_Sc
 			create_type = alice_get_type_info(alice_Rigidbody3D);
 			break;
 		default:
+			alice_log_error("hi");
 			break;
 	}
 
@@ -829,8 +833,9 @@ void alice_deserialise_scene(alice_Scene* scene, const char* file_path) {
 		}
 	}
 
-	for (u32 i = 0; i < table->child_count; i++) {
-		alice_DTable* child_table = &table->children[i];
+	alice_DTable* entities_table = alice_dtable_find_child(table, "entities");
+	for (u32 i = 0; i < entities_table->child_count; i++) {
+		alice_DTable* child_table = &entities_table->children[i];
 		alice_deserialise_entity(child_table, scene);
 	}
 

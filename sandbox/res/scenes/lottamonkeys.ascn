@@ -12,6 +12,7 @@ scene {
 		gravity -10;
 	}
 
+	entities {
 	camera_3d {
 		name "main camera";
 		position {
@@ -165,4 +166,5 @@ scene {
 		intensity 100;
 		range 10;
 	}
+}
 }

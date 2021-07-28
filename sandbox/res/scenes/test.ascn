@@ -13,6 +13,7 @@ scene {
 	}
 
 
+	entities {
 	entity {
 		name "lights";
 		position {
@@ -121,4 +122,5 @@ scene {
 			"materials/basic.mat";
 		]
 	}
+}
 }
