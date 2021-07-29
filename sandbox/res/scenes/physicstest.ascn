@@ -39,7 +39,7 @@ scene {
 			name "red lamp";
 			position {
 				x -2;
-				y 1;
+				y 0.4;
 				z 0;
 			}
 			rotation {
@@ -57,14 +57,14 @@ scene {
 				g 0;
 				b 0;
 			}
-			range 5;
+			range 1;
 			intensity 4;
 		}
 		point_light {
 			name "blue lamp";
 			position {
 				x 0;
-				y 3;
+				y 0.4;
 				z 0;
 			}
 			rotation {
@@ -82,7 +82,7 @@ scene {
 				g 0;
 				b 1;
 			}
-			range 10;
+			range 1;
 			intensity 10;
 		}
 		directional_light {
@@ -228,9 +228,34 @@ scene {
 					}
 					model "models/monkey.glb";
 					materials [
-						"materials/wood.mat";
+						"materials/greenlight.mat";
 					]
 
+				}
+				point_light {
+					name "green lamp";
+					position {
+						x 0;
+						y 0.4;
+						z 0;
+					}
+					rotation {
+						x 0;
+						y 0;
+						z 0;
+					}
+					scale {
+						x 1;
+						y 1;
+						z 1;
+					}
+					color {
+						r 0;
+						g 1;
+						b 0;
+					}
+					range 2;
+					intensity 10;
 				}
 			}
 		}
@@ -288,7 +313,67 @@ scene {
 					}
 					model "cube";
 					materials [
-						"materials/wood.mat";
+						"materials/basicphong.mat";
+					]
+
+				}
+			}
+		}
+		rigidbody_3d {
+			name "wall";
+			position {
+				x -5;
+				y 0;
+				z 0;
+			}
+			rotation {
+				x 0;
+				y 0;
+				z 0;
+			}
+			scale {
+				x 1;
+				y 1;
+				z 1;
+			}
+			mass 0;
+			dynamic_friction 0.3;
+			static_friction 0.3;
+			restitution 0.3;
+			gravity_scale 0;
+			box {
+				dimentions {
+					x 0.4;
+					y 5;
+					z 10;
+				}
+				position {
+					x 0;
+					y 0;
+					z 0;
+				}
+			}
+			children {
+				renderable_3d {
+					name "wall visual";
+					position {
+						x 0;
+						y 0;
+						z 0;
+					}
+					rotation {
+						x 0;
+						y 0;
+						z 0;
+					}
+					scale {
+						x 0.4;
+						y 5;
+						z 10;
+					}
+					model "cube";
+					materials [
+						"materials/basicphong.mat";
 					]
 
 				}

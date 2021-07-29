@@ -1051,6 +1051,7 @@ static void alice_apply_phong_material(alice_Shader* shader, alice_PhongMaterial
 	alice_shader_set_color(shader, "material.specular", material->specular);
 
 	alice_shader_set_float(shader, "material.shininess", material->shininess);
+	alice_shader_set_float(shader, "material.emissive", material->emissive);
 
 	if (material->diffuse_map) {
 		alice_shader_set_int(shader, "material.use_diffuse_map", 1);
@@ -1400,7 +1401,6 @@ renderable_iter_continue:
 				alice_debug_renderer_draw_aabb(renderer->debug_renderer, mesh_aabb);
 			}
 		}
-
 	}
 
 	alice_unbind_render_target(renderer->output);

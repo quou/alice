@@ -224,6 +224,7 @@ typedef struct alice_PhongMaterial {
 	alice_Color ambient;
 
 	float shininess;
+	float emissive;
 
 	alice_Texture* diffuse_map;
 } alice_PhongMaterial;

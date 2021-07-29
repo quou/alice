@@ -17,6 +17,6 @@ material {
 			b 1;
 		}
 		shininess 32;
-		emissive 0;
+		emissive 8;
 	}
 }

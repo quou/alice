@@ -41,6 +41,7 @@ struct Material {
 	vec3 ambient;
 
 	float shininess;
+	float emissive;
 
 	sampler2D diffuse_map;
 	bool use_diffuse_map;
@@ -139,7 +140,7 @@ void main() {
 		texture_color = texture(material.diffuse_map, fs_in.uv).rgb;
 	}
 
-	vec3 lighting_result = material.ambient * ambient_intensity * ambient_color;
+	vec3 lighting_result = material.ambient * ambient_intensity * ambient_color * material.emissive;
 
 	for (uint i = 0; i < directional_light_count; i++) {
 		lighting_result += calculate_directional_light(directional_lights[i], normal, view_dir);

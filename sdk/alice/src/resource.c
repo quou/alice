@@ -619,6 +619,11 @@ static void alice_load_phong_material(alice_DTable* table, alice_PhongMaterial* 
 	if (shininess_table && shininess_table->value.type == ALICE_DTABLE_NUMBER) {
 		material->shininess = shininess_table->value.as.number;
 	}
+
+	alice_DTable* emissive_table = alice_dtable_find_child(table, "emissive");
+	if (emissive_table && emissive_table->value.type == ALICE_DTABLE_NUMBER) {
+		material->emissive = emissive_table->value.as.number;
+	}
 }
 
 static bool impl_alice_load_material(alice_Resource* resource, const char* path, bool new) {
@@ -1127,6 +1132,9 @@ static void alice_save_phong_matarial(alice_DTable* table, alice_PhongMaterial* 
 
 	alice_DTable shininess_table = alice_new_number_dtable("shininess", material->shininess);
 	alice_dtable_add_child(&material_table, shininess_table);
+
+	alice_DTable emissive_table = alice_new_number_dtable("emissive", material->emissive);
+	alice_dtable_add_child(&material_table, emissive_table);
 
 	alice_dtable_add_child(table, material_table);
 }

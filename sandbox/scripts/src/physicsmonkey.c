@@ -33,15 +33,25 @@ monkey_physics_update(alice_Scene* scene, alice_EntityHandle handle, void* insta
 	alice_Rigidbody3D* rigidbody = alice_get_entity_ptr(scene, handle);
 
 	if (alice_key_pressed(ALICE_KEY_SPACE)) {
-		rigidbody->velocity.y = 10.0f;
+		rigidbody->force.y = 100.0f;
+	} else {
+		rigidbody->force.y = 0.0f;
 	}
 
 	if (alice_key_pressed(ALICE_KEY_LEFT)) {
-		rigidbody->velocity.x = 2.0f;
+		rigidbody->force.x = 20.0f;
 	} else if (alice_key_pressed(ALICE_KEY_RIGHT)) {
-		rigidbody->velocity.x = -2.0f;
+		rigidbody->force.x = -20.0f;
+	} else {
+		rigidbody->force.x = 0.0f;
 	}
 
-	rigidbody->base.rotation.y += 20.0f * timestep;
+	if (alice_key_pressed(ALICE_KEY_UP)) {
+		rigidbody->force.z = 20.0f;
+	} else if (alice_key_pressed(ALICE_KEY_DOWN)) {
+		rigidbody->force.z = -20.0f;
+	} else {
+		rigidbody->force.z = 0.0f;
+	}
 }
 
