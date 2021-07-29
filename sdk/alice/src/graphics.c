@@ -1112,7 +1112,10 @@ void alice_apply_point_lights(alice_Scene* scene, alice_AABB mesh_aabb, alice_Ma
 	for (alice_entity_iter(scene, iter, alice_PointLight)) {
 		alice_PointLight* light = iter.current_ptr;
 
-		if (!alice_sphere_vs_aabb(mesh_aabb, light->base.position, light->range * 2)) {
+		alice_v3f world_position = alice_get_entity_world_position(scene, (alice_Entity*)light);
+
+		/* TODO: fix. */
+		if (!alice_sphere_vs_aabb(mesh_aabb, world_position, light->range * 5.0)) {
 			continue;
 		}
 
@@ -1122,8 +1125,7 @@ void alice_apply_point_lights(alice_Scene* scene, alice_AABB mesh_aabb, alice_Ma
 		alice_shader_set_color(material->shader, name, light->color);
 
 		sprintf(name, "point_lights[%d].position", light_count);
-		alice_shader_set_v3f(material->shader, name,
-				alice_get_entity_world_position(scene, (alice_Entity*)light));
+		alice_shader_set_v3f(material->shader, name, world_position);
 
 		sprintf(name, "point_lights[%d].intensity", light_count);
 		alice_shader_set_float(material->shader, name, light->intensity);
