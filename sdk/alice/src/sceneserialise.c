@@ -332,6 +332,12 @@ void alice_serialise_scene(alice_Scene* scene, const char* file_path) {
 			alice_dtable_add_child(&settings_table, shader_table);
 		}
 
+		if (scene->renderer->shadowmap->shader) {
+			alice_DTable shader_table = alice_new_string_dtable("depth_shader",
+					alice_get_shader_resource_filename(scene->renderer->shadowmap->shader));
+			alice_dtable_add_child(&settings_table, shader_table);
+		}
+
 		alice_DTable debug_table = alice_new_bool_dtable("debug", scene->renderer->debug);
 		alice_dtable_add_child(&settings_table, debug_table);
 
@@ -763,6 +769,7 @@ void alice_deserialise_scene(alice_Scene* scene, const char* file_path) {
 		alice_Shader* blur = alice_null;
 		alice_Shader* extract = alice_null;
 		alice_Shader* debug_shader = alice_null;
+		alice_Shader* depth_shader = alice_null;
 		bool debug = false;
 
 		alice_DTable* postprocess_shader_table = alice_dtable_find_child(settings_table,
@@ -790,12 +797,19 @@ void alice_deserialise_scene(alice_Scene* scene, const char* file_path) {
 			debug_shader = alice_load_shader(debug_shader_table->value.as.string);
 		}
 
+		alice_DTable* depth_shader_table = alice_dtable_find_child(settings_table,
+				"depth_shader");
+		if (depth_shader_table && depth_shader_table->value.type == ALICE_DTABLE_STRING) {
+			depth_shader = alice_load_shader(depth_shader_table->value.as.string);
+		}
+
 		alice_DTable* debug_table = alice_dtable_find_child(settings_table, "debug");
 		if (debug_table && debug_table->value.type == ALICE_DTABLE_BOOL) {
 			debug = debug_table->value.as.boolean;
 		}
 
-		scene->renderer = alice_new_scene_renderer_3d(postprocess, extract, blur, debug, debug_shader);
+		scene->renderer = alice_new_scene_renderer_3d(postprocess, extract, blur, depth_shader,
+				debug, debug_shader);
 		scene->renderer->use_antialiasing = true;
 		scene->renderer->use_bloom = true;
 

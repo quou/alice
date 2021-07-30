@@ -123,6 +123,8 @@ ALICE_API alice_m4f alice_m4f_lookat(alice_v3f camera, alice_v3f object, alice_v
 
 ALICE_API void alice_m4f_decompose(alice_m4f matrix, alice_v3f* translation, alice_v3f* rotation, alice_v3f* scale);
 
+ALICE_API alice_m4f alice_m4f_inverse(alice_m4f m);
+
 ALICE_API alice_v3f alice_v3f_transform(alice_v3f v, alice_m4f m);
 ALICE_API alice_v4f alice_v4f_transform(alice_v4f v, alice_m4f m);
 

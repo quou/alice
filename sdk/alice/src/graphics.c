@@ -965,10 +965,11 @@ alice_Camera3D* alice_get_scene_camera(alice_Scene* scene) {
 	return camera;
 }
 
-alice_m4f alice_get_camera_3d_matrix(alice_Scene* scene, alice_Camera3D* camera) {
+alice_m4f alice_get_camera_3d_view(alice_Scene* scene, alice_Camera3D* camera) {
+	assert(scene);
 	assert(camera);
 
-	alice_v3f rotation = alice_torad_v3f(camera->base.rotation);
+	alice_v3f rotation = alice_torad_v3f(alice_get_entity_world_rotation(scene, (alice_Entity*)camera));
 
 	alice_v3f position = alice_get_entity_world_position(scene, (alice_Entity*)camera);
 
@@ -978,16 +979,40 @@ alice_m4f alice_get_camera_3d_matrix(alice_Scene* scene, alice_Camera3D* camera)
 		.z = cosf(rotation.x) * cosf(rotation.y)
 	};
 
-	alice_m4f view = alice_m4f_lookat(position,
+	return alice_m4f_lookat(position,
 		(alice_v3f){
 			.x = position.x + direction.x,
 			.y = position.y + direction.y,
 			.z = position.z + direction.z
 		}, (alice_v3f){0.0, 1.0, 0.0});
+}
 
-	alice_m4f projection = alice_m4f_persp(camera->fov,
+alice_m4f alice_get_camera_3d_view_no_direction(alice_Scene* scene, alice_Camera3D* camera) {
+	assert(scene);
+	assert(camera);
+
+
+	alice_v3f position = alice_get_entity_world_position(scene, (alice_Entity*)camera);
+
+	return alice_m4f_lookat(position,
+		(alice_v3f){
+			.x = position.x,
+			.y = position.y,
+			.z = position.z
+		}, (alice_v3f){0.0, 1.0, 0.0});
+}
+
+alice_m4f alice_get_camera_3d_projection(alice_Camera3D* camera) {
+	assert(camera);
+
+	return alice_m4f_persp(camera->fov,
 		camera->dimentions.x / camera->dimentions.y,
 		camera->near, camera->far);
+}
+
+alice_m4f alice_get_camera_3d_matrix(alice_Scene* scene, alice_Camera3D* camera) {
+	alice_m4f projection = alice_get_camera_3d_projection(camera);
+	alice_m4f view = alice_get_camera_3d_view(scene, camera);
 
 	return alice_m4f_multiply(projection, view);
 }
@@ -1098,6 +1123,9 @@ void alice_apply_material(alice_Scene* scene, alice_Material* material) {
 		sprintf(name, "directional_lights[%d].intensity", light_count);
 		alice_shader_set_float(material->shader, name, light->intensity);
 
+		sprintf(name, "directional_lights[%d].transform", light_count);
+		alice_shader_set_m4f(material->shader, name, light->transform);
+
 		light_count++;
 	}
 
@@ -1166,12 +1194,119 @@ void alice_renderable_3d_add_material(alice_Renderable3D* renderable, const char
 	renderable->materials[renderable->material_count++] = alice_load_material(material_path);
 }
 
+alice_Shadowmap* alice_new_shadowmap(u32 res, alice_Shader* shader) {
+	alice_Shadowmap* new = malloc(sizeof(alice_Shadowmap));
+
+	new->shader = shader;
+	new->res = res;
+
+	glGenFramebuffers(1, &new->framebuffer);
+
+	glGenTextures(1, &new->output);
+	glBindTexture(GL_TEXTURE_2D, new->output);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
+			res, res, 0, GL_DEPTH_COMPONENT,
+			GL_FLOAT, alice_null);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+
+	float border_color[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, border_color);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, new->framebuffer);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, new->output, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	return new;
+}
+
+void alice_free_shadowmap(alice_Shadowmap* shadowmap) {
+	assert(shadowmap);
+
+	glDeleteTextures(1, &shadowmap->output);
+	glDeleteFramebuffers(1, &shadowmap->framebuffer);
+
+	free(shadowmap);
+}
+
+void alice_draw_shadowmap(alice_Shadowmap* shadowmap, alice_Scene* scene, alice_Camera3D* camera) {
+	assert(shadowmap);
+
+	alice_DirectionalLight* light = alice_null;
+
+	for (alice_entity_iter(scene, iter, alice_DirectionalLight)) {
+		light = iter.current_ptr;
+
+		break;
+	}
+
+	if (!light) { return; }
+
+	glViewport(0, 0, shadowmap->res, shadowmap->res);
+	glBindFramebuffer(GL_FRAMEBUFFER, shadowmap->framebuffer);
+	glClear(GL_DEPTH_BUFFER_BIT);
+
+	const float near_plane = -10.0f, far_plane = 10.0f;
+	alice_m4f light_projection = alice_m4f_ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+	alice_m4f light_view = alice_m4f_lookat(
+			(alice_v3f) {
+				-light->base.position.x,
+				-light->base.position.y,
+				-light->base.position.z },
+			(alice_v3f) { 0.0f, 0.0f, 0.0f },
+			(alice_v3f) { 0.0f, 1.0f, 0.0f });
+	alice_m4f light_matrix = alice_m4f_multiply(light_projection, light_view);
+	alice_m4f view = alice_m4f_translate(alice_m4f_identity(),
+			alice_get_entity_world_position(scene, (alice_Entity*)camera));
+
+	light_matrix = alice_m4f_multiply(light_matrix, alice_m4f_inverse(view));
+
+	light->transform = light_matrix;
+
+	alice_bind_shader(shadowmap->shader);
+	alice_shader_set_m4f(shadowmap->shader, "light", light_matrix);
+
+	for (alice_entity_iter(scene, iter, alice_Renderable3D)) {
+		alice_Renderable3D* renderable = iter.current_ptr;
+
+		alice_m4f transform_matrix = alice_get_entity_transform(scene, (alice_Entity*)renderable);
+
+		alice_Model* model = renderable->model;
+		if (!model) {
+			continue;
+		}
+
+		for (u32 i = 0; i < model->mesh_count; i++) {
+			alice_Mesh* mesh = &model->meshes[i];
+			alice_VertexBuffer* vb = mesh->vb;
+
+			alice_m4f model = alice_m4f_multiply(transform_matrix, mesh->transform);
+			alice_shader_set_m4f(shadowmap->shader, "transform", model);
+
+			alice_bind_vertex_buffer_for_draw(vb);
+			alice_draw_vertex_buffer(vb);
+		}
+	}
+}
+
+void alice_bind_shadowmap_output(alice_Shadowmap* shadowmap, u32 unit) {
+	assert(shadowmap);
+
+	glActiveTexture(GL_TEXTURE0 + unit);
+	glBindTexture(GL_TEXTURE_2D, shadowmap->output);
+}
+
 alice_SceneRenderer3D* alice_new_scene_renderer_3d(alice_Shader* postprocess_shader,
-		alice_Shader* extract_shader, alice_Shader* blur_shader,
+		alice_Shader* extract_shader, alice_Shader* blur_shader, alice_Shader* depth_shader,
 		bool debug, alice_Shader* debug_shader) {
 	assert(postprocess_shader);
 	assert(extract_shader);
 	assert(blur_shader);
+	assert(depth_shader);
 
 	alice_SceneRenderer3D* new = malloc(sizeof(alice_SceneRenderer3D));
 
@@ -1183,6 +1318,7 @@ alice_SceneRenderer3D* alice_new_scene_renderer_3d(alice_Shader* postprocess_sha
 	new->postprocess = postprocess_shader;
 	new->extract = extract_shader;
 	new->blur = blur_shader;
+	new->shadowmap = alice_new_shadowmap(1024, depth_shader);
 
 	new->use_bloom = false;
 	new->bloom_threshold = 100.0f;
@@ -1303,6 +1439,10 @@ void alice_render_scene_3d(alice_SceneRenderer3D* renderer, u32 width, u32 heigh
 
 	camera->dimentions = (alice_v2f){width, height};
 
+	alice_enable_depth();
+
+	alice_draw_shadowmap(renderer->shadowmap, scene, camera);
+
 	alice_resize_render_target(renderer->output, width, height);
 	alice_bind_render_target(renderer->output, width, height);
 
@@ -1310,8 +1450,6 @@ void alice_render_scene_3d(alice_SceneRenderer3D* renderer, u32 width, u32 heigh
 		renderer->debug_renderer->scene = scene;
 		renderer->debug_renderer->camera = camera;
 	}
-
-	alice_enable_depth();
 
 	alice_m4f camera_matrix = alice_get_camera_3d_matrix(scene, camera);
 
@@ -1358,6 +1496,9 @@ void alice_render_scene_3d(alice_SceneRenderer3D* renderer, u32 width, u32 heigh
 
 			alice_shader_set_color(shader, "ambient_color", renderer->ambient_color);
 			alice_shader_set_float(shader, "ambient_intensity", renderer->ambient_intensity);
+
+			alice_shader_set_int(shader, "shadowmap", 8);
+			alice_bind_shadowmap_output(renderer->shadowmap, 8);
 
 			alice_m4f model = alice_m4f_multiply(transform_matrix, mesh->transform);
 

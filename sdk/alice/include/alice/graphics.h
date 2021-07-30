@@ -188,6 +188,9 @@ typedef struct alice_Camera3D {
 
 ALICE_API alice_Camera3D* alice_get_scene_camera(alice_Scene* scene);
 ALICE_API alice_m4f alice_get_camera_3d_matrix(alice_Scene* scene, alice_Camera3D* camera);
+ALICE_API alice_m4f alice_get_camera_3d_view(alice_Scene* scene, alice_Camera3D* camera);
+ALICE_API alice_m4f alice_get_camera_3d_view_no_direction(alice_Scene* scene, alice_Camera3D* camera);
+ALICE_API alice_m4f alice_get_camera_3d_projection(alice_Camera3D* camera);
 
 typedef struct alice_PointLight {
 	alice_Entity base;
@@ -202,6 +205,8 @@ typedef struct alice_DirectionalLight {
 
 	alice_Color color;
 	float intensity;
+
+	alice_m4f transform;
 } alice_DirectionalLight;
 
 typedef struct alice_PBRMaterial {
@@ -263,6 +268,20 @@ ALICE_API void alice_on_renderable_3d_create(alice_Scene* scene, alice_EntityHan
 ALICE_API void alice_on_renderable_3d_destroy(alice_Scene* scene, alice_EntityHandle handle, void* ptr);
 ALICE_API void alice_renderable_3d_add_material(alice_Renderable3D* renderable, const char* material_path);
 
+typedef struct alice_Shadowmap {
+	alice_Shader* shader;
+
+	u32 res;
+
+	u32 framebuffer;
+	u32 output;
+} alice_Shadowmap;
+
+ALICE_API alice_Shadowmap* alice_new_shadowmap(u32 res, alice_Shader* shader);
+ALICE_API void alice_free_shadowmap(alice_Shadowmap* shadowmap);
+ALICE_API void alice_draw_shadowmap(alice_Shadowmap* shadowmap, alice_Scene* scene, alice_Camera3D* camera);
+ALICE_API void alice_bind_shadowmap_output(alice_Shadowmap* shadowmap, u32 unit);
+
 typedef struct alice_SceneRenderer3D {
 	alice_RenderTarget* bright_pixels;
 	alice_RenderTarget* bloom_ping_pong[2];
@@ -274,6 +293,8 @@ typedef struct alice_SceneRenderer3D {
 
 	bool debug;
 	alice_DebugRenderer* debug_renderer;
+
+	alice_Shadowmap* shadowmap;
 
 	bool use_bloom;
 	float bloom_threshold;
@@ -287,7 +308,7 @@ typedef struct alice_SceneRenderer3D {
 } alice_SceneRenderer3D;
 
 ALICE_API alice_SceneRenderer3D* alice_new_scene_renderer_3d(alice_Shader* postprocess_shader,
-		alice_Shader* extract_shader, alice_Shader* blur_shader,
+		alice_Shader* extract_shader, alice_Shader* blur_shader, alice_Shader* depth_shader,
 		bool debug, alice_Shader* debug_shader);
 ALICE_API void alice_free_scene_renderer_3d(alice_SceneRenderer3D* renderer);
 ALICE_API void alice_render_scene_3d(alice_SceneRenderer3D* renderer, u32 width, u32 height,

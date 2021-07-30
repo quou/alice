@@ -58,6 +58,8 @@ struct DirectionalLight {
 	vec3 direction;
 	vec3 color;
 	float intensity;
+
+	mat4 transform;
 };
 
 uniform PointLight point_lights[100];
@@ -65,6 +67,8 @@ uniform uint point_light_count = 0;
 
 uniform DirectionalLight directional_lights[100];
 uniform uint directional_light_count = 0;
+
+uniform sampler2D shadowmap;
 
 out vec4 color;
 
@@ -94,6 +98,25 @@ uniform float gamma = 2.2;
 	return normalize(TBN * tangent_normal);
 }*/
 
+float calculate_directional_shadow(DirectionalLight light, vec3 normal, vec3 light_dir) {
+	vec4 light_space_pos = light.transform * vec4(fs_in.world_pos, 1.0);
+	vec3 proj_coords = light_space_pos.xyz / light_space_pos.w;
+	proj_coords = (proj_coords * 0.5) + 0.5;
+
+	if (proj_coords.z > 1.0) {
+		return 0.0;
+	}
+
+	float closest_depth = texture(shadowmap, proj_coords.xy).r;
+	float current_depth = proj_coords.z;
+	
+	float bias = max(0.05 * (1.0 - dot(normal, light_dir)), 0.005);
+
+	float shadow = current_depth - bias > closest_depth ? 1.0 : 0.0;
+
+	return shadow;
+}
+
 vec3 calculate_directional_light(DirectionalLight light, vec3 normal, vec3 view_dir) {
 	vec3 light_dir = normalize(-light.direction);
 	vec3 halfway_dir = normalize(light_dir + view_dir);
@@ -106,7 +129,7 @@ vec3 calculate_directional_light(DirectionalLight light, vec3 normal, vec3 view_
 	vec3 diffuse = light.color * light.intensity * diff * material.diffuse;
 	vec3 specular = light.color * light.intensity * spec * material.specular;
 
-	return (diffuse + specular);
+	return (1.0 - calculate_directional_shadow(light, normal, view_dir)) * (diffuse + specular);
 }
 
 vec3 calculate_point_light(PointLight light, vec3 normal, vec3 view_dir) {
@@ -140,7 +163,8 @@ void main() {
 		texture_color = texture(material.diffuse_map, fs_in.uv).rgb;
 	}
 
-	vec3 lighting_result = material.ambient * ambient_intensity * ambient_color * material.emissive;
+	vec3 lighting_result = material.ambient * ambient_intensity * ambient_color;
+	lighting_result += material.emissive;
 
 	for (uint i = 0; i < directional_light_count; i++) {
 		lighting_result += calculate_directional_light(directional_lights[i], normal, view_dir);

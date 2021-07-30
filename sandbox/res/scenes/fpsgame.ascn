@@ -3,8 +3,8 @@ scene {
 		postprocess_shader "shaders/postprocess.glsl";
 		bright_extract_shader "shaders/bright_extract.glsl";
 		blur_shader "shaders/blur.glsl";
-		debug true;
-		line_shader "shaders/line.glsl";
+		depth_shader "shaders/depth.glsl";
+		debug false;
 		use_bloom true;
 		bloom_threshold 100;
 		bloom_blur_iterations 10;
@@ -12,307 +12,307 @@ scene {
 		gravity -10;
 	}
 	entities {
-	renderable_3d {
-		position {
-			x 0;
-			y 3;
-			z 0;
-		}
-		rotation {
-			x 0;
-			y 0;
-			z 0;
-		}
-		scale {
-			x 1;
-			y 1;
-			z 1;
-		}
-		model "cube";
-		materials [
-			"materials/light.mat";
-		]
-
-	}
-	renderable_3d {
-		position {
-			x 0;
-			y 6;
-			z 0;
-		}
-		rotation {
-			x 0;
-			y 0;
-			z 0;
-		}
-		scale {
-			x 1;
-			y 1;
-			z 1;
-		}
-		model "cube";
-		materials [
-			"materials/basic.mat";
-		]
-
-	}
-	point_light {
-		name "red light";
-		position {
-			x 3;
-			y 0.3;
-			z 1;
-		}
-		rotation {
-			x 0;
-			y 0;
-			z 0;
-		}
-		scale {
-			x 1;
-			y 1;
-			z 1;
-		}
-		color {
-			r 1;
-			g 0;
-			b 0;
-		}
-		range 1;
-		intensity 1;
-	}
-	point_light {
-		name "blue light";
-		position {
-			x 3;
-			y 0.6;
-			z -1;
-		}
-		rotation {
-			x 0;
-			y 0;
-			z 0;
-		}
-		scale {
-			x 1;
-			y 1;
-			z 1;
-		}
-		color {
-			r 0;
-			g 0;
-			b 1;
-		}
-		range 4;
-		intensity 1;
-	}
-	directional_light {
-		name "sun";
-		position {
-			x 0.5;
-			y -1;
-			z 0.5;
-		}
-		rotation {
-			x 0;
-			y 0;
-			z 0;
-		}
-		scale {
-			x 1;
-			y 1;
-			z 1;
-		}
-		color {
-			r 0.803922;
-			g 0.803922;
-			b 0.803922;
-		}
-		intensity 1;
-	}
-	rigidbody_3d {
-		name "player";
-		position {
-			x 0;
-			y 5;
-			z 0;
-		}
-		rotation {
-			x 0;
-			y 0;
-			z 0;
-		}
-		scale {
-			x 1;
-			y 1;
-			z 1;
-		}
-		script {
-			get_instance_size "get_fps_controller_size";
-			on_init "init_fps_controller";
-			on_physics_update "update_fps_controller";
-		}
-		mass 1;
-		dynamic_friction 0.3;
-		static_friction 0.3;
-		restitution 0;
-		gravity_scale 1;
-		box {
-			dimentions {
-				x 1;
-				y 2;
-				z 1;
-			}
+		renderable_3d {
 			position {
+				x -2.5;
+				y 3;
+				z 0;
+			}
+			rotation {
 				x 0;
 				y 0;
 				z 0;
 			}
-		}
-		children {
-			camera_3d {
-				name "camera";
-				position {
-					x 0;
-					y 0;
-					z 0;
-				}
-				rotation {
-					x 0;
-					y 0;
-					z 0;
-				}
-				scale {
-					x 1;
-					y 1;
-					z 1;
-				}
-				fov 45;
-				near 0.1;
-				far 1000;
-				exposure 1;
-				gamma 1.4;
-				active true;
+			scale {
+				x 2.5;
+				y 1;
+				z 2.5;
 			}
+			model "cube";
+			materials [
+				"materials/basicphong.mat";
+			]
+
 		}
-	}
-	rigidbody_3d {
-		name "ground";
-		position {
-			x 0;
-			y 0;
-			z 0;
-		}
-		rotation {
-			x 0;
-			y 0;
-			z 0;
-		}
-		scale {
-			x 1;
-			y 1;
-			z 1;
-		}
-		mass 0;
-		dynamic_friction 1;
-		static_friction 1;
-		restitution 0.3;
-		gravity_scale 0;
-		box {
-			dimentions {
-				x 10;
-				y 0.4;
-				z 10;
-			}
+		renderable_3d {
 			position {
+				x 0;
+				y 6;
+				z 0;
+			}
+			rotation {
 				x 0;
 				y 0;
 				z 0;
 			}
-		}
-		children {
-			renderable_3d {
-				position {
-					x 0;
-					y 0;
-					z 0;
-				}
-				rotation {
-					x 0;
-					y 0;
-					z 0;
-				}
-				scale {
-					x 10;
-					y 0.4;
-					z 10;
-				}
-				model "cube";
-				materials [
-					"materials/pirategold.mat";
-				]
-
-			}
-		}
-	}
-	rigidbody_3d {
-		name "box";
-		position {
-			x 3;
-			y 0.6;
-			z 0;
-		}
-		rotation {
-			x 0;
-			y 0;
-			z 0;
-		}
-		scale {
-			x 1;
-			y 1;
-			z 1;
-		}
-		mass 0;
-		dynamic_friction 1;
-		static_friction 1;
-		restitution 0.3;
-		gravity_scale 0;
-		box {
-			dimentions {
+			scale {
 				x 1;
 				y 1;
 				z 1;
 			}
+			model "cube";
+			materials [
+				"materials/basicphong.mat";
+			]
+
+		}
+		point_light {
+			name "red light";
 			position {
+				x 3;
+				y 0.3;
+				z 1;
+			}
+			rotation {
 				x 0;
 				y 0;
 				z 0;
 			}
+			scale {
+				x 1;
+				y 1;
+				z 1;
+			}
+			color {
+				r 1;
+				g 0;
+				b 0;
+			}
+			range 1;
+			intensity 1;
 		}
-		children {
-			renderable_3d {
+		point_light {
+			name "blue light";
+			position {
+				x 3;
+				y 0.6;
+				z -1;
+			}
+			rotation {
+				x 0;
+				y 0;
+				z 0;
+			}
+			scale {
+				x 1;
+				y 1;
+				z 1;
+			}
+			color {
+				r 0;
+				g 0;
+				b 1;
+			}
+			range 4;
+			intensity 1;
+		}
+		directional_light {
+			name "sun";
+			position {
+				x 0.5;
+				y -1;
+				z 0.5;
+			}
+			rotation {
+				x 0;
+				y 0;
+				z 0;
+			}
+			scale {
+				x 1;
+				y 1;
+				z 1;
+			}
+			color {
+				r 0.803922;
+				g 0.803922;
+				b 0.803922;
+			}
+			intensity 1;
+		}
+		rigidbody_3d {
+			name "player";
+			position {
+				x 0;
+				y 5;
+				z 0;
+			}
+			rotation {
+				x 0;
+				y 0;
+				z 0;
+			}
+			scale {
+				x 1;
+				y 1;
+				z 1;
+			}
+			script {
+				get_instance_size "get_fps_controller_size";
+				on_init "init_fps_controller";
+				on_physics_update "update_fps_controller";
+			}
+			mass 1;
+			dynamic_friction 0.3;
+			static_friction 0.3;
+			restitution 0;
+			gravity_scale 1;
+			box {
+				dimentions {
+					x 1;
+					y 2;
+					z 1;
+				}
 				position {
 					x 0;
 					y 0;
 					z 0;
 				}
-				rotation {
+			}
+			children {
+				camera_3d {
+					name "camera";
+					position {
+						x 0;
+						y 0;
+						z 0;
+					}
+					rotation {
+						x 0;
+						y 0;
+						z 0;
+					}
+					scale {
+						x 1;
+						y 1;
+						z 1;
+					}
+					fov 45;
+					near 0.1;
+					far 1000;
+					exposure 1;
+					gamma 1.4;
+					active true;
+				}
+			}
+		}
+		rigidbody_3d {
+			name "ground";
+			position {
+				x 0;
+				y 0;
+				z 0;
+			}
+			rotation {
+				x 0;
+				y 0;
+				z 0;
+			}
+			scale {
+				x 1;
+				y 1;
+				z 1;
+			}
+			mass 0;
+			dynamic_friction 1;
+			static_friction 1;
+			restitution 0.3;
+			gravity_scale 0;
+			box {
+				dimentions {
+					x 10;
+					y 0.4;
+					z 10;
+				}
+				position {
 					x 0;
 					y 0;
 					z 0;
 				}
-				scale {
-					x 0.5;
-					y 0.5;
-					z 0.5;
-				}
-				model "models/monkey.glb";
-				materials [
-					"materials/rustediron.mat";
-				]
+			}
+			children {
+				renderable_3d {
+					position {
+						x 0;
+						y 0;
+						z 0;
+					}
+					rotation {
+						x 0;
+						y 0;
+						z 0;
+					}
+					scale {
+						x 10;
+						y 0.4;
+						z 10;
+					}
+					model "cube";
+					materials [
+						"materials/basicphong.mat";
+					]
 
+				}
+			}
+		}
+		rigidbody_3d {
+			name "box";
+			position {
+				x 3;
+				y 0.6;
+				z 0;
+			}
+			rotation {
+				x 0;
+				y 0;
+				z 0;
+			}
+			scale {
+				x 1;
+				y 1;
+				z 1;
+			}
+			mass 0;
+			dynamic_friction 1;
+			static_friction 1;
+			restitution 0.3;
+			gravity_scale 0;
+			box {
+				dimentions {
+					x 1;
+					y 1;
+					z 1;
+				}
+				position {
+					x 0;
+					y 0;
+					z 0;
+				}
+			}
+			children {
+				renderable_3d {
+					position {
+						x 0;
+						y 0;
+						z 0;
+					}
+					rotation {
+						x 0;
+						y 0;
+						z 0;
+					}
+					scale {
+						x 0.5;
+						y 0.5;
+						z 0.5;
+					}
+					model "models/monkey.glb";
+					materials [
+						"materials/basicphong.mat";
+					]
+
+				}
 			}
 		}
 	}
-}
 }
