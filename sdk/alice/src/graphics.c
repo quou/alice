@@ -1123,8 +1123,12 @@ void alice_apply_material(alice_Scene* scene, alice_Material* material) {
 		sprintf(name, "directional_lights[%d].intensity", light_count);
 		alice_shader_set_float(material->shader, name, light->intensity);
 
-		sprintf(name, "directional_lights[%d].transform", light_count);
-		alice_shader_set_m4f(material->shader, name, light->transform);
+		sprintf(name, "directional_lights[%d].transforms[0]", light_count);
+		alice_shader_set_m4f(material->shader, name, light->transforms[0]);
+		sprintf(name, "directional_lights[%d].transforms[1]", light_count);
+		alice_shader_set_m4f(material->shader, name, light->transforms[1]);
+		sprintf(name, "directional_lights[%d].transforms[2]", light_count);
+		alice_shader_set_m4f(material->shader, name, light->transforms[2]);
 
 		light_count++;
 	}
@@ -1202,21 +1206,24 @@ alice_Shadowmap* alice_new_shadowmap(u32 res, alice_Shader* shader) {
 
 	glGenFramebuffers(1, &new->framebuffer);
 
-	glGenTextures(1, &new->output);
-	glBindTexture(GL_TEXTURE_2D, new->output);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
-			res, res, 0, GL_DEPTH_COMPONENT,
-			GL_FLOAT, alice_null);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	glGenTextures(ALICE_SHADOWMAP_CASCADES, new->output);
 
-	float border_color[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, border_color);
+	for (u32 i = 0; i < ALICE_SHADOWMAP_CASCADES; i++) {
+		glBindTexture(GL_TEXTURE_2D, new->output[i]);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
+				res, res, 0, GL_DEPTH_COMPONENT,
+				GL_FLOAT, alice_null);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+
+		float border_color[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+		glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, border_color);
+	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, new->framebuffer);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, new->output, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, new->output[0], 0);
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -1246,58 +1253,122 @@ void alice_draw_shadowmap(alice_Shadowmap* shadowmap, alice_Scene* scene, alice_
 
 	if (!light) { return; }
 
+	alice_m4f light_projections[ALICE_SHADOWMAP_CASCADES];
+
+	alice_m4f light_view = alice_m4f_lookat(
+			(alice_v3f) { 0.0f, 0.0f, 0.0f },
+			(alice_v3f) {
+				light->base.position.x,
+				light->base.position.y,
+				light->base.position.z
+			},
+			(alice_v3f) { 0.0f, 1.0f, 0.0f });
+
+	/* Calculate light projections */
+	{
+		shadowmap->cascade_end[0] = camera->near;
+		shadowmap->cascade_end[1] = 25.0f;
+		shadowmap->cascade_end[2] = 90.0f;
+		shadowmap->cascade_end[3] = camera->far;
+
+		alice_m4f cam = alice_get_camera_3d_view(scene, camera);
+		alice_m4f cam_inv = alice_m4f_inverse(cam);
+
+		const float aspect = camera->dimentions.y / camera->dimentions.x;
+		const float tan_half_h_fov = tanf(alice_torad(camera->fov / 2.0f));
+		const float tan_half_v_fov = tanf(alice_torad((camera->fov * aspect) / 2.0f));
+
+		for (u32 i = 0; i < ALICE_SHADOWMAP_CASCADES; i++) {
+			const float xn = shadowmap->cascade_end[i] * tan_half_h_fov;
+			const float xf = shadowmap->cascade_end[i + 1] * tan_half_h_fov;
+			const float yn = shadowmap->cascade_end[i] * tan_half_v_fov;
+			const float yf = shadowmap->cascade_end[i + 1] * tan_half_v_fov;
+
+			alice_v4f frustum_corners[] = {
+				/* Near */
+				(alice_v4f){xn, yn, shadowmap->cascade_end[i], 1.0},
+				(alice_v4f){-xn, yn, shadowmap->cascade_end[i], 1.0},
+				(alice_v4f){xn, -yn, shadowmap->cascade_end[i], 1.0},
+				(alice_v4f){-xn, -yn, shadowmap->cascade_end[i], 1.0},
+
+				/* Far */
+				(alice_v4f){xf, yf, shadowmap->cascade_end[i + 1], 1.0},
+				(alice_v4f){-xf, yf, shadowmap->cascade_end[i + 1], 1.0},
+				(alice_v4f){xf, -yf, shadowmap->cascade_end[i + 1], 1.0},
+				(alice_v4f){-xf, -yf, shadowmap->cascade_end[i] + 1, 1.0},
+			};
+
+			alice_v4f frustum_corners_l[ALICE_FRUSTUM_CORNERS];
+			alice_AABB aabb = (alice_AABB){
+				.min = (alice_v3f){0.0f, 0.0f, 0.0f},
+				.max = (alice_v3f){0.0f, 0.0f, 0.0f},
+			};
+
+			for (u32 j = 0; j < ALICE_FRUSTUM_CORNERS; j++) {
+				alice_v4f v_w = alice_v4f_transform(frustum_corners[j], cam_inv);
+
+				frustum_corners_l[j] = alice_v4f_transform(v_w, light_view);
+
+				aabb.min.x = alice_min(aabb.min.x, frustum_corners_l[j].x);
+				aabb.min.y = alice_min(aabb.min.y, frustum_corners_l[j].y);
+				aabb.min.z = alice_min(aabb.min.z, frustum_corners_l[j].z);
+				aabb.max.x = alice_max(aabb.max.x, frustum_corners_l[j].x);
+				aabb.max.y = alice_max(aabb.max.y, frustum_corners_l[j].y);
+				aabb.max.z = alice_max(aabb.max.z, frustum_corners_l[j].z);
+			}
+
+			light_projections[i] = alice_m4f_ortho(
+					aabb.min.x, aabb.max.x,
+					aabb.min.y, aabb.max.y,
+					aabb.min.z, aabb.max.z);
+			light->transforms[i] = alice_m4f_multiply(light_projections[i], light_view);
+		}
+	}
+
 	glViewport(0, 0, shadowmap->res, shadowmap->res);
 	glBindFramebuffer(GL_FRAMEBUFFER, shadowmap->framebuffer);
-	glClear(GL_DEPTH_BUFFER_BIT);
-
-	const float near_plane = -10.0f, far_plane = 10.0f;
-	alice_m4f light_projection = alice_m4f_ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-	alice_m4f light_view = alice_m4f_lookat(
-			(alice_v3f) {
-				-light->base.position.x,
-				-light->base.position.y,
-				-light->base.position.z },
-			(alice_v3f) { 0.0f, 0.0f, 0.0f },
-			(alice_v3f) { 0.0f, 1.0f, 0.0f });
-	alice_m4f light_matrix = alice_m4f_multiply(light_projection, light_view);
-	alice_m4f view = alice_m4f_translate(alice_m4f_identity(),
-			alice_get_entity_world_position(scene, (alice_Entity*)camera));
-
-	light_matrix = alice_m4f_multiply(light_matrix, alice_m4f_inverse(view));
-
-	light->transform = light_matrix;
 
 	alice_bind_shader(shadowmap->shader);
-	alice_shader_set_m4f(shadowmap->shader, "light", light_matrix);
 
-	for (alice_entity_iter(scene, iter, alice_Renderable3D)) {
-		alice_Renderable3D* renderable = iter.current_ptr;
+	for (u32 i = 0; i < ALICE_SHADOWMAP_CASCADES; i++) {
+		alice_shader_set_m4f(shadowmap->shader, "light",
+				alice_m4f_multiply(light_projections[i], light_view));
 
-		alice_m4f transform_matrix = alice_get_entity_transform(scene, (alice_Entity*)renderable);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+				GL_TEXTURE_2D, shadowmap->output[i], 0);
+		glClear(GL_DEPTH_BUFFER_BIT);
 
-		alice_Model* model = renderable->model;
-		if (!model) {
-			continue;
-		}
+		for (alice_entity_iter(scene, iter, alice_Renderable3D)) {
+			alice_Renderable3D* renderable = iter.current_ptr;
 
-		for (u32 i = 0; i < model->mesh_count; i++) {
-			alice_Mesh* mesh = &model->meshes[i];
-			alice_VertexBuffer* vb = mesh->vb;
+			alice_m4f transform_matrix =
+				alice_get_entity_transform(scene, (alice_Entity*)renderable);
 
-			alice_m4f model = alice_m4f_multiply(transform_matrix, mesh->transform);
-			alice_shader_set_m4f(shadowmap->shader, "transform", model);
+			alice_Model* model = renderable->model;
+			if (!model) {
+				continue;
+			}
 
-			alice_bind_vertex_buffer_for_draw(vb);
-			alice_draw_vertex_buffer(vb);
+			for (u32 i = 0; i < model->mesh_count; i++) {
+				alice_Mesh* mesh = &model->meshes[i];
+				alice_VertexBuffer* vb = mesh->vb;
+
+				alice_m4f model = alice_m4f_multiply(transform_matrix, mesh->transform);
+				alice_shader_set_m4f(shadowmap->shader, "transform", model);
+
+				alice_bind_vertex_buffer_for_draw(vb);
+				alice_draw_vertex_buffer(vb);
+			}
 		}
 	}
 }
 
-void alice_bind_shadowmap_output(alice_Shadowmap* shadowmap, u32 unit) {
+void alice_bind_shadowmap_output(alice_Shadowmap* shadowmap, u32 unit, u32 index) {
 	assert(shadowmap);
+	assert(index < ALICE_SHADOWMAP_CASCADES);
 
 	glActiveTexture(GL_TEXTURE0 + unit);
-	glBindTexture(GL_TEXTURE_2D, shadowmap->output);
+	glBindTexture(GL_TEXTURE_2D, shadowmap->output[index]);
 }
 
 alice_SceneRenderer3D* alice_new_scene_renderer_3d(alice_Shader* postprocess_shader,
@@ -1497,8 +1568,24 @@ void alice_render_scene_3d(alice_SceneRenderer3D* renderer, u32 width, u32 heigh
 			alice_shader_set_color(shader, "ambient_color", renderer->ambient_color);
 			alice_shader_set_float(shader, "ambient_intensity", renderer->ambient_intensity);
 
-			alice_shader_set_int(shader, "shadowmap", 8);
-			alice_bind_shadowmap_output(renderer->shadowmap, 8);
+
+			alice_shader_set_int(shader, "shadowmaps[0]", 8);
+			alice_bind_shadowmap_output(renderer->shadowmap, 8, 0);
+			alice_shader_set_int(shader, "shadowmaps[1]", 9);
+			alice_bind_shadowmap_output(renderer->shadowmap, 9, 1);
+			alice_shader_set_int(shader, "shadowmaps[2]", 10);
+			alice_bind_shadowmap_output(renderer->shadowmap, 10, 2);
+
+			for (u32 i = 0; i < ALICE_SHADOWMAP_CASCADES; i++) {
+				alice_v4f view = { 0.0f, 0.0f, renderer->shadowmap->cascade_end[i + 1], 1.0};
+				alice_v4f clip = alice_v4f_transform(view,
+						alice_get_camera_3d_projection(camera));
+
+				char name[256];
+
+				sprintf(name, "cascade_clip[%d]", i);
+				alice_shader_set_float(shader, name, fabs(clip.z));
+			}
 
 			alice_m4f model = alice_m4f_multiply(transform_matrix, mesh->transform);
 

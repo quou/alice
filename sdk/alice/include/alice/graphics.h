@@ -6,6 +6,9 @@
 #include "alice/entity.h"
 #include "alice/physics.h"
 
+#define ALICE_SHADOWMAP_CASCADES 3
+#define ALICE_FRUSTUM_CORNERS 8
+
 typedef struct alice_DebugRenderer alice_DebugRenderer;
 
 typedef struct alice_RGBColor {
@@ -206,7 +209,7 @@ typedef struct alice_DirectionalLight {
 	alice_Color color;
 	float intensity;
 
-	alice_m4f transform;
+	alice_m4f transforms[ALICE_SHADOWMAP_CASCADES];
 } alice_DirectionalLight;
 
 typedef struct alice_PBRMaterial {
@@ -274,13 +277,15 @@ typedef struct alice_Shadowmap {
 	u32 res;
 
 	u32 framebuffer;
-	u32 output;
+	u32 output[ALICE_SHADOWMAP_CASCADES];
+
+	float cascade_end[ALICE_SHADOWMAP_CASCADES + 1];
 } alice_Shadowmap;
 
 ALICE_API alice_Shadowmap* alice_new_shadowmap(u32 res, alice_Shader* shader);
 ALICE_API void alice_free_shadowmap(alice_Shadowmap* shadowmap);
 ALICE_API void alice_draw_shadowmap(alice_Shadowmap* shadowmap, alice_Scene* scene, alice_Camera3D* camera);
-ALICE_API void alice_bind_shadowmap_output(alice_Shadowmap* shadowmap, u32 unit);
+ALICE_API void alice_bind_shadowmap_output(alice_Shadowmap* shadowmap, u32 unit, u32 index);
 
 typedef struct alice_SceneRenderer3D {
 	alice_RenderTarget* bright_pixels;

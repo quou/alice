@@ -13,6 +13,7 @@ out VS_OUT {
 	vec3 normal;
 	vec2 uv;
 	vec3 world_pos;
+	float clip_space_pos_z;
 } vs_out;
 
 void main() {
@@ -21,6 +22,8 @@ void main() {
 	vs_out.world_pos = vec3(transform * vec4(position, 1.0));
 
 	gl_Position = camera * vec4(vs_out.world_pos, 1.0);
+
+	vs_out.clip_space_pos_z = gl_Position.z;
 }
 
 #end VERTEX
@@ -29,10 +32,13 @@ void main() {
 
 #version 430 core
 
+const int cascade_count = 3;
+
 in VS_OUT {
 	vec3 normal;
 	vec2 uv;
 	vec3 world_pos;
+	float clip_space_pos_z;
 } fs_in;
 
 struct Material {
@@ -59,7 +65,7 @@ struct DirectionalLight {
 	vec3 color;
 	float intensity;
 
-	mat4 transform;
+	mat4 transforms[cascade_count];
 };
 
 uniform PointLight point_lights[100];
@@ -68,7 +74,8 @@ uniform uint point_light_count = 0;
 uniform DirectionalLight directional_lights[100];
 uniform uint directional_light_count = 0;
 
-uniform sampler2D shadowmap;
+uniform sampler2D shadowmaps[cascade_count];
+uniform float cascade_clip[cascade_count];
 
 out vec4 color;
 
@@ -81,6 +88,8 @@ uniform vec3 ambient_color;
 const float PI = 3.14159265359;
 
 uniform float gamma = 2.2;
+
+vec3 cascade_indicator = vec3(1.0, 1.0, 1.0);
 
 /*vec3 get_normal_from_map() {
 	vec3 tangent_normal = texture(material.normal_map, fs_in.uv).xyz * 2.0 - 1.0;
@@ -98,8 +107,8 @@ uniform float gamma = 2.2;
 	return normalize(TBN * tangent_normal);
 }*/
 
-float calculate_directional_shadow(DirectionalLight light, vec3 normal, vec3 light_dir) {
-	vec4 light_space_pos = light.transform * vec4(fs_in.world_pos, 1.0);
+float calculate_directional_shadow(DirectionalLight light, int cascade_index, vec3 normal, vec3 light_dir) {
+	vec4 light_space_pos = light.transforms[cascade_index] * vec4(fs_in.world_pos, 1.0);
 	vec3 proj_coords = light_space_pos.xyz / light_space_pos.w;
 	proj_coords = (proj_coords * 0.5) + 0.5;
 
@@ -107,7 +116,7 @@ float calculate_directional_shadow(DirectionalLight light, vec3 normal, vec3 lig
 		return 0.0;
 	}
 
-	float closest_depth = texture(shadowmap, proj_coords.xy).r;
+	float closest_depth = texture(shadowmaps[cascade_index], proj_coords.xy).r;
 	float current_depth = proj_coords.z;
 	
 	float bias = max(0.05 * (1.0 - dot(normal, light_dir)), 0.005);
@@ -129,7 +138,25 @@ vec3 calculate_directional_light(DirectionalLight light, vec3 normal, vec3 view_
 	vec3 diffuse = light.color * light.intensity * diff * material.diffuse;
 	vec3 specular = light.color * light.intensity * spec * material.specular;
 
-	return (1.0 - calculate_directional_shadow(light, normal, view_dir)) * (diffuse + specular);
+	float shadow = 0.0;
+
+	for (int i = 0; i < cascade_count; i++) {
+		if (fs_in.clip_space_pos_z <= cascade_clip[i]) {
+			shadow = calculate_directional_shadow(light, i, normal, view_dir);
+			
+			if (i == 0) {
+				cascade_indicator = vec3(0.1, 0.0, 0.0);
+			} else if (i == 1) {
+				cascade_indicator = vec3(0.0, 0.1, 0.0);
+			} else if (i == 2) {
+				cascade_indicator = vec3(0.0, 0.0, 0.1);
+			}
+
+			break;
+		}
+	}
+
+	return (1.0 - shadow) * (diffuse + specular);
 }
 
 vec3 calculate_point_light(PointLight light, vec3 normal, vec3 view_dir) {
@@ -174,7 +201,7 @@ void main() {
 		lighting_result += calculate_point_light(point_lights[i], normal, view_dir);
 	}
 
-	color = vec4(lighting_result * texture_color, 1.0);
+	color = vec4(lighting_result * texture_color + cascade_indicator, 1.0);
 }
 
 #end FRAGMENT
