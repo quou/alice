@@ -1123,12 +1123,10 @@ void alice_apply_material(alice_Scene* scene, alice_Material* material) {
 		sprintf(name, "directional_lights[%d].intensity", light_count);
 		alice_shader_set_float(material->shader, name, light->intensity);
 
-		sprintf(name, "directional_lights[%d].transforms[0]", light_count);
-		alice_shader_set_m4f(material->shader, name, light->transforms[0]);
-		sprintf(name, "directional_lights[%d].transforms[1]", light_count);
-		alice_shader_set_m4f(material->shader, name, light->transforms[1]);
-		sprintf(name, "directional_lights[%d].transforms[2]", light_count);
-		alice_shader_set_m4f(material->shader, name, light->transforms[2]);
+		for (u32 i = 0; i < ALICE_SHADOWMAP_CASCADES; i++) {
+			sprintf(name, "directional_lights[%d].transforms[%d]", light_count, i);
+			alice_shader_set_m4f(material->shader, name, light->transforms[i]);
+		}
 
 		light_count++;
 	}
@@ -1267,14 +1265,14 @@ void alice_draw_shadowmap(alice_Shadowmap* shadowmap, alice_Scene* scene, alice_
 	/* Calculate light projections */
 	{
 		shadowmap->cascade_end[0] = camera->near;
-		shadowmap->cascade_end[1] = 25.0f;
-		shadowmap->cascade_end[2] = 90.0f;
+		shadowmap->cascade_end[1] = 10.0f;
+		shadowmap->cascade_end[2] = 35.0f;
 		shadowmap->cascade_end[3] = camera->far;
 
 		alice_m4f cam = alice_get_camera_3d_view(scene, camera);
 		alice_m4f cam_inv = alice_m4f_inverse(cam);
 
-		const float aspect = camera->dimentions.y / camera->dimentions.x;
+		const float aspect = camera->dimentions.x / camera->dimentions.y;
 		const float tan_half_h_fov = tanf(alice_torad(camera->fov / 2.0f));
 		const float tan_half_v_fov = tanf(alice_torad((camera->fov * aspect) / 2.0f));
 
@@ -1295,7 +1293,7 @@ void alice_draw_shadowmap(alice_Shadowmap* shadowmap, alice_Scene* scene, alice_
 				(alice_v4f){xf, yf, shadowmap->cascade_end[i + 1], 1.0},
 				(alice_v4f){-xf, yf, shadowmap->cascade_end[i + 1], 1.0},
 				(alice_v4f){xf, -yf, shadowmap->cascade_end[i + 1], 1.0},
-				(alice_v4f){-xf, -yf, shadowmap->cascade_end[i] + 1, 1.0},
+				(alice_v4f){-xf, -yf, shadowmap->cascade_end[i + 1], 1.0},
 			};
 
 			alice_v4f frustum_corners_l[ALICE_FRUSTUM_CORNERS];
@@ -1327,6 +1325,7 @@ void alice_draw_shadowmap(alice_Shadowmap* shadowmap, alice_Scene* scene, alice_
 
 	glViewport(0, 0, shadowmap->res, shadowmap->res);
 	glBindFramebuffer(GL_FRAMEBUFFER, shadowmap->framebuffer);
+	glCullFace(GL_FRONT);
 
 	alice_bind_shader(shadowmap->shader);
 
@@ -1361,6 +1360,8 @@ void alice_draw_shadowmap(alice_Shadowmap* shadowmap, alice_Scene* scene, alice_
 			}
 		}
 	}
+
+	glCullFace(GL_BACK);
 }
 
 void alice_bind_shadowmap_output(alice_Shadowmap* shadowmap, u32 unit, u32 index) {
@@ -1568,14 +1569,6 @@ void alice_render_scene_3d(alice_SceneRenderer3D* renderer, u32 width, u32 heigh
 			alice_shader_set_color(shader, "ambient_color", renderer->ambient_color);
 			alice_shader_set_float(shader, "ambient_intensity", renderer->ambient_intensity);
 
-
-			alice_shader_set_int(shader, "shadowmaps[0]", 8);
-			alice_bind_shadowmap_output(renderer->shadowmap, 8, 0);
-			alice_shader_set_int(shader, "shadowmaps[1]", 9);
-			alice_bind_shadowmap_output(renderer->shadowmap, 9, 1);
-			alice_shader_set_int(shader, "shadowmaps[2]", 10);
-			alice_bind_shadowmap_output(renderer->shadowmap, 10, 2);
-
 			for (u32 i = 0; i < ALICE_SHADOWMAP_CASCADES; i++) {
 				alice_v4f view = { 0.0f, 0.0f, renderer->shadowmap->cascade_end[i + 1], 1.0};
 				alice_v4f clip = alice_v4f_transform(view,
@@ -1585,6 +1578,10 @@ void alice_render_scene_3d(alice_SceneRenderer3D* renderer, u32 width, u32 heigh
 
 				sprintf(name, "cascade_clip[%d]", i);
 				alice_shader_set_float(shader, name, fabs(clip.z));
+
+				sprintf(name, "shadowmaps[%d]", i);
+				alice_shader_set_int(shader, name, 6 + i);
+				alice_bind_shadowmap_output(renderer->shadowmap, 6 + i, i);
 			}
 
 			alice_m4f model = alice_m4f_multiply(transform_matrix, mesh->transform);
