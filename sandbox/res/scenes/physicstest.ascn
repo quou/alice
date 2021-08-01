@@ -229,7 +229,7 @@ scene {
 						y 1;
 						z 1;
 					}
-					cast_shadows false;
+					cast_shadows true;
 					model "models/monkey.glb";
 					materials [
 						"materials/basicphong.mat";

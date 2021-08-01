@@ -1247,9 +1247,10 @@ void alice_draw_shadowmap(alice_Shadowmap* shadowmap, alice_Scene* scene, alice_
 	alice_DirectionalLight* light = alice_null;
 
 	for (alice_entity_iter(scene, iter, alice_DirectionalLight)) {
-		light = iter.current_ptr;
+		alice_DirectionalLight* entity = iter.current_ptr;
 
-		if (!light->cast_shadows) {
+		if (entity->cast_shadows) {
+			light = entity;
 			break;
 		}
 	}
