@@ -6,9 +6,6 @@
 #include "alice/entity.h"
 #include "alice/physics.h"
 
-#define ALICE_SHADOWMAP_CASCADES 3
-#define ALICE_FRUSTUM_CORNERS 8
-
 typedef struct alice_DebugRenderer alice_DebugRenderer;
 
 typedef struct alice_RGBColor {
@@ -172,7 +169,7 @@ ALICE_API void alice_free_model(alice_Model* model);
 ALICE_API void alice_model_add_mesh(alice_Model* model, alice_Mesh mesh);
 
 ALICE_API void alice_calculate_aabb_from_mesh(alice_AABB* aabb,
-		float* vertices, u32 position_count, u32 position_stride);
+	float* vertices, u32 position_count, u32 position_stride);
 
 typedef struct alice_Camera3D {
 	alice_Entity base;
@@ -209,7 +206,9 @@ typedef struct alice_DirectionalLight {
 	alice_Color color;
 	float intensity;
 
-	alice_m4f transforms[ALICE_SHADOWMAP_CASCADES];
+	bool cast_shadows;
+
+	alice_m4f transform;
 } alice_DirectionalLight;
 
 typedef struct alice_PBRMaterial {
@@ -263,6 +262,8 @@ typedef struct alice_Renderable3D {
 	u32 material_capacity;
 
 	alice_Model* model;
+
+	bool cast_shadows;
 } alice_Renderable3D;
 
 ALICE_API void alice_apply_point_lights(alice_Scene* scene, alice_AABB mesh_aabb, alice_Material* material);
@@ -276,16 +277,16 @@ typedef struct alice_Shadowmap {
 
 	u32 res;
 
-	u32 framebuffer;
-	u32 output[ALICE_SHADOWMAP_CASCADES];
+	bool in_use;
 
-	float cascade_end[ALICE_SHADOWMAP_CASCADES + 1];
+	u32 framebuffer;
+	u32 output;
 } alice_Shadowmap;
 
 ALICE_API alice_Shadowmap* alice_new_shadowmap(u32 res, alice_Shader* shader);
 ALICE_API void alice_free_shadowmap(alice_Shadowmap* shadowmap);
 ALICE_API void alice_draw_shadowmap(alice_Shadowmap* shadowmap, alice_Scene* scene, alice_Camera3D* camera);
-ALICE_API void alice_bind_shadowmap_output(alice_Shadowmap* shadowmap, u32 unit, u32 index);
+ALICE_API void alice_bind_shadowmap_output(alice_Shadowmap* shadowmap, u32 unit);
 
 typedef struct alice_SceneRenderer3D {
 	alice_RenderTarget* bright_pixels;
@@ -313,10 +314,11 @@ typedef struct alice_SceneRenderer3D {
 } alice_SceneRenderer3D;
 
 ALICE_API alice_SceneRenderer3D* alice_new_scene_renderer_3d(alice_Shader* postprocess_shader,
-		alice_Shader* extract_shader, alice_Shader* blur_shader, alice_Shader* depth_shader,
-		bool debug, alice_Shader* debug_shader);
+	alice_Shader* extract_shader, alice_Shader* blur_shader, alice_Shader* depth_shader,
+	bool debug, alice_Shader* debug_shader);
 ALICE_API void alice_free_scene_renderer_3d(alice_SceneRenderer3D* renderer);
 ALICE_API void alice_render_scene_3d(alice_SceneRenderer3D* renderer, u32 width, u32 height,
-		alice_Scene* scene, alice_RenderTarget* render_target);
+	alice_Scene* scene, alice_RenderTarget* render_target);
 
 ALICE_API alice_AABB alice_transform_aabb(alice_AABB aabb, alice_m4f m);
+ALICE_API alice_AABB alice_compute_scene_aabb(alice_Scene* scene);

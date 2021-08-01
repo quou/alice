@@ -109,6 +109,7 @@ scene {
 				b 1;
 			}
 			intensity 1;
+			cast_shadows true;
 		}
 		rigidbody_3d {
 			name "cube";
@@ -162,6 +163,7 @@ scene {
 						y 2;
 						z 2;
 					}
+					cast_shadows true;
 					model "cube";
 					materials [
 						"materials/basicphong.mat";
@@ -227,6 +229,7 @@ scene {
 						y 1;
 						z 1;
 					}
+					cast_shadows false;
 					model "models/monkey.glb";
 					materials [
 						"materials/basicphong.mat";
@@ -287,6 +290,7 @@ scene {
 						y 0.4;
 						z 10;
 					}
+					cast_shadows true;
 					model "cube";
 					materials [
 						"materials/basicphong.mat";
@@ -347,6 +351,7 @@ scene {
 						y 5;
 						z 10;
 					}
+					cast_shadows true;
 					model "cube";
 					materials [
 						"materials/basicphong.mat";

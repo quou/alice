@@ -143,6 +143,10 @@ static void alice_serialise_entity(alice_DTable* table, alice_Scene* scene, alic
 
 			const char* model_path = alice_get_model_resource_filename(renderable->model);
 
+			alice_DTable cast_shadows_table = alice_new_bool_dtable("cast_shadows",
+					renderable->cast_shadows);
+			alice_dtable_add_child(&entity_table, cast_shadows_table);
+
 			alice_DTable model_table = alice_new_string_dtable("model", model_path);
 			alice_dtable_add_child(&entity_table, model_table);
 
@@ -211,6 +215,10 @@ static void alice_serialise_entity(alice_DTable* table, alice_Scene* scene, alic
 
 			alice_DTable intensity_table = alice_new_number_dtable("intensity", light->intensity);
 			alice_dtable_add_child(&entity_table, intensity_table);
+
+			alice_DTable cast_shadows_table = alice_new_bool_dtable("cast_shadows",
+					light->cast_shadows);
+			alice_dtable_add_child(&entity_table, cast_shadows_table);
 
 			break;
 		}
@@ -548,6 +556,11 @@ static alice_EntityHandle alice_deserialise_entity(alice_DTable* table, alice_Sc
 		case ALICE_ST_RENDERABLE3D: {
 			alice_Renderable3D* renderable = (alice_Renderable3D*)entity;
 
+			alice_DTable* cast_shadows_table = alice_dtable_find_child(table, "cast_shadows");
+			if (cast_shadows_table && cast_shadows_table->value.type == ALICE_DTABLE_BOOL) {
+				renderable->cast_shadows = cast_shadows_table->value.as.boolean;
+			}
+
 			alice_DTable* model_path_table = alice_dtable_find_child(table, "model");
 			if (model_path_table && model_path_table->value.type == ALICE_DTABLE_STRING) {
 				renderable->model = alice_load_model(model_path_table->value.as.string);
@@ -615,7 +628,6 @@ static alice_EntityHandle alice_deserialise_entity(alice_DTable* table, alice_Sc
 				light->intensity = intensity_table->value.as.number;
 			}
 
-
 			alice_DTable* color_table = alice_dtable_find_child(table, "color");
 			if (color_table) {
 				alice_RGBColor color = (alice_RGBColor){1.0, 1.0, 1.0};
@@ -646,6 +658,11 @@ static alice_EntityHandle alice_deserialise_entity(alice_DTable* table, alice_Sc
 			alice_DTable* intensity_table = alice_dtable_find_child(table, "intensity");
 			if (intensity_table && intensity_table->value.type == ALICE_DTABLE_NUMBER) {
 				light->intensity = intensity_table->value.as.number;
+			}
+
+			alice_DTable* cast_shadows_table = alice_dtable_find_child(table, "cast_shadows");
+			if (cast_shadows_table && cast_shadows_table->value.type == ALICE_DTABLE_BOOL) {
+				light->cast_shadows = cast_shadows_table->value.as.boolean;
 			}
 
 			alice_DTable* color_table = alice_dtable_find_child(table, "color");
