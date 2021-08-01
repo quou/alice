@@ -58,8 +58,8 @@ void main() {
 
 	alice_Scene* scene = alice_new_scene(script_lib_name);
 
-	alice_deserialise_scene(scene, "scenes/physicstest.ascn");
-	alice_serialise_scene(scene, "scenes/physicstest.ascn");
+	alice_deserialise_scene(scene, "scenes/fpsgame.ascn");
+	alice_serialise_scene(scene, "scenes/fpsgame.ascn");
 
 	scene->renderer->ambient_intensity = 0.2f;
 	scene->renderer->ambient_color = 0xadb0ea;

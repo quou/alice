@@ -28,6 +28,7 @@ scene {
 				y 1;
 				z 2.5;
 			}
+			cast_shadows true;
 			model "cube";
 			materials [
 				"materials/basicphong.mat";
@@ -50,6 +51,7 @@ scene {
 				y 1;
 				z 1;
 			}
+			cast_shadows true;
 			model "cube";
 			materials [
 				"materials/basicphong.mat";
@@ -129,6 +131,7 @@ scene {
 				b 0.803922;
 			}
 			intensity 1;
+			cast_shadows true;
 		}
 		rigidbody_3d {
 			name "player";
@@ -247,6 +250,7 @@ scene {
 						y 0.4;
 						z 10;
 					}
+					cast_shadows true;
 					model "cube";
 					materials [
 						"materials/basicphong.mat";
@@ -306,6 +310,7 @@ scene {
 						y 0.5;
 						z 0.5;
 					}
+					cast_shadows true;
 					model "models/monkey.glb";
 					materials [
 						"materials/basicphong.mat";
