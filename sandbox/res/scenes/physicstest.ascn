@@ -41,7 +41,7 @@ scene {
 			position {
 				x -2;
 				y 0.4;
-				z 0;
+				z 2;
 			}
 			rotation {
 				x 0;

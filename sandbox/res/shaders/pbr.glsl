@@ -79,6 +79,9 @@ uniform uint point_light_count = 0;
 uniform DirectionalLight directional_lights[100];
 uniform uint directional_light_count = 0;
 
+uniform float ambient_intensity;
+uniform vec3 ambient_color;
+
 uniform sampler2DShadow shadowmap;
 uniform bool use_shadows = false;
 
@@ -343,7 +346,7 @@ void main() {
 		ao = texture(material.ambient_occlusion_map, fs_in.uv).r;
 	}
 
-	vec3 ambient = vec3(0.03 + material.emissive) * albedo * ao;
+	vec3 ambient = vec3(ambient_intensity + material.emissive) * ambient_color * albedo * ao;
 
 	color = vec4(ambient + lighting_result, 1.0);
 }

@@ -698,6 +698,30 @@ void alice_draw_ui(alice_UIContext* context) {
 	alice_deinit_text_queue(&text_queue);
 }
 
+static void alice_draw_gizmo(alice_UIContext* context, alice_Scene* scene, alice_Entity* entity, alice_m4f* view) {
+	alice_m4f scale = alice_m4f_scale(alice_m4f_identity(), (alice_v3f){1.0f, 1.0f, 1.0f});
+	alice_v3f position = alice_get_entity_world_position(scene, entity);
+
+	alice_m4f transform = alice_get_entity_transform(scene, entity);
+	transform.elements[0][0] = view->elements[0][0];
+	transform.elements[0][1] = view->elements[1][0];
+	transform.elements[0][2] = view->elements[2][0];
+	transform.elements[1][0] = view->elements[0][1];
+	transform.elements[1][1] = view->elements[1][1];
+	transform.elements[1][2] = view->elements[2][1];
+	transform.elements[2][0] = view->elements[0][2];
+	transform.elements[2][1] = view->elements[1][2];
+	transform.elements[2][2] = view->elements[2][2];
+
+	transform = alice_m4f_multiply(transform, scale);
+
+	alice_shader_set_m4f(context->gizmo_shader, "transform", transform);
+
+	alice_bind_vertex_buffer_for_draw(context->gizmo_quad);
+	alice_draw_vertex_buffer(context->gizmo_quad);
+	alice_bind_vertex_buffer_for_draw(alice_null);
+}
+
 void alice_draw_scene_gizmos(alice_UIContext* context, alice_Scene* scene) {
 	assert(context);
 
@@ -719,27 +743,19 @@ void alice_draw_scene_gizmos(alice_UIContext* context, alice_Scene* scene) {
 		for (alice_entity_iter(scene, iter, alice_PointLight)) {
 			alice_PointLight* light = iter.current_ptr;
 
-			alice_m4f scale = alice_m4f_scale(alice_m4f_identity(), (alice_v3f){1.0f, 1.0f, 1.0f});
-			alice_v3f position = alice_get_entity_world_position(scene, (alice_Entity*)light);
+			alice_draw_gizmo(context, scene, (alice_Entity*)light, &view);
+		}
+	}
 
-			alice_m4f transform = alice_get_entity_transform(scene, (alice_Entity*)light);
-			transform.elements[0][0] = view.elements[0][0];
-			transform.elements[0][1] = view.elements[1][0];
-			transform.elements[0][2] = view.elements[2][0];
-			transform.elements[1][0] = view.elements[0][1];
-			transform.elements[1][1] = view.elements[1][1];
-			transform.elements[1][2] = view.elements[2][1];
-			transform.elements[2][0] = view.elements[0][2];
-			transform.elements[2][1] = view.elements[1][2];
-			transform.elements[2][2] = view.elements[2][2];
+	alice_Texture* sun_texture = context->gizmo_textures[ALICE_GIZMOTEXTURE_DIRECTIONAL_LIGHT];
+	if (sun_texture) {
+		alice_bind_texture(sun_texture, 0);
+		alice_shader_set_int(context->gizmo_shader, "image", 0);
 
-			transform = alice_m4f_multiply(transform, scale);
+		for (alice_entity_iter(scene, iter, alice_DirectionalLight)) {
+			alice_DirectionalLight* light = iter.current_ptr;
 
-			alice_shader_set_m4f(context->gizmo_shader, "transform", transform);
-
-			alice_bind_vertex_buffer_for_draw(context->gizmo_quad);
-			alice_draw_vertex_buffer(context->gizmo_quad);
-			alice_bind_vertex_buffer_for_draw(alice_null);
+			alice_draw_gizmo(context, scene, (alice_Entity*)light, &view);
 		}
 	}
 

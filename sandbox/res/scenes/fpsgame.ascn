@@ -12,52 +12,6 @@ scene {
 		gravity -10;
 	}
 	entities {
-		renderable_3d {
-			position {
-				x -2.5;
-				y 3;
-				z 0;
-			}
-			rotation {
-				x 0;
-				y 0;
-				z 0;
-			}
-			scale {
-				x 2.5;
-				y 1;
-				z 2.5;
-			}
-			cast_shadows true;
-			model "cube";
-			materials [
-				"materials/basicphong.mat";
-			]
-
-		}
-		renderable_3d {
-			position {
-				x 0;
-				y 6;
-				z 0;
-			}
-			rotation {
-				x 0;
-				y 0;
-				z 0;
-			}
-			scale {
-				x 1;
-				y 1;
-				z 1;
-			}
-			cast_shadows true;
-			model "cube";
-			materials [
-				"materials/basicphong.mat";
-			]
-
-		}
 		point_light {
 			name "red light";
 			position {
@@ -130,8 +84,130 @@ scene {
 				g 0.803922;
 				b 0.803922;
 			}
-			intensity 1;
+			intensity 15;
 			cast_shadows true;
+		}
+		rigidbody_3d {
+			name "small box";
+			position {
+				x 0;
+				y 6;
+				z 0;
+			}
+			rotation {
+				x 0;
+				y 0;
+				z 0;
+			}
+			scale {
+				x 1;
+				y 1;
+				z 1;
+			}
+			mass 0;
+			dynamic_friction 1;
+			static_friction 1;
+			restitution 0.3;
+			gravity_scale 0;
+			box {
+				dimentions {
+					x 1;
+					y 1;
+					z 1;
+				}
+				position {
+					x 0;
+					y 0;
+					z 0;
+				}
+			}
+			children {
+				renderable_3d {
+					name "small box visual";
+					position {
+						x 0;
+						y 0;
+						z 0;
+					}
+					rotation {
+						x 0;
+						y 0;
+						z 0;
+					}
+					scale {
+						x 1;
+						y 1;
+						z 1;
+					}
+					cast_shadows true;
+					model "cube";
+					materials [
+						"default_material";
+					]
+
+				}
+			}
+		}
+		rigidbody_3d {
+			name "big box";
+			position {
+				x -2.5;
+				y 3;
+				z 0;
+			}
+			rotation {
+				x 0;
+				y 0;
+				z 0;
+			}
+			scale {
+				x 2.5;
+				y 1;
+				z 2.5;
+			}
+			mass 0;
+			dynamic_friction 1;
+			static_friction 1;
+			restitution 0.3;
+			gravity_scale 0;
+			box {
+				dimentions {
+					x 2.5;
+					y 1;
+					z 2.5;
+				}
+				position {
+					x 0;
+					y 0;
+					z 0;
+				}
+			}
+			children {
+				renderable_3d {
+					name "big box visual";
+					position {
+						x 0;
+						y 0;
+						z 0;
+					}
+					rotation {
+						x 0;
+						y 0;
+						z 0;
+					}
+					scale {
+						x 1;
+						y 1;
+						z 1;
+					}
+					cast_shadows true;
+					model "cube";
+					materials [
+						"default_material";
+					]
+
+				}
+			}
 		}
 		rigidbody_3d {
 			name "player";
@@ -253,14 +329,14 @@ scene {
 					cast_shadows true;
 					model "cube";
 					materials [
-						"materials/basicphong.mat";
+						"default_material";
 					]
 
 				}
 			}
 		}
 		rigidbody_3d {
-			name "box";
+			name "monkey";
 			position {
 				x 3;
 				y 0.6;
@@ -313,7 +389,7 @@ scene {
 					cast_shadows true;
 					model "models/monkey.glb";
 					materials [
-						"materials/basicphong.mat";
+						"default_material";
 					]
 
 				}

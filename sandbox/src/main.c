@@ -58,8 +58,8 @@ void main() {
 
 	alice_Scene* scene = alice_new_scene(script_lib_name);
 
-	alice_deserialise_scene(scene, "scenes/physicstest.ascn");
-	alice_serialise_scene(scene, "scenes/physicstest.ascn");
+	alice_deserialise_scene(scene, "scenes/fpsgame.ascn");
+	alice_serialise_scene(scene, "scenes/fpsgame.ascn");
 
 	scene->renderer->ambient_intensity = 0.2f;
 	scene->renderer->ambient_color = 0xadb0ea;
@@ -205,7 +205,9 @@ void main() {
 			18.0f);
 
 	ui->gizmo_textures[ALICE_GIZMOTEXTURE_POINT_LIGHT] =
-		alice_load_texture("textures/light.png", ALICE_TEXTURE_ALIASED);
+		alice_load_texture("textures/icons/light.png", ALICE_TEXTURE_ALIASED);
+	ui->gizmo_textures[ALICE_GIZMOTEXTURE_DIRECTIONAL_LIGHT] =
+		alice_load_texture("textures/icons/sun.png", ALICE_TEXTURE_ALIASED);
 
 	alice_new_ui_window(ui, on_test_window_create);
 
