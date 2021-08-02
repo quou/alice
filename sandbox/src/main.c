@@ -12,6 +12,12 @@
 #include <alice/physics.h>
 #include <alice/debugrenderer.h>
 
+typedef struct Sandbox {
+	bool show_gui;
+	alice_UIToggle* show_gui_toggle;
+	alice_Scene* scene;
+} Sandbox;
+
 static void on_button_hover(alice_UIContext* context, alice_UIElement* button) {
 	alice_log("hover");
 }
@@ -23,17 +29,25 @@ static void on_button_click(alice_UIContext* context, alice_UIElement* button) {
 static void on_use_bloom_toggle(alice_UIContext* context, alice_UIElement* element) {
 	alice_UIToggle* toggle = (alice_UIToggle*)element;
 
-	alice_Scene* scene = context->user_pointer;
+	Sandbox* sandbox = context->user_pointer;
 
-	scene->renderer->use_bloom = toggle->value;
+	sandbox->scene->renderer->use_bloom = toggle->value;
 }
 
 static void on_use_antialiasing_toggle(alice_UIContext* context, alice_UIElement* element) {
 	alice_UIToggle* toggle = (alice_UIToggle*)element;
 
-	alice_Scene* scene = context->user_pointer;
+	Sandbox* sandbox = context->user_pointer;
 
-	scene->renderer->use_antialiasing = toggle->value;
+	sandbox->scene->renderer->use_antialiasing = toggle->value;
+}
+
+static void on_show_gui_toggle(alice_UIContext* context, alice_UIElement* element) {
+	alice_UIToggle* toggle = (alice_UIToggle*)element;
+
+	Sandbox* sandbox = context->user_pointer;
+
+	sandbox->show_gui = toggle->value;
 }
 
 static void on_test_window_create(alice_UIContext* context, alice_UIWindow* window) {
@@ -41,7 +55,16 @@ static void on_test_window_create(alice_UIContext* context, alice_UIWindow* wind
 	window->position = (alice_v2f){ 100.0f, 30.0f };
 	window->dimentions = (alice_v2f) { 350.0f, 600.0f };
 
-	alice_Scene* scene = context->user_pointer;
+	Sandbox* sandbox = context->user_pointer;
+
+	alice_Scene* scene = sandbox->scene;
+
+	alice_UIToggle* show_gui_toggle = alice_add_ui_toggle(window);
+	show_gui_toggle->base.on_click = on_show_gui_toggle;
+	show_gui_toggle->label = "Show GUI";
+	show_gui_toggle->value = sandbox->show_gui;
+
+	sandbox->show_gui_toggle = show_gui_toggle;
 
 	alice_UIToggle* use_bloom_toggle = alice_add_ui_toggle(window);
 	use_bloom_toggle->base.on_click = on_use_bloom_toggle;
@@ -55,6 +78,8 @@ static void on_test_window_create(alice_UIContext* context, alice_UIWindow* wind
 }
 
 void main() {
+	Sandbox sandbox;
+
 	alice_init_resource_manager("res");
 	alice_init_application((alice_ApplicationConfig){
 				.name = "sandbox",
@@ -74,6 +99,8 @@ void main() {
 #endif
 
 	alice_Scene* scene = alice_new_scene(script_lib_name);
+
+	sandbox.scene = scene;
 
 	alice_deserialise_scene(scene, "scenes/physicstest.ascn");
 	alice_serialise_scene(scene, "scenes/physicstest.ascn");
@@ -221,7 +248,7 @@ void main() {
 			alice_load_binary("fonts/opensans.ttf"),
 			18.0f);
 
-	ui->user_pointer = scene;
+	ui->user_pointer = &sandbox;
 
 	ui->gizmo_textures[ALICE_GIZMOTEXTURE_POINT_LIGHT] =
 		alice_load_texture("textures/icons/light.png", ALICE_TEXTURE_ALIASED);
@@ -237,6 +264,7 @@ void main() {
 	double time_until_fps_write = 1.0;
 
 	bool fullscreen = false;
+	sandbox.show_gui = false;
 
 	while (alice_is_application_running()) {
 		alice_reload_changed_resources();
@@ -258,17 +286,24 @@ void main() {
 			alice_set_application_fullscreen(0, fullscreen);
 		}
 
+		if (alice_key_just_pressed(ALICE_KEY_F1)) {
+			sandbox.show_gui = !sandbox.show_gui;
+			sandbox.show_gui_toggle->value = sandbox.show_gui;
+		}
+
 		alice_update_scripts(scene->script_context, app->timestep);
 
 		alice_update_physics_engine(scene->physics_engine, app->timestep);
 
 		alice_render_scene_3d(scene->renderer, app->width, app->height, scene, alice_null);
 
-		alice_set_text_renderer_dimentions(text_renderer, (alice_v2f){app->width, app->height});
-		alice_render_text(text_renderer, (alice_v2f){0, 0}, fps_buffer);
+		if (sandbox.show_gui) {
+			alice_set_text_renderer_dimentions(text_renderer, (alice_v2f){app->width, app->height});
+			alice_render_text(text_renderer, (alice_v2f){0, 0}, fps_buffer);
 
-		alice_draw_scene_gizmos(ui, scene);
-		alice_draw_ui(ui);
+			alice_draw_scene_gizmos(ui, scene);
+			alice_draw_ui(ui);
+		}
 
 		alice_update_application();
 	}
