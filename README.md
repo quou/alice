@@ -2,7 +2,7 @@
 
 ![screenshot](https://raw.githubusercontent.com/veridisquot/alice/master/screenshots/003.png)
 
-![screenshot](https://raw.githubusercontent.com/veridisquot/alice/master/screenshots/004.png)
+![screenshot](https://raw.githubusercontent.com/veridisquot/alice/master/screenshots/shadows.png)
 
 ![screenshot](https://raw.githubusercontent.com/veridisquot/alice/master/screenshots/stress.png)
 
