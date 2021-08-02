@@ -52,7 +52,8 @@ typedef void (*alice_UIElementOnHoverFunction)(alice_UIContext* context, alice_U
 typedef enum alice_UIElementType {
 	ALICE_UIELEMENT_BUTTON,
 	ALICE_UIELEMENT_LABEL,
-	ALICE_UIELEMENT_TEXTINPUT
+	ALICE_UIELEMENT_TEXTINPUT,
+	ALICE_UIELEMENT_TOGGLE
 } alice_UIElementType;
 
 struct alice_UIElement {
@@ -80,6 +81,12 @@ typedef struct alice_UITextInput {
 	const char* label;
 	char* buffer;
 } alice_UITextInput;
+
+typedef struct alice_UIToggle {
+	alice_UIElement base;
+	const char* label;
+	bool value;
+} alice_UIToggle;
 
 ALICE_API alice_v2f alice_calculate_ui_element_dimentions(alice_UIContext* context, alice_UIElement* element);
 
@@ -113,6 +120,7 @@ ALICE_API void alice_free_ui_element(alice_UIElement* element);
 ALICE_API alice_UIButton* alice_add_ui_button(alice_UIWindow* window);
 ALICE_API alice_UILabel* alice_add_ui_label(alice_UIWindow* window);
 ALICE_API alice_UITextInput* alice_add_ui_text_input(alice_UIWindow* window);
+ALICE_API alice_UIToggle* alice_add_ui_toggle(alice_UIWindow* window);
 
 enum {
 	ALICE_UICFG_PADDING = 0,

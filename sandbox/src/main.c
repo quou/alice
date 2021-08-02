@@ -20,21 +20,38 @@ static void on_button_click(alice_UIContext* context, alice_UIElement* button) {
 	alice_log("click");
 }
 
+static void on_use_bloom_toggle(alice_UIContext* context, alice_UIElement* element) {
+	alice_UIToggle* toggle = (alice_UIToggle*)element;
+
+	alice_Scene* scene = context->user_pointer;
+
+	scene->renderer->use_bloom = toggle->value;
+}
+
+static void on_use_antialiasing_toggle(alice_UIContext* context, alice_UIElement* element) {
+	alice_UIToggle* toggle = (alice_UIToggle*)element;
+
+	alice_Scene* scene = context->user_pointer;
+
+	scene->renderer->use_antialiasing = toggle->value;
+}
+
 static void on_test_window_create(alice_UIContext* context, alice_UIWindow* window) {
-	window->title = "I'm a window!";
+	window->title = "Scene Settings";
 	window->position = (alice_v2f){ 100.0f, 30.0f };
 	window->dimentions = (alice_v2f) { 350.0f, 600.0f };
 
-	alice_UILabel* label = alice_add_ui_label(window);
-	label->text = "I'm a label!";
+	alice_Scene* scene = context->user_pointer;
 
-	alice_UIButton* button2 = alice_add_ui_button(window);
-	button2->text = "I'm a button!";
-	button2->base.on_hover = on_button_hover;
-	button2->base.on_click = on_button_click;
+	alice_UIToggle* use_bloom_toggle = alice_add_ui_toggle(window);
+	use_bloom_toggle->base.on_click = on_use_bloom_toggle;
+	use_bloom_toggle->label = "Bloom";
+	use_bloom_toggle->value = scene->renderer->use_bloom;
 
-	alice_UITextInput* input = alice_add_ui_text_input(window);
-	input->label = "Text input 1";
+	alice_UIToggle* use_antialiasing_toggle = alice_add_ui_toggle(window);
+	use_antialiasing_toggle->base.on_click = on_use_antialiasing_toggle;
+	use_antialiasing_toggle->label = "Antialiasing";
+	use_antialiasing_toggle->value = scene->renderer->use_antialiasing;
 }
 
 void main() {
@@ -58,8 +75,8 @@ void main() {
 
 	alice_Scene* scene = alice_new_scene(script_lib_name);
 
-	alice_deserialise_scene(scene, "scenes/fpsgame.ascn");
-	alice_serialise_scene(scene, "scenes/fpsgame.ascn");
+	alice_deserialise_scene(scene, "scenes/physicstest.ascn");
+	alice_serialise_scene(scene, "scenes/physicstest.ascn");
 
 	scene->renderer->ambient_intensity = 0.2f;
 	scene->renderer->ambient_color = 0xadb0ea;
@@ -203,6 +220,8 @@ void main() {
 			alice_load_shader("shaders/text.glsl"),
 			alice_load_binary("fonts/opensans.ttf"),
 			18.0f);
+
+	ui->user_pointer = scene;
 
 	ui->gizmo_textures[ALICE_GIZMOTEXTURE_POINT_LIGHT] =
 		alice_load_texture("textures/icons/light.png", ALICE_TEXTURE_ALIASED);

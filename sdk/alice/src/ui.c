@@ -419,6 +419,17 @@ alice_v2f alice_calculate_ui_element_dimentions(alice_UIContext* context, alice_
 				.y = label_dimentions.y + (padding * 4.0f)
 			};
 		}
+		case ALICE_UIELEMENT_TOGGLE: {
+			alice_UITextInput* toggle = (alice_UIToggle*)element;
+
+			const alice_v2f label_dimentions =
+				alice_calculate_text_dimentions(context->text_renderer, toggle->label);
+
+			return (alice_v2f) {
+				.x = (label_dimentions.x + toggle->base.window->dimentions.x) - (padding * 2.0f),
+				.y = label_dimentions.y + (padding * 4.0f)
+			};
+		}
 	}
 
 	return (alice_v2f) { 0.0f, 0.0f };
@@ -583,9 +594,10 @@ void alice_draw_ui(alice_UIContext* context) {
 
 			bool element_hovered = false;
 			bool element_held = false;
+			bool element_clicked = false;
 
 			if (alice_mouse_over_ui_rect(element_rect)) {
-				element_held = true;
+				element_hovered = true;
 				any_element_hovered = true;
 
 				if (context->hovered_element != element && element->on_hover) {
@@ -597,15 +609,14 @@ void alice_draw_ui(alice_UIContext* context) {
 				}
 
 				if (alice_mouse_button_just_released(ALICE_MOUSE_BUTTON_LEFT)) {
-					if (element->type == ALICE_UIELEMENT_TEXTINPUT) {
+					if (element->type == ALICE_UIELEMENT_TEXTINPUT ||
+							element->type == ALICE_UIELEMENT_TOGGLE) {
 						context->active_input = element;
 					} else {
 						context->active_input = alice_null;
 					}
 
-					if (element->on_click) {
-						element->on_click(context, element);
-					}
+					element_clicked = true;
 				}
 
 				context->hovered_element = element;
@@ -633,6 +644,56 @@ void alice_draw_ui(alice_UIContext* context) {
 					};
 
 					alice_text_queue_add(&text_queue, button->text, text_position);
+
+					break;
+				}
+				case ALICE_UIELEMENT_TOGGLE: {
+					alice_UIToggle* toggle = (alice_UIToggle*)element;
+
+					const alice_UIRect box_rect = (alice_UIRect){
+						.x = (window->position.x + window->dimentions.x) -
+							(padding + column_size),
+						.y = element_position.y + padding,
+						.w = padding * 6.0f,
+						.h = element_dimensions.y - (padding * 2.0f)
+					};
+
+					const alice_UIRect box_outline_rect = (alice_UIRect){
+						.x = box_rect.x - outline_thickness,
+						.y = box_rect.y - outline_thickness,
+						.w = box_rect.w + (outline_thickness * 2.0f),
+						.h = box_rect.h + (outline_thickness * 2.0f)
+					};
+
+					alice_draw_ui_rect(context->renderer, box_outline_rect, outline_color);
+					alice_draw_ui_rect(context->renderer, box_rect, background_color);
+
+					if (element_clicked) {
+						toggle->value = !toggle->value;
+					}
+
+					if (toggle->value) {
+						const alice_UIRect box_check_rect = (alice_UIRect) {
+							.x = box_rect.x + padding,
+							.y = box_rect.y + padding,
+							.w = box_rect.w - padding * 2.0f,
+							.h = box_rect.h - padding * 2.0f
+						};
+
+						alice_draw_ui_rect(context->renderer, box_check_rect, active_color);
+					}
+
+					const alice_v2f label_position = (alice_v2f){
+						.x = element_position.x,
+						.y = element_position.y + padding
+					};
+
+					const alice_v2f buffer_position = (alice_v2f){
+						.x = box_rect.x + padding,
+						.y = box_rect.y
+					};
+
+					alice_text_queue_add(&text_queue, toggle->label, label_position);
 
 					break;
 				}
@@ -679,6 +740,10 @@ void alice_draw_ui(alice_UIContext* context) {
 
 					break;
 				}
+			}
+
+			if (element_clicked && element->on_click) {
+				element->on_click(context, element);
 			}
 		}
 
@@ -918,6 +983,8 @@ static alice_UIElement* alice_alloc_ui_element(alice_UIElementType type) {
 			return malloc(sizeof(alice_UILabel));
 		case ALICE_UIELEMENT_TEXTINPUT:
 			return malloc(sizeof(alice_UITextInput));
+		case ALICE_UIELEMENT_TOGGLE:
+			return malloc(sizeof(alice_UIToggle));
 		default: /* Unreachable */
 			return alice_null;
 			break;
@@ -980,4 +1047,10 @@ alice_UITextInput* alice_add_ui_text_input(alice_UIWindow* window) {
 	assert(window);
 
 	return (alice_UITextInput*)alice_new_ui_element(window, ALICE_UIELEMENT_TEXTINPUT);
+}
+
+alice_UIToggle* alice_add_ui_toggle(alice_UIWindow* window) {
+	assert(window);
+
+	return (alice_UIToggle*)alice_new_ui_element(window, ALICE_UIELEMENT_TOGGLE);
 }
