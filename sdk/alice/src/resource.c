@@ -272,7 +272,7 @@ void alice_init_default_resources() {
 			.shader = alice_load_shader("shaders/pbr.glsl"),
 			.as.pbr = {
 				.albedo = 0xffffff,
-				.roughness = 0.3f,
+				.roughness = 1.0f,
 				.metallic = 1.0f,
 				.emissive = 0.0f,
 

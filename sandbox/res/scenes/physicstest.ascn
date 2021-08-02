@@ -99,16 +99,16 @@ scene {
 				z 0;
 			}
 			scale {
-				x 1;
-				y 1;
-				z 1;
+				x 0.988235;
+				y 0.929412;
+				z 0.494118;
 			}
 			color {
 				r 1;
 				g 1;
 				b 1;
 			}
-			intensity 1;
+			intensity 10;
 			cast_shadows true;
 		}
 		rigidbody_3d {
@@ -166,6 +166,7 @@ scene {
 					cast_shadows true;
 					model "cube";
 					materials [
+						"default_material";
 						"materials/basicphong.mat";
 					]
 
@@ -232,6 +233,7 @@ scene {
 					cast_shadows true;
 					model "models/monkey.glb";
 					materials [
+						"default_material";
 						"materials/basicphong.mat";
 					]
 
@@ -293,6 +295,7 @@ scene {
 					cast_shadows true;
 					model "cube";
 					materials [
+						"default_material";
 						"materials/basicphong.mat";
 					]
 
@@ -354,6 +357,7 @@ scene {
 					cast_shadows true;
 					model "cube";
 					materials [
+						"default_material";
 						"materials/basicphong.mat";
 					]
 
