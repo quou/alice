@@ -65,7 +65,7 @@ scene {
 			name "blue lamp";
 			position {
 				x 0;
-				y 0.4;
+				y 0.6;
 				z 0;
 			}
 			rotation {

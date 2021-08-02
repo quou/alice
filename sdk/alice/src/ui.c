@@ -217,12 +217,15 @@ alice_UIRenderer* alice_new_ui_renderer(alice_Shader* rect_shader) {
 	new->shader = rect_shader;
 	new->projection = alice_m4f_identity();
 
+	new->vertices_per_quad = 5 * 4;
+	new->indices_per_quad = 6;
+
 	alice_VertexBuffer* buffer = alice_new_vertex_buffer(
 			ALICE_VERTEXBUFFER_DRAW_TRIANGLES | ALICE_VERTEXBUFFER_DYNAMIC_DRAW);
 
 	alice_bind_vertex_buffer_for_edit(buffer);
-	alice_push_vertices(buffer, alice_null, (5 * 4) * new->max_quads);
-	alice_push_indices(buffer, alice_null, 6 * new->max_quads);
+	alice_push_vertices(buffer, alice_null, new->vertices_per_quad * new->max_quads);
+	alice_push_indices(buffer, alice_null, new->indices_per_quad * new->max_quads);
 	alice_configure_vertex_buffer(buffer, 0, 2, 5, 0); /* vec2 position */
 	alice_configure_vertex_buffer(buffer, 1, 3, 5, 2); /* vec3 color */
 	alice_bind_vertex_buffer_for_edit(alice_null);
@@ -280,7 +283,7 @@ void alice_draw_ui_rect(alice_UIRenderer* renderer, alice_UIRect rect, alice_Col
 		rect.x + rect.w,	rect.y + rect.h,	rgb.r, rgb.g, rgb.b,
 		rect.x + rect.w,	rect.y,			rgb.r, rgb.g, rgb.b,
 		rect.x,			rect.y,			rgb.r, rgb.g, rgb.b,
-		rect.x,			rect.y + rect.h,	rgb.r, rgb.g, rgb.b
+		rect.x,			rect.y + rect.h,	rgb.r, rgb.g, rgb.b,
 	};
 
 	const u32 index_offset = renderer->quad_count * 4;
@@ -291,15 +294,20 @@ void alice_draw_ui_rect(alice_UIRenderer* renderer, alice_UIRect rect, alice_Col
 	};
 
 	alice_bind_vertex_buffer_for_edit(renderer->vb);
-	alice_update_vertices(renderer->vb, verts, renderer->quad_count * 5 * 4, 5 * 4);
-	alice_update_indices(renderer->vb, indices, renderer->quad_count * 6, 6);
+	alice_update_vertices(renderer->vb, verts,
+			renderer->quad_count * renderer->vertices_per_quad,
+			renderer->vertices_per_quad);
+	alice_update_indices(renderer->vb, indices,
+			renderer->quad_count * renderer->indices_per_quad,
+			renderer->indices_per_quad);
 	alice_bind_vertex_buffer_for_edit(alice_null);
 
 	renderer->quad_count++;
 }
 
-
-alice_UIContext* alice_new_ui_context(alice_Shader* rect_shader, alice_Shader* text_shader,
+alice_UIContext* alice_new_ui_context(alice_Shader* rect_shader,
+		alice_Shader* gizmo_shader,
+		alice_Shader* text_shader,
 		alice_Resource* font_data, float font_size) {
 	alice_UIContext* new = malloc(sizeof(alice_UIContext));
 
@@ -317,6 +325,33 @@ alice_UIContext* alice_new_ui_context(alice_Shader* rect_shader, alice_Shader* t
 
 	new->text_size = font_size;
 
+	for (u32 i = 0; i < ALICE_GIZMOTEXTURE_COUNT; i++) {
+		new->gizmo_textures[i] = alice_null;
+	}
+	new->gizmo_shader = gizmo_shader;
+
+	float vertices[] = {
+		 0.5f,  0.5f, 1.0f, 1.0f,
+		 0.5f, -0.5f, 1.0f, 0.0f,
+ 		-0.5f, -0.5f, 0.0f, 0.0f,
+		-0.5f,  0.5f, 0.0f, 1.0f
+	};
+	unsigned int indices[] = {
+		0, 1, 3,
+		1, 2, 3
+	};
+
+	alice_VertexBuffer* buffer = alice_new_vertex_buffer(
+			ALICE_VERTEXBUFFER_DRAW_TRIANGLES | ALICE_VERTEXBUFFER_STATIC_DRAW);
+	alice_bind_vertex_buffer_for_edit(buffer);
+	alice_push_vertices(buffer, vertices, sizeof(vertices) / sizeof(float));
+	alice_push_indices(buffer, indices, 6);
+	alice_configure_vertex_buffer(buffer, 0, 2, 4, 0); /* vec2 position */
+	alice_configure_vertex_buffer(buffer, 1, 2, 4, 2); /* vec2 uv */
+	alice_bind_vertex_buffer_for_edit(alice_null);
+
+	new->gizmo_quad = buffer;
+
 	return new;
 }
 
@@ -327,6 +362,11 @@ void alice_free_ui_context(alice_UIContext* context) {
 		alice_deinit_ui_window(&context->windows[i]);
 	}
 
+	if (context->window_capacity > 0) {
+		free(context->windows);
+	}
+
+	alice_free_vertex_buffer(context->gizmo_quad);
 	alice_free_text_renderer(context->text_renderer);
 	alice_free_ui_renderer(context->renderer);
 }
@@ -656,6 +696,54 @@ void alice_draw_ui(alice_UIContext* context) {
 	}
 
 	alice_deinit_text_queue(&text_queue);
+}
+
+void alice_draw_scene_gizmos(alice_UIContext* context, alice_Scene* scene) {
+	assert(context);
+
+	glCullFace(GL_FRONT);
+
+	alice_Camera3D* camera = alice_get_scene_camera(scene);
+	if (!camera) { return; }
+
+	alice_m4f view = alice_get_camera_3d_view(scene, camera);
+
+	alice_bind_shader(context->gizmo_shader);
+	alice_shader_set_m4f(context->gizmo_shader, "camera", alice_get_camera_3d_matrix(scene, camera));
+
+	alice_Texture* point_light_texture = context->gizmo_textures[ALICE_GIZMOTEXTURE_POINT_LIGHT];
+	if (point_light_texture) {
+		alice_bind_texture(point_light_texture, 0);
+		alice_shader_set_int(context->gizmo_shader, "image", 0);
+
+		for (alice_entity_iter(scene, iter, alice_PointLight)) {
+			alice_PointLight* light = iter.current_ptr;
+
+			alice_m4f scale = alice_m4f_scale(alice_m4f_identity(), (alice_v3f){1.0f, 1.0f, 1.0f});
+			alice_v3f position = alice_get_entity_world_position(scene, (alice_Entity*)light);
+
+			alice_m4f transform = alice_get_entity_transform(scene, (alice_Entity*)light);
+			transform.elements[0][0] = view.elements[0][0];
+			transform.elements[0][1] = view.elements[1][0];
+			transform.elements[0][2] = view.elements[2][0];
+			transform.elements[1][0] = view.elements[0][1];
+			transform.elements[1][1] = view.elements[1][1];
+			transform.elements[1][2] = view.elements[2][1];
+			transform.elements[2][0] = view.elements[0][2];
+			transform.elements[2][1] = view.elements[1][2];
+			transform.elements[2][2] = view.elements[2][2];
+
+			transform = alice_m4f_multiply(transform, scale);
+
+			alice_shader_set_m4f(context->gizmo_shader, "transform", transform);
+
+			alice_bind_vertex_buffer_for_draw(context->gizmo_quad);
+			alice_draw_vertex_buffer(context->gizmo_quad);
+			alice_bind_vertex_buffer_for_draw(alice_null);
+		}
+	}
+
+	glCullFace(GL_BACK);
 }
 
 alice_UIWindow* alice_new_ui_window(alice_UIContext* context,

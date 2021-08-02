@@ -34,6 +34,9 @@ typedef struct alice_UIRenderer {
 
 	u32 quad_count;
 	u32 max_quads;
+
+	u32 vertices_per_quad;
+	u32 indices_per_quad;
 } alice_UIRenderer;
 
 ALICE_API alice_UIRenderer* alice_new_ui_renderer(alice_Shader* rect_shader);
@@ -132,6 +135,12 @@ enum {
 	ALICE_UICOLOR_COUNT = 8
 };
 
+enum {
+	ALICE_GIZMOTEXTURE_POINT_LIGHT = 0,
+
+	ALICE_GIZMOTEXTURE_COUNT = 1
+};
+
 struct alice_UIContext {
 	alice_TextRenderer* text_renderer;
 	alice_UIRenderer* renderer;
@@ -149,14 +158,21 @@ struct alice_UIContext {
 	float text_size;
 
 	void* user_pointer;
+
+	alice_Texture* gizmo_textures[ALICE_GIZMOTEXTURE_COUNT];
+	alice_Shader* gizmo_shader;
+	alice_VertexBuffer* gizmo_quad;
 };
 
-ALICE_API alice_UIContext* alice_new_ui_context(alice_Shader* rect_shader, alice_Shader* text_shader,
+ALICE_API alice_UIContext* alice_new_ui_context(alice_Shader* rect_shader,
+		alice_Shader* text_shader,
+		alice_Shader* gizmo_shader,
 		alice_Resource* font_data, float font_size);
 ALICE_API void alice_apply_default_ui_config(alice_UIContext* context);
 ALICE_API void alice_free_ui_context(alice_UIContext* context);
 
 ALICE_API void alice_draw_ui(alice_UIContext* context);
+ALICE_API void alice_draw_scene_gizmos(alice_UIContext* context, alice_Scene* scene);
 
 typedef void (*alice_WindowCreateFunction)(alice_UIContext*, alice_UIWindow*);
 

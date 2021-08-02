@@ -199,11 +199,15 @@ void main() {
 
 	alice_UIContext* ui = alice_new_ui_context(
 			alice_load_shader("shaders/uirect.glsl"),
+			alice_load_shader("shaders/gizmo.glsl"),
 			alice_load_shader("shaders/text.glsl"),
 			alice_load_binary("fonts/opensans.ttf"),
 			18.0f);
 
-//	alice_new_ui_window(ui, on_test_window_create);
+	ui->gizmo_textures[ALICE_GIZMOTEXTURE_POINT_LIGHT] =
+		alice_load_texture("textures/light.png", ALICE_TEXTURE_ALIASED);
+
+	alice_new_ui_window(ui, on_test_window_create);
 
 	alice_TextRenderer* text_renderer = alice_new_text_renderer(alice_load_binary("fonts/opensans.ttf"),
 			32.0f, alice_load_shader("shaders/text.glsl"));
@@ -242,6 +246,7 @@ void main() {
 		alice_set_text_renderer_dimentions(text_renderer, (alice_v2f){app->width, app->height});
 		alice_render_text(text_renderer, (alice_v2f){0, 0}, fps_buffer);
 
+		alice_draw_scene_gizmos(ui, scene);
 		alice_draw_ui(ui);
 
 		alice_update_application();
