@@ -420,7 +420,7 @@ alice_v2f alice_calculate_ui_element_dimentions(alice_UIContext* context, alice_
 			};
 		}
 		case ALICE_UIELEMENT_TOGGLE: {
-			alice_UITextInput* toggle = (alice_UIToggle*)element;
+			alice_UIToggle* toggle = (alice_UIToggle*)element;
 
 			const alice_v2f label_dimentions =
 				alice_calculate_text_dimentions(context->text_renderer, toggle->label);
@@ -484,8 +484,9 @@ void alice_draw_ui(alice_UIContext* context) {
 
 	const alice_Application* app = alice_get_application();
 
-	alice_set_text_renderer_dimentions(context->text_renderer, (alice_v2f){app->width, app->height});
-	alice_set_ui_renderer_dimentions(context->renderer, (alice_v2f){app->width, app->height});
+	alice_set_text_renderer_dimentions(context->text_renderer,
+			(alice_v2f){(float)app->width, (float)app->height});
+	alice_set_ui_renderer_dimentions(context->renderer, (alice_v2f){(float)app->width, (float)app->height});
 
 	alice_set_text_renderer_color(context->text_renderer, context->ui_colors[ALICE_UICOLOR_TEXT]);
 
@@ -765,7 +766,6 @@ void alice_draw_ui(alice_UIContext* context) {
 
 static void alice_draw_gizmo(alice_UIContext* context, alice_Scene* scene, alice_Entity* entity, alice_m4f* view) {
 	alice_m4f scale = alice_m4f_scale(alice_m4f_identity(), (alice_v3f){1.0f, 1.0f, 1.0f});
-	alice_v3f position = alice_get_entity_world_position(scene, entity);
 
 	alice_m4f transform = alice_get_entity_transform(scene, entity);
 	transform.elements[0][0] = view->elements[0][0];

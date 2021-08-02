@@ -251,7 +251,7 @@ void alice_init_default_resources() {
 	/* Default material */
 	{
 		const char* name = "default_material";
-		const u32 name_len = strlen(name);
+		const u32 name_len = (u32)strlen(name);
 
 		alice_Resource* default_material_resource = malloc(sizeof(alice_Resource));
 		*default_material_resource = (alice_Resource) {
@@ -386,13 +386,13 @@ static bool impl_alice_load_binary(alice_Resource* resource, const char* path) {
 	PHYSFS_Stat stat;
 	PHYSFS_stat(path, &stat);
 
-	u32 file_size = PHYSFS_fileLength(file);
+	u32 file_size = (u32)PHYSFS_fileLength(file);
 
 	void* buffer = malloc(file_size);
 
 	PHYSFS_readBytes(file, buffer, file_size);
 
-	const u32 file_name_length = strlen(path) + 1;
+	const u32 file_name_length = (u32)strlen(path) + 1;
 
 	(*resource) = (alice_Resource){
 		.type = ALICE_RESOURCE_BINARY,
@@ -425,14 +425,14 @@ static bool impl_alice_load_string(alice_Resource* resource, const char* path) {
 	PHYSFS_Stat stat;
 	PHYSFS_stat(path, &stat);
 
-	u32 file_size = PHYSFS_fileLength(file);
+	u32 file_size = (u32)PHYSFS_fileLength(file);
 
 	char* buffer = malloc(file_size + 1);
 	buffer[file_size] = '\0';
 
 	PHYSFS_readBytes(file, buffer, file_size);
 
-	const u32 file_name_length = strlen(path) + 1;
+	const u32 file_name_length = (u32)strlen(path) + 1;
 
 	(*resource) = (alice_Resource){
 		.type = ALICE_RESOURCE_STRING,
@@ -565,17 +565,17 @@ static void alice_load_pbr_material(alice_DTable* table, alice_PBRMaterial* mate
 
 	alice_DTable* metallic_table = alice_dtable_find_child(table, "metallic");
 	if (metallic_table && metallic_table->value.type == ALICE_DTABLE_NUMBER) {
-		material->metallic = metallic_table->value.as.number;
+		material->metallic = (float)metallic_table->value.as.number;
 	}
 
 	alice_DTable* roughness_table = alice_dtable_find_child(table, "roughness");
 	if (roughness_table && roughness_table->value.type == ALICE_DTABLE_NUMBER) {
-		material->roughness = roughness_table->value.as.number;
+		material->roughness = (float)roughness_table->value.as.number;
 	}
 
 	alice_DTable* emissive_table = alice_dtable_find_child(table, "emissive");
 	if (emissive_table && emissive_table->value.type == ALICE_DTABLE_NUMBER) {
-		material->emissive = emissive_table->value.as.number;
+		material->emissive = (float)emissive_table->value.as.number;
 	}
 }
 
@@ -617,12 +617,12 @@ static void alice_load_phong_material(alice_DTable* table, alice_PhongMaterial* 
 
 	alice_DTable* shininess_table = alice_dtable_find_child(table, "shininess");
 	if (shininess_table && shininess_table->value.type == ALICE_DTABLE_NUMBER) {
-		material->shininess = shininess_table->value.as.number;
+		material->shininess = (float)shininess_table->value.as.number;
 	}
 
 	alice_DTable* emissive_table = alice_dtable_find_child(table, "emissive");
 	if (emissive_table && emissive_table->value.type == ALICE_DTABLE_NUMBER) {
-		material->emissive = emissive_table->value.as.number;
+		material->emissive = (float)emissive_table->value.as.number;
 	}
 }
 

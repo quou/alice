@@ -33,7 +33,7 @@ float alice_v2f_dot(alice_v2f a, alice_v2f b) {
 }
 
 i32 alice_v2i_mag(alice_v2i v) {
-	return sqrt(v.x * v.x + v.y * v.y);
+	return (i32)sqrt(v.x * v.x + v.y * v.y);
 }
 
 alice_v2i alice_v2i_normalise(alice_v2i v) {
@@ -49,7 +49,7 @@ alice_v2i alice_v2i_normalise(alice_v2i v) {
 i32 alice_v2i_dist(alice_v2i a, alice_v2i b) {
 	const i32 xd = a.x - b.x;
 	const i32 yd = a.y - b.y;
-	return sqrt(xd * xd + yd * yd);
+	return (i32)sqrt(xd * xd + yd * yd);
 }
 
 i32 alice_v2i_dot(alice_v2i a, alice_v2i b) {
@@ -57,7 +57,7 @@ i32 alice_v2i_dot(alice_v2i a, alice_v2i b) {
 }
 
 u32 alice_v2u_mag(alice_v2u v) {
-	return sqrt(v.x * v.x + v.y * v.y);
+	return (u32)sqrt(v.x * v.x + v.y * v.y);
 }
 
 alice_v2u alice_v2u_normalise(alice_v2u v) {
@@ -73,7 +73,7 @@ alice_v2u alice_v2u_normalise(alice_v2u v) {
 u32 alice_v2u_dist(alice_v2u a, alice_v2u b) {
 	const u32 xd = a.x - b.x;
 	const u32 yd = a.y - b.y;
-	return sqrt(xd * xd + yd * yd);
+	return (u32)sqrt(xd * xd + yd * yd);
 }
 
 u32 alice_v2u_dot(alice_v2u a, alice_v2u b) {
@@ -97,9 +97,9 @@ alice_v3f alice_v3f_normalise(alice_v3f v) {
 }
 
 float alice_v3f_dist(alice_v3f a, alice_v3f b) {
-	const u32 xd = a.x - b.x;
-	const u32 yd = a.y - b.y;
-	const u32 zd = a.z - b.z;
+	const float xd = a.x - b.x;
+	const float yd = a.y - b.y;
+	const float zd = a.z - b.z;
 
 	return sqrtf(xd * xd + yd * yd + zd * zd);
 }
@@ -117,7 +117,7 @@ alice_v3f alice_v3f_cross(alice_v3f a, alice_v3f b) {
 }
 
 i32 alice_v3i_mag(alice_v3i v) {
-	return sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+	return (i32)sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
 }
 
 alice_v3i alice_v3i_normalise(alice_v3i v) {
@@ -135,7 +135,7 @@ i32 alice_v3i_dist(alice_v3i a, alice_v3i b) {
 	const i32 yd = a.y - b.y;
 	const i32 zd = a.z - b.z;
 
-	return sqrt(xd * xd + yd * yd + zd * zd);
+	return (i32)sqrt(xd * xd + yd * yd + zd * zd);
 }
 
 i32 alice_v3i_dot(alice_v3i a, alice_v3i b) {
@@ -143,7 +143,7 @@ i32 alice_v3i_dot(alice_v3i a, alice_v3i b) {
 }
 
 u32 alice_v3u_mag(alice_v3u v) {
-	return sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+	return (i32)sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
 }
 
 alice_v3u alice_v3u_normalise(alice_v3u v) {
@@ -161,7 +161,7 @@ u32 alice_v3u_dist(alice_v3u a, alice_v3u b) {
 	const u32 yd = a.y - b.y;
 	const u32 zd = a.z - b.z;
 
-	return sqrt(xd * xd + yd * yd + zd * zd);
+	return (u32)sqrt(xd * xd + yd * yd + zd * zd);
 }
 
 u32 alice_v3u_dot(alice_v3u a, alice_v3u b) {
@@ -197,7 +197,7 @@ float alice_v4f_dot(alice_v4f a, alice_v4f b) {
 }
 
 i32 alice_v4i_mag(alice_v4i v) {
-	return sqrt(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
+	return (i32)sqrt(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
 }
 
 alice_v4i alice_v4i_normalise(alice_v4i v) {
@@ -216,7 +216,7 @@ i32 alice_v4i_dist(alice_v4i a, alice_v4i b) {
 	const i32 zd = a.z - b.z;
 	const i32 wd = a.w - b.w;
 
-	return sqrt(xd * xd + yd * yd + zd * zd + wd * wd);
+	return (i32)sqrt(xd * xd + yd * yd + zd * zd + wd * wd);
 }
 
 i32 alice_v4i_dot(alice_v4i a, alice_v4i b) {
@@ -224,7 +224,7 @@ i32 alice_v4i_dot(alice_v4i a, alice_v4i b) {
 }
 
 u32 alice_v4u_mag(alice_v4u v) {
-	return sqrt(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
+	return (u32)sqrt(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
 }
 
 alice_v4u alice_v4u_normalise(alice_v4u v) {
@@ -243,7 +243,7 @@ u32 alice_v4u_dist(alice_v4u a, alice_v4u b) {
 	const u32 zd = a.z - b.z;
 	const u32 wd = a.w - b.w;
 
-	return sqrt(xd * xd + yd * yd + zd * zd + wd * wd);
+	return (u32)sqrt(xd * xd + yd * yd + zd * zd + wd * wd);
 }
 
 u32 alice_v4u_dot(alice_v4u a, alice_v4u b) {
@@ -252,7 +252,7 @@ u32 alice_v4u_dot(alice_v4u a, alice_v4u b) {
 
 /* ==== TO-DEGREES ==== */
 float alice_todeg(float rad) {
-	return (rad * (180.0 / alice_pi));
+	return (rad * (180.0f / alice_pi));
 }
 
 alice_v2f alice_todeg_v2f(alice_v2f rad) {
@@ -281,7 +281,7 @@ alice_v4f alice_todeg_v4f(alice_v4f rad) {
 
 /* ==== TO-RADIANS ==== */
 float alice_torad(float deg) {
-	return (deg * (alice_pi / 180.0));
+	return (deg * (alice_pi / 180.0f));
 }
 
 alice_v2f alice_torad_v2f(alice_v2f deg) {
@@ -366,7 +366,7 @@ alice_m4f alice_m4f_rotate(alice_m4f m, float a, alice_v3f v) {
 	const float c = cosf(r);
 	const float s = sinf(r);
 
-	const float omc = 1.0 - c;
+	const float omc = 1.0f - c;
 
 	float x = v.x;
 	float y = v.y;
@@ -401,9 +401,9 @@ alice_m4f alice_m4f_ortho(float left, float right,
 	float bottom, float top, float near, float far) {
 	alice_m4f result = alice_m4f_identity();
 
-	result.elements[0][0] = 2.0 / (right - left);
-	result.elements[1][1] = 2.0 / (top - bottom);
-	result.elements[2][2] = 2.0 / (near - far);
+	result.elements[0][0] = 2.0f / (right - left);
+	result.elements[1][1] = 2.0f / (top - bottom);
+	result.elements[2][2] = 2.0f / (near - far);
 
 	result.elements[3][0] = (left + right) / (left - right);
 	result.elements[3][1] = (bottom + top) / (bottom - top);
@@ -415,11 +415,11 @@ alice_m4f alice_m4f_ortho(float left, float right,
 alice_m4f alice_m4f_persp(float fov, float aspect, float near, float far) {
 	alice_m4f result = alice_m4f_identity();
 
-	const float q = 1.0f / tanf(alice_torad(0.5 * fov));
+	const float q = 1.0f / tanf(alice_torad(0.5f * fov));
 	const float a = q / aspect;
 
 	const float b = (near + far) / (near - far);
-	const float c = (2.0 * near * far) / (near - far);
+	const float c = (2.0f * near * far) / (near - far);
 
 	result.elements[0][0] = a;
 	result.elements[1][1] = q;

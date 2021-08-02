@@ -62,7 +62,7 @@ static alice_DTableToken alice_dtable_scanner_error_token(const char* message) {
 	return (alice_DTableToken) {
 		.type = ALICE_DTT_ERROR,
 			.start = message,
-			.length = strlen(message),
+			.length = (u32)strlen(message),
 			.line = scanner.line
 	};
 }

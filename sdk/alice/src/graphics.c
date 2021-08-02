@@ -255,7 +255,7 @@ alice_Shader* alice_init_shader(alice_Shader* shader, char* source) {
 
 	shader->panic_mode = false;
 
-	const u32 source_len = strlen(source);
+	const u32 source_len = (u32)strlen(source);
 
 	char* vertex_source = malloc(source_len);
 	char* fragment_source = malloc(source_len);
@@ -773,15 +773,15 @@ alice_Mesh alice_new_sphere_mesh() {
 	u32* indices = NULL;
 	u32 index_count = 0;
 
-	for (int i = 0; i <= stack_count; ++i) {
-		int k1 = i * (sector_count + 1);
-		int k2 = k1 + sector_count + 1;
+	for (u32 i = 0; i <= stack_count; ++i) {
+		u32 k1 = i * ((u32)sector_count + 1);
+		u32 k2 = k1 + (u32)sector_count + 1;
 
 		stackAngle = alice_pi / 2 - i * stackStep;
 		xy = radius * cosf(stackAngle);
 		z = radius * sinf(stackAngle);
 
-		for (int j = 0; j <= sector_count; ++j, ++k1, ++k2) {
+		for (u32 j = 0; j <= sector_count; ++j, ++k1, ++k2) {
 			sector_angle = j * sectorStep;
 
 			x = xy * cosf(sector_angle);
@@ -1144,7 +1144,7 @@ void alice_apply_point_lights(alice_Scene* scene, alice_AABB mesh_aabb, alice_Ma
 
 		alice_v3f world_position = alice_get_entity_world_position(scene, (alice_Entity*)light);
 
-		if (!alice_sphere_vs_aabb(mesh_aabb, world_position, light->range * 5.0)) {
+		if (!alice_sphere_vs_aabb(mesh_aabb, world_position, light->range * 5.0f)) {
 			continue;
 		}
 
@@ -1460,11 +1460,6 @@ alice_AABB alice_compute_scene_aabb(alice_Scene* scene) {
 			continue;
 		}
 
-		alice_AABB renderable_aabb = (alice_AABB) {
-			.min = {INFINITY, INFINITY, INFINITY},
-			.max = {-INFINITY, -INFINITY, -INFINITY}
-		};
-
 		for (u32 i = 0; i < model->mesh_count; i++) {
 			alice_Mesh* mesh = &model->meshes[i];
 
@@ -1501,7 +1496,7 @@ void alice_render_scene_3d(alice_SceneRenderer3D* renderer, u32 width, u32 heigh
 		return;
 	}
 
-	camera->dimentions = (alice_v2f){width, height};
+	camera->dimentions = (alice_v2f){(float)width, (float)height};
 
 	alice_enable_depth();
 
@@ -1627,8 +1622,8 @@ renderable_iter_continue:
 		alice_render_target_bind_output(renderer->output, 0, 0);
 		alice_shader_set_int(renderer->extract, "input_color", 0);
 
-		alice_shader_set_float(renderer->extract, "input_width", renderer->output->width);
-		alice_shader_set_float(renderer->extract, "input_height", renderer->output->height);
+		alice_shader_set_float(renderer->extract, "input_width", (float)renderer->output->width);
+		alice_shader_set_float(renderer->extract, "input_height", (float)renderer->output->height);
 
 		alice_shader_set_float(renderer->extract, "threshold", renderer->bloom_threshold);
 
@@ -1660,8 +1655,10 @@ renderable_iter_continue:
 
 			alice_shader_set_int(renderer->blur, "horizontal", horizontal);
 
-			alice_shader_set_float(renderer->blur, "input_width", renderer->bright_pixels->width);
-			alice_shader_set_float(renderer->blur, "input_height", renderer->bright_pixels->height);
+			alice_shader_set_float(renderer->blur, "input_width",
+					(float)renderer->bright_pixels->width);
+			alice_shader_set_float(renderer->blur, "input_height",
+					(float)renderer->bright_pixels->height);
 
 			alice_bind_vertex_buffer_for_draw(renderer->quad);
 			alice_draw_vertex_buffer(renderer->quad);
@@ -1692,8 +1689,8 @@ renderable_iter_continue:
 
 	alice_shader_set_int(renderer->postprocess, "input_color", 0);
 
-	alice_shader_set_float(renderer->postprocess, "input_width", renderer->output->width);
-	alice_shader_set_float(renderer->postprocess, "input_height", renderer->output->height);
+	alice_shader_set_float(renderer->postprocess, "input_width", (float)renderer->output->width);
+	alice_shader_set_float(renderer->postprocess, "input_height", (float)renderer->output->height);
 	alice_shader_set_float(renderer->postprocess, "exposure", camera->exposure);
 	alice_shader_set_float(renderer->postprocess, "gamma", camera->gamma);
 

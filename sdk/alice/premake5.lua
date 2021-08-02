@@ -36,7 +36,8 @@ project "alice"
 	}
 
 	defines {
-		"ALICE_EXPORT_SYMBOLS"
+		"ALICE_EXPORT_SYMBOLS",
+		"_CRT_SECURE_NO_WARNINGS"
 	}
 
 	filter "configurations:debug"

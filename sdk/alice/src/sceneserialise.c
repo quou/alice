@@ -459,17 +459,17 @@ static alice_EntityHandle alice_deserialise_entity(alice_DTable* table, alice_Sc
 	if (position_table) {
 		alice_DTable* x_table = alice_dtable_find_child(position_table, "x");
 		if (x_table && x_table->value.type == ALICE_DTABLE_NUMBER) {
-			entity->position.x = x_table->value.as.number;
+			entity->position.x = (float)x_table->value.as.number;
 		}
 
 		alice_DTable* y_table = alice_dtable_find_child(position_table, "y");
 		if (y_table && y_table->value.type == ALICE_DTABLE_NUMBER) {
-			entity->position.y = y_table->value.as.number;
+			entity->position.y = (float)y_table->value.as.number;
 		}
 
 		alice_DTable* z_table = alice_dtable_find_child(position_table, "z");
 		if (z_table && z_table->value.type == ALICE_DTABLE_NUMBER) {
-			entity->position.z = z_table->value.as.number;
+			entity->position.z = (float)z_table->value.as.number;
 		}
 	}
 
@@ -477,17 +477,17 @@ static alice_EntityHandle alice_deserialise_entity(alice_DTable* table, alice_Sc
 	if (rotation_table) {
 		alice_DTable* x_table = alice_dtable_find_child(rotation_table, "x");
 		if (x_table && x_table->value.type == ALICE_DTABLE_NUMBER) {
-			entity->rotation.x = x_table->value.as.number;
+			entity->rotation.x = (float)x_table->value.as.number;
 		}
 
 		alice_DTable* y_table = alice_dtable_find_child(rotation_table, "y");
 		if (y_table && y_table->value.type == ALICE_DTABLE_NUMBER) {
-			entity->rotation.y = y_table->value.as.number;
+			entity->rotation.y = (float)y_table->value.as.number;
 		}
 
 		alice_DTable* z_table = alice_dtable_find_child(rotation_table, "z");
 		if (z_table && z_table->value.type == ALICE_DTABLE_NUMBER) {
-			entity->rotation.z = z_table->value.as.number;
+			entity->rotation.z = (float)z_table->value.as.number;
 		}
 	}
 
@@ -495,17 +495,17 @@ static alice_EntityHandle alice_deserialise_entity(alice_DTable* table, alice_Sc
 	if (scale_table) {
 		alice_DTable* x_table = alice_dtable_find_child(scale_table, "x");
 		if (x_table && x_table->value.type == ALICE_DTABLE_NUMBER) {
-			entity->scale.x = x_table->value.as.number;
+			entity->scale.x = (float)x_table->value.as.number;
 		}
 
 		alice_DTable* y_table = alice_dtable_find_child(scale_table, "y");
 		if (y_table && y_table->value.type == ALICE_DTABLE_NUMBER) {
-			entity->scale.y = y_table->value.as.number;
+			entity->scale.y = (float)y_table->value.as.number;
 		}
 
 		alice_DTable* z_table = alice_dtable_find_child(scale_table, "z");
 		if (z_table && z_table->value.type == ALICE_DTABLE_NUMBER) {
-			entity->scale.z = z_table->value.as.number;
+			entity->scale.z = (float)z_table->value.as.number;
 		}
 	}
 
@@ -585,27 +585,27 @@ static alice_EntityHandle alice_deserialise_entity(alice_DTable* table, alice_Sc
 
 			alice_DTable* fov_table = alice_dtable_find_child(table, "fov");
 			if (fov_table && fov_table->value.type == ALICE_DTABLE_NUMBER) {
-				camera->fov = fov_table->value.as.number;
+				camera->fov = (float)fov_table->value.as.number;
 			}
 
 			alice_DTable* near_table = alice_dtable_find_child(table, "near");
 			if (fov_table && near_table->value.type == ALICE_DTABLE_NUMBER) {
-				camera->near = near_table->value.as.number;
+				camera->near = (float)near_table->value.as.number;
 			}
 
 			alice_DTable* far_table = alice_dtable_find_child(table, "far");
 			if (far_table && far_table->value.type == ALICE_DTABLE_NUMBER) {
-				camera->far = far_table->value.as.number;
+				camera->far = (float)far_table->value.as.number;
 			}
 
 			alice_DTable* exposure_table = alice_dtable_find_child(table, "exposure");
 			if (exposure_table && exposure_table->value.type == ALICE_DTABLE_NUMBER) {
-				camera->exposure = exposure_table->value.as.number;
+				camera->exposure = (float)exposure_table->value.as.number;
 			}
 
 			alice_DTable* gamma_table = alice_dtable_find_child(table, "gamma");
 			if (gamma_table && gamma_table->value.type == ALICE_DTABLE_NUMBER) {
-				camera->gamma = gamma_table->value.as.number;
+				camera->gamma = (float)gamma_table->value.as.number;
 			}
 
 			alice_DTable* active_table = alice_dtable_find_child(table, "active");
@@ -620,12 +620,12 @@ static alice_EntityHandle alice_deserialise_entity(alice_DTable* table, alice_Sc
 
 			alice_DTable* range_table = alice_dtable_find_child(table, "range");
 			if (range_table && range_table->value.type == ALICE_DTABLE_NUMBER) {
-				light->range = range_table->value.as.number;
+				light->range = (float)range_table->value.as.number;
 			}
 
 			alice_DTable* intensity_table = alice_dtable_find_child(table, "intensity");
 			if (intensity_table && intensity_table->value.type == ALICE_DTABLE_NUMBER) {
-				light->intensity = intensity_table->value.as.number;
+				light->intensity = (float)intensity_table->value.as.number;
 			}
 
 			alice_DTable* color_table = alice_dtable_find_child(table, "color");
@@ -634,17 +634,17 @@ static alice_EntityHandle alice_deserialise_entity(alice_DTable* table, alice_Sc
 
 				alice_DTable* r_table = alice_dtable_find_child(color_table, "r");
 				if (r_table && r_table->value.type == ALICE_DTABLE_NUMBER) {
-					color.r = r_table->value.as.number;
+					color.r = (float)r_table->value.as.number;
 				}
 
 				alice_DTable* g_table = alice_dtable_find_child(color_table, "g");
 				if (g_table && g_table->value.type == ALICE_DTABLE_NUMBER) {
-					color.g = g_table->value.as.number;
+					color.g = (float)g_table->value.as.number;
 				}
 
 				alice_DTable* b_table = alice_dtable_find_child(color_table, "b");
 				if (b_table && b_table->value.type == ALICE_DTABLE_NUMBER) {
-					color.b = b_table->value.as.number;
+					color.b = (float)b_table->value.as.number;
 				}
 
 				light->color = alice_color_from_rgb_color(color);
@@ -657,7 +657,7 @@ static alice_EntityHandle alice_deserialise_entity(alice_DTable* table, alice_Sc
 
 			alice_DTable* intensity_table = alice_dtable_find_child(table, "intensity");
 			if (intensity_table && intensity_table->value.type == ALICE_DTABLE_NUMBER) {
-				light->intensity = intensity_table->value.as.number;
+				light->intensity = (float)intensity_table->value.as.number;
 			}
 
 			alice_DTable* cast_shadows_table = alice_dtable_find_child(table, "cast_shadows");
@@ -671,17 +671,17 @@ static alice_EntityHandle alice_deserialise_entity(alice_DTable* table, alice_Sc
 
 				alice_DTable* r_table = alice_dtable_find_child(color_table, "r");
 				if (r_table && r_table->value.type == ALICE_DTABLE_NUMBER) {
-					color.r = r_table->value.as.number;
+					color.r = (float)r_table->value.as.number;
 				}
 
 				alice_DTable* g_table = alice_dtable_find_child(color_table, "g");
 				if (g_table && g_table->value.type == ALICE_DTABLE_NUMBER) {
-					color.g = g_table->value.as.number;
+					color.g = (float)g_table->value.as.number;
 				}
 
 				alice_DTable* b_table = alice_dtable_find_child(color_table, "b");
 				if (b_table && b_table->value.type == ALICE_DTABLE_NUMBER) {
-					color.b = b_table->value.as.number;
+					color.b = (float)b_table->value.as.number;
 				}
 
 				light->color = alice_color_from_rgb_color(color);
@@ -694,27 +694,27 @@ static alice_EntityHandle alice_deserialise_entity(alice_DTable* table, alice_Sc
 
 			alice_DTable* mass_table = alice_dtable_find_child(table, "mass");
 			if (mass_table && mass_table->value.type == ALICE_DTABLE_NUMBER) {
-				rigidbody->mass = mass_table->value.as.number;
+				rigidbody->mass = (float)mass_table->value.as.number;
 			}
 
 			alice_DTable* restitution_table = alice_dtable_find_child(table, "restitution");
 			if (restitution_table && restitution_table->value.type == ALICE_DTABLE_NUMBER) {
-				rigidbody->restitution = restitution_table->value.as.number;
+				rigidbody->restitution = (float)restitution_table->value.as.number;
 			}
 
 			alice_DTable* gravity_scale_table = alice_dtable_find_child(table, "gravity_scale");
 			if (gravity_scale_table && gravity_scale_table->value.type == ALICE_DTABLE_NUMBER) {
-				rigidbody->gravity_scale = gravity_scale_table->value.as.number;
+				rigidbody->gravity_scale = (float)gravity_scale_table->value.as.number;
 			}
 
 			alice_DTable* dynamic_friction_table = alice_dtable_find_child(table, "dynamic_friction");
 			if (dynamic_friction_table && dynamic_friction_table->value.type == ALICE_DTABLE_NUMBER) {
-				rigidbody->dynamic_friction = dynamic_friction_table->value.as.number;
+				rigidbody->dynamic_friction = (float)dynamic_friction_table->value.as.number;
 			}
 
 			alice_DTable* static_friction_table = alice_dtable_find_child(table, "static_friction");
 			if (static_friction_table && dynamic_friction_table->value.type == ALICE_DTABLE_NUMBER) {
-				rigidbody->static_friction = static_friction_table->value.as.number;
+				rigidbody->static_friction = (float)static_friction_table->value.as.number;
 			}
 
 			alice_DTable* box_table = alice_dtable_find_child(table, "box");
@@ -723,17 +723,17 @@ static alice_EntityHandle alice_deserialise_entity(alice_DTable* table, alice_Sc
 				if (dimentions_table) {
 					alice_DTable* x_table = alice_dtable_find_child(dimentions_table, "x");
 					if (x_table && x_table->value.type == ALICE_DTABLE_NUMBER) {
-						rigidbody->box.dimentions.x = x_table->value.as.number;
+						rigidbody->box.dimentions.x = (float)x_table->value.as.number;
 					}
 
 					alice_DTable* y_table = alice_dtable_find_child(dimentions_table, "y");
 					if (y_table && y_table->value.type == ALICE_DTABLE_NUMBER) {
-						rigidbody->box.dimentions.y = y_table->value.as.number;
+						rigidbody->box.dimentions.y = (float)y_table->value.as.number;
 					}
 
 					alice_DTable* z_table = alice_dtable_find_child(dimentions_table, "z");
 					if (z_table && z_table->value.type == ALICE_DTABLE_NUMBER) {
-						rigidbody->box.dimentions.z = z_table->value.as.number;
+						rigidbody->box.dimentions.z = (float)z_table->value.as.number;
 					}
 				}
 
@@ -741,17 +741,17 @@ static alice_EntityHandle alice_deserialise_entity(alice_DTable* table, alice_Sc
 				if (position_table) {
 					alice_DTable* x_table = alice_dtable_find_child(position_table, "x");
 					if (x_table && x_table->value.type == ALICE_DTABLE_NUMBER) {
-						rigidbody->box.position.x = x_table->value.as.number;
+						rigidbody->box.position.x = (float)x_table->value.as.number;
 					}
 
 					alice_DTable* y_table = alice_dtable_find_child(position_table, "y");
 					if (y_table && y_table->value.type == ALICE_DTABLE_NUMBER) {
-						rigidbody->box.position.y = y_table->value.as.number;
+						rigidbody->box.position.y = (float)y_table->value.as.number;
 					}
 
 					alice_DTable* z_table = alice_dtable_find_child(position_table, "z");
 					if (z_table && z_table->value.type == ALICE_DTABLE_NUMBER) {
-						rigidbody->box.position.z = z_table->value.as.number;
+						rigidbody->box.position.z = (float)z_table->value.as.number;
 					}
 				}
 			}
@@ -838,7 +838,7 @@ void alice_deserialise_scene(alice_Scene* scene, const char* file_path) {
 
 		alice_DTable* bloom_threshold_table = alice_dtable_find_child(settings_table, "bloom_threshold");
 		if (bloom_threshold_table && bloom_threshold_table->value.type == ALICE_DTABLE_NUMBER) {
-			scene->renderer->bloom_threshold = bloom_threshold_table->value.as.number;
+			scene->renderer->bloom_threshold = (float)bloom_threshold_table->value.as.number;
 		}
 
 		alice_DTable* bloom_blur_iterations_table = alice_dtable_find_child(settings_table,
@@ -859,7 +859,7 @@ void alice_deserialise_scene(alice_Scene* scene, const char* file_path) {
 
 		alice_DTable* gravity_table = alice_dtable_find_child(settings_table, "gravity");
 		if (gravity_table && gravity_table->value.type == ALICE_DTABLE_NUMBER) {
-			scene->physics_engine->gravity = gravity_table->value.as.number;
+			scene->physics_engine->gravity = (float)gravity_table->value.as.number;
 		}
 	}
 

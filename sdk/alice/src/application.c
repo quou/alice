@@ -74,7 +74,7 @@ static void mouse_button_callback(GLFWwindow* window, i32 button, i32 action, i3
 }
 
 static void mouse_move_callback(GLFWwindow* window, double x, double y) {
-	alice_set_mouse_position((alice_v2i){x, y});
+	alice_set_mouse_position((alice_v2i){(i32)x, (i32)y});
 }
 
 alice_Application app;
@@ -84,7 +84,7 @@ alice_Application* alice_get_application() {
 }
 
 void alice_init_application(alice_ApplicationConfig cfg) {
-	srand(time(alice_null));
+	srand((u32)time(alice_null));
 
 	app.name = cfg.name;
 	app.width = cfg.width;
@@ -143,10 +143,10 @@ void alice_init_application(alice_ApplicationConfig cfg) {
 
 		float verts[] = {
 			/* position     UV */
-			 0.5,  0.5, 	1.0f, 0.0f,
-			 0.5, -0.5, 	1.0f, 1.0f,
-			-0.5, -0.5, 	0.0f, 1.0f,
-			-0.5,  0.5, 	0.0f, 0.0f
+			 0.5f,  0.5f, 	1.0f, 0.0f,
+			 0.5f, -0.5f, 	1.0f, 1.0f,
+			-0.5f, -0.5f, 	0.0f, 1.0f,
+			-0.5f,  0.5f, 	0.0f, 0.0f
 		};
 
 		u32 indices[] = {
@@ -164,15 +164,15 @@ void alice_init_application(alice_ApplicationConfig cfg) {
 		alice_configure_vertex_buffer(quad, 0, 2, 4, 0);
 		alice_configure_vertex_buffer(quad, 1, 2, 4, 2);
 
-		alice_m4f projection = alice_m4f_ortho(-((float)cfg.width / 2.0), (float)cfg.width / 2.0,
-			(float)cfg.height / 2.0, -((float)cfg.height / 2.0), -1.0, 1.0);
+		alice_m4f projection = alice_m4f_ortho(-((float)cfg.width / 2.0f), (float)cfg.width / 2.0f,
+			(float)cfg.height / 2.0f, -((float)cfg.height / 2.0f), -1.0f, 1.0f);
 		alice_m4f model = alice_m4f_scale(
 			alice_m4f_identity(),
-			(alice_v3f) {splash_texture->width / 2.0, splash_texture->height / 2.0, 0.0});
+			(alice_v3f) {splash_texture->width / 2.0f, splash_texture->height / 2.0f, 0.0f});
 
-		glClearColor(1.0, 1.0, 1.0, 1.0);
+		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 		alice_render_clear();
-		glClearColor(0.0, 0.0, 0.0, 0.0);
+		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
 		alice_bind_shader(shader);
 		alice_bind_texture(splash_texture, 0);
@@ -237,7 +237,7 @@ void alice_set_application_fullscreen(u32 monitor_index, bool fullscreen) {
 		i32 monitor_count;
 		GLFWmonitor** monitors = glfwGetMonitors(&monitor_count);
 
-		if (monitor_index >= monitor_count) {
+		if (monitor_index >= (u32)monitor_count) {
 			monitor_index = 0;
 		}
 

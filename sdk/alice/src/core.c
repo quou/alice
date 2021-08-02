@@ -9,7 +9,7 @@
 char* alice_copy_string(const char* string) {
 	assert(string);
 
-	const u32 len = strlen(string);
+	const u32 len = (u32)strlen(string);
 
 	char* result = malloc(len + 1);
 
@@ -22,7 +22,7 @@ char* alice_copy_string(const char* string) {
 u32 alice_hash_string(const char* string) {
 	assert(string);
 
-	const u32 len = strlen(string);
+	const u32 len = (u32)strlen(string);
 
 	u32 hash = 2166136261u;
 	for (u32 i = 0; i < len; i++) {

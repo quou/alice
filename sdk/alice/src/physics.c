@@ -81,19 +81,19 @@ bool alice_aabb_vs_aabb(alice_AABB a, alice_AABB b, alice_Manifold* manifold) {
 	float a_extent = (a.max.x - a.min.x) / 2.0f;
 	float b_extent = (b.max.x - b.min.x) / 2.0f;
 
-	const float x_overlap = (a_extent + b_extent) - fabs(n.x);
+	const float x_overlap = (a_extent + b_extent) - (float)fabs(n.x);
 
 	if (x_overlap > 0.0f) {
 		a_extent = (a.max.y - a.min.y) / 2.0f;
 		b_extent = (b.max.y - b.min.y) / 2.0f;
 
-		const float y_overlap = (a_extent + b_extent) - fabs(n.y);
+		const float y_overlap = (a_extent + b_extent) - (float)fabs(n.y);
 
 		if (y_overlap > 0.0f) {
 			a_extent = (a.max.z - a.min.z) / 2.0f;
 			b_extent = (b.max.z - b.min.z) / 2.0f;
 
-			const float z_overlap = (a_extent + b_extent) - fabs(n.z);
+			const float z_overlap = (a_extent + b_extent) - (float)fabs(n.z);
 
 			if (z_overlap > 0.0f) {
 				float smallest_overlap = x_overlap;
@@ -221,16 +221,16 @@ static void alice_tick_physics_engine(alice_PhysicsEngine* engine, double timest
 		body->inverse_mass = body->mass == 0.0f ? 0.0f : 1.0f / body->mass;
 
 		body->velocity = (alice_v3f) {
-			.x = body->velocity.x + ((body->inverse_mass * body->force.x) * timestep),
+			.x = body->velocity.x + ((body->inverse_mass * body->force.x) * (float)timestep),
 			.y = body->velocity.y + ((body->inverse_mass * body->force.y
-						+ (engine->gravity * body->gravity_scale)) * timestep),
-			.z = body->velocity.z + ((body->inverse_mass * body->force.z) * timestep),
+						+ (engine->gravity * body->gravity_scale)) * (float)timestep),
+			.z = body->velocity.z + ((body->inverse_mass * body->force.z) * (float)timestep),
 		};
 
 		body->base.position = (alice_v3f){
-			.x = body->base.position.x + body->velocity.x * timestep,
-			.y = body->base.position.y + body->velocity.y * timestep,
-			.z = body->base.position.z + body->velocity.z * timestep,
+			.x = body->base.position.x + body->velocity.x * (float)timestep,
+			.y = body->base.position.y + body->velocity.y * (float)timestep,
+			.z = body->base.position.z + body->velocity.z * (float)timestep,
 		};
 	}
 
@@ -350,7 +350,7 @@ static void alice_tick_physics_engine(alice_PhysicsEngine* engine, double timest
 		float jt = -alice_v3f_dot(relative_velocity, tangent_vector);
 		jt /= a->inverse_mass + b->inverse_mass;
 
-		const float mu = sqrt((a->static_friction * a->static_friction)
+		const float mu = sqrtf((a->static_friction * a->static_friction)
 				+ (b->static_friction * b->static_friction));
 
 		alice_v3f friction_impulse;
@@ -361,7 +361,7 @@ static void alice_tick_physics_engine(alice_PhysicsEngine* engine, double timest
 				.z = jt * tangent_vector.z,
 			};
 		} else {
-			const float dynamic_friction = sqrt((a->dynamic_friction * a->dynamic_friction) +
+			const float dynamic_friction = sqrtf((a->dynamic_friction * a->dynamic_friction) +
 					(b->dynamic_friction * b->dynamic_friction));
 			friction_impulse = (alice_v3f){
 				.x = -j * dynamic_friction * tangent_vector.x,
@@ -392,7 +392,7 @@ void alice_update_physics_engine(alice_PhysicsEngine* engine, double timestep) {
 	const double fps = 60.0f;
 	const double dt = 1.0f / fps;
 
-	engine->accumulator += timestep;
+	engine->accumulator += (float)timestep;
 
 	if (engine->accumulator > 0.2f) {
 		engine->accumulator = 0.2f;
@@ -404,10 +404,10 @@ void alice_update_physics_engine(alice_PhysicsEngine* engine, double timestep) {
 		}
 
 		alice_tick_physics_engine(engine, dt);
-		engine->accumulator -= dt;
+		engine->accumulator -= (float)dt;
 	}
 
-	const double alpha = engine->accumulator / dt;
+	const float alpha = engine->accumulator / (float)dt;
 
 	for (alice_entity_iter(engine->scene, iter, alice_Rigidbody3D)) {
 		alice_Rigidbody3D* rigidbody = iter.current_ptr;
