@@ -31,8 +31,7 @@ project "alice"
 		"glfw",
 		"glad",
 		"stb",
-		"physfs",
-		"lua"
+		"physfs"
 	}
 
 	defines {
