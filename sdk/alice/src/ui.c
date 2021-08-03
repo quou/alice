@@ -480,6 +480,197 @@ void alice_text_queue_add(alice_UITextQueue* queue, const char* text, alice_v2f 
 	element->position = position;
 }
 
+static bool alice_draw_ui_element(alice_UIContext* context, alice_UIWindow* window, alice_UIElement* element, alice_UITextQueue* text_queue) {
+	assert(context);
+	assert(window);
+	assert(element);
+
+	const float padding = context->ui_cfg[ALICE_UICFG_PADDING];
+	const float outline_thickness = context->ui_cfg[ALICE_UICFG_OUTLINE_WIDTH];
+	const float column_size = context->ui_cfg[ALICE_UICFG_COLUMN_SIZE];
+
+	const alice_v2f element_dimensions = alice_calculate_ui_element_dimentions(context, element);
+
+	const alice_v2f element_position = (alice_v2f) {
+		.x = window->position.x + element->position.x,
+		.y = window->position.y + element->position.y
+	};
+
+	const alice_UIRect element_rect = (alice_UIRect) {
+		.x = element_position.x,
+		.y = element_position.y,
+		.w = element_dimensions.x,
+		.h = element_dimensions.y
+	};
+
+	const alice_UIRect element_outline_rect = (alice_UIRect) {
+		.x = element_position.x - outline_thickness,
+		.y = element_position.y - outline_thickness,
+		.w = element_dimensions.x + (outline_thickness * 2.0f),
+		.h = element_dimensions.y + (outline_thickness * 2.0f)
+	};
+
+	const alice_Color outline_color = context->ui_colors[ALICE_UICOLOR_OUTLINE];
+	const alice_Color background_color = context->ui_colors[ALICE_UICOLOR_BACKGROUND];
+	const alice_Color hovered_color = context->ui_colors[ALICE_UICOLOR_HOVERED];
+	const alice_Color active_color = context->ui_colors[ALICE_UICOLOR_ACTIVE];
+
+	bool element_hovered = false;
+	bool element_held = false;
+	bool element_clicked = false;
+
+	if (alice_mouse_over_ui_rect(element_rect)) {
+		element_hovered = true;
+
+		if (context->hovered_element != element && element->on_hover) {
+			element->on_hover(context, element);
+		}
+
+		if (alice_mouse_button_pressed(ALICE_MOUSE_BUTTON_LEFT)) {
+			element_held = true;
+		}
+
+		if (alice_mouse_button_just_released(ALICE_MOUSE_BUTTON_LEFT)) {
+			if (element->type == ALICE_UIELEMENT_TEXTINPUT ||
+					element->type == ALICE_UIELEMENT_TOGGLE) {
+				context->active_input = element;
+			} else {
+				context->active_input = alice_null;
+			}
+
+			element_clicked = true;
+		}
+
+		context->hovered_element = element;
+	} else if (context->hovered_element == element) {
+		context->hovered_element = alice_null;
+	}
+
+	switch (element->type) {
+		case ALICE_UIELEMENT_BUTTON: {
+			alice_UIButton* button = (alice_UIButton*)element;
+
+			alice_Color color = background_color;
+			if (element_held) {
+				color = active_color;
+			} else if (element_hovered) {
+				color = hovered_color;
+			}
+
+			alice_draw_ui_rect(context->renderer, element_outline_rect, outline_color);
+			alice_draw_ui_rect(context->renderer, element_rect, color);
+
+			const alice_v2f text_position = (alice_v2f) {
+				.x = element_position.x + padding,
+				.y = element_position.y
+			};
+
+			alice_text_queue_add(text_queue, button->text, text_position);
+
+			break;
+		}
+		case ALICE_UIELEMENT_TOGGLE: {
+			alice_UIToggle* toggle = (alice_UIToggle*)element;
+
+			const alice_UIRect box_rect = (alice_UIRect){
+				.x = (window->position.x + window->dimentions.x) -
+					(padding + column_size),
+				.y = element_position.y + padding,
+				.w = padding * 6.0f,
+				.h = element_dimensions.y - (padding * 2.0f)
+			};
+
+			const alice_UIRect box_outline_rect = (alice_UIRect){
+				.x = box_rect.x - outline_thickness,
+				.y = box_rect.y - outline_thickness,
+				.w = box_rect.w + (outline_thickness * 2.0f),
+				.h = box_rect.h + (outline_thickness * 2.0f)
+			};
+
+			alice_draw_ui_rect(context->renderer, box_outline_rect, outline_color);
+			alice_draw_ui_rect(context->renderer, box_rect, background_color);
+
+			if (element_clicked) {
+				toggle->value = !toggle->value;
+			}
+
+			if (toggle->value) {
+				const alice_UIRect box_check_rect = (alice_UIRect) {
+					.x = box_rect.x + padding,
+					.y = box_rect.y + padding,
+					.w = box_rect.w - padding * 2.0f,
+					.h = box_rect.h - padding * 2.0f
+				};
+
+				alice_draw_ui_rect(context->renderer, box_check_rect, active_color);
+			}
+
+			const alice_v2f label_position = (alice_v2f){
+				.x = element_position.x,
+				.y = element_position.y + padding
+			};
+
+			const alice_v2f buffer_position = (alice_v2f){
+				.x = box_rect.x + padding,
+				.y = box_rect.y
+			};
+
+			alice_text_queue_add(text_queue, toggle->label, label_position);
+
+			break;
+		}
+		case ALICE_UIELEMENT_LABEL: {
+			alice_UILabel* label = (alice_UILabel*)element;
+
+			alice_text_queue_add(text_queue, label->text, element_position);
+
+			break;
+		}
+		case ALICE_UIELEMENT_TEXTINPUT: {
+			alice_UITextInput* input = (alice_UITextInput*)element;
+
+			const alice_UIRect box_rect = (alice_UIRect) {
+				.x = (window->position.x + window->dimentions.x) -
+					(padding + column_size),
+				.y = element_position.y + padding,
+				.w = column_size,
+				.h = element_dimensions.y - (padding * 2.0f)
+			};
+
+			const alice_UIRect box_outline_rect = (alice_UIRect) {
+				.x = box_rect.x - outline_thickness,
+				.y = box_rect.y - outline_thickness,
+				.w = box_rect.w + (outline_thickness * 2.0f),
+				.h = box_rect.h + (outline_thickness * 2.0f)
+			};
+
+			alice_draw_ui_rect(context->renderer, box_outline_rect, outline_color);
+			alice_draw_ui_rect(context->renderer, box_rect, background_color);
+
+			const alice_v2f label_position = (alice_v2f) {
+				.x = element_position.x,
+				.y = element_position.y + padding
+			};
+
+			const alice_v2f buffer_position = (alice_v2f) {
+				.x = box_rect.x + padding,
+				.y = box_rect.y
+			};
+
+			alice_text_queue_add(text_queue, input->label, label_position);
+			//alice_text_queue_add(&text_queue, input->buffer, buffer_position);
+
+			break;
+		}
+	}
+
+	if (element_clicked && element->on_click) {
+		element->on_click(context, element);
+	}
+
+	return element_hovered;
+}
+
 void alice_draw_ui(alice_UIContext* context) {
 	assert(context);
 
@@ -614,184 +805,8 @@ void alice_draw_ui(alice_UIContext* context) {
 		for (u32 i = 0; i < window->element_count; i++) {
 			alice_UIElement* element = window->elements[i];
 
-			const alice_v2f element_dimensions = alice_calculate_ui_element_dimentions(context, element);
-
-			const alice_v2f element_position = (alice_v2f) {
-				.x = window->position.x + element->position.x,
-				.y = window->position.y + element->position.y
-			};
-
-			const alice_UIRect element_rect = (alice_UIRect) {
-				.x = element_position.x,
-				.y = element_position.y,
-				.w = element_dimensions.x,
-				.h = element_dimensions.y
-			};
-
-			const alice_UIRect element_outline_rect = (alice_UIRect) {
-				.x = element_position.x - outline_thickness,
-				.y = element_position.y - outline_thickness,
-				.w = element_dimensions.x + (outline_thickness * 2.0f),
-				.h = element_dimensions.y + (outline_thickness * 2.0f)
-			};
-
-			const alice_Color outline_color = context->ui_colors[ALICE_UICOLOR_OUTLINE];
-			const alice_Color background_color = context->ui_colors[ALICE_UICOLOR_BACKGROUND];
-			const alice_Color hovered_color = context->ui_colors[ALICE_UICOLOR_HOVERED];
-			const alice_Color active_color = context->ui_colors[ALICE_UICOLOR_ACTIVE];
-
-			bool element_hovered = false;
-			bool element_held = false;
-			bool element_clicked = false;
-
-			if (alice_mouse_over_ui_rect(element_rect)) {
-				element_hovered = true;
+			if (alice_draw_ui_element(context, window, element, &text_queue)) {
 				any_element_hovered = true;
-
-				if (context->hovered_element != element && element->on_hover) {
-					element->on_hover(context, element);
-				}
-
-				if (alice_mouse_button_pressed(ALICE_MOUSE_BUTTON_LEFT)) {
-					element_held = true;
-				}
-
-				if (alice_mouse_button_just_released(ALICE_MOUSE_BUTTON_LEFT)) {
-					if (element->type == ALICE_UIELEMENT_TEXTINPUT ||
-							element->type == ALICE_UIELEMENT_TOGGLE) {
-						context->active_input = element;
-					} else {
-						context->active_input = alice_null;
-					}
-
-					element_clicked = true;
-				}
-
-				context->hovered_element = element;
-			} else if (context->hovered_element == element) {
-				context->hovered_element = alice_null;
-			}
-
-			switch (element->type) {
-				case ALICE_UIELEMENT_BUTTON: {
-					alice_UIButton* button = (alice_UIButton*)element;
-
-					alice_Color color = background_color;
-					if (element_held) {
-						color = active_color;
-					} else if (element_hovered) {
-						color = hovered_color;
-					}
-
-					alice_draw_ui_rect(context->renderer, element_outline_rect, outline_color);
-					alice_draw_ui_rect(context->renderer, element_rect, color);
-
-					const alice_v2f text_position = (alice_v2f) {
-						.x = element_position.x + padding,
-						.y = element_position.y
-					};
-
-					alice_text_queue_add(&text_queue, button->text, text_position);
-
-					break;
-				}
-				case ALICE_UIELEMENT_TOGGLE: {
-					alice_UIToggle* toggle = (alice_UIToggle*)element;
-
-					const alice_UIRect box_rect = (alice_UIRect){
-						.x = (window->position.x + window->dimentions.x) -
-							(padding + column_size),
-						.y = element_position.y + padding,
-						.w = padding * 6.0f,
-						.h = element_dimensions.y - (padding * 2.0f)
-					};
-
-					const alice_UIRect box_outline_rect = (alice_UIRect){
-						.x = box_rect.x - outline_thickness,
-						.y = box_rect.y - outline_thickness,
-						.w = box_rect.w + (outline_thickness * 2.0f),
-						.h = box_rect.h + (outline_thickness * 2.0f)
-					};
-
-					alice_draw_ui_rect(context->renderer, box_outline_rect, outline_color);
-					alice_draw_ui_rect(context->renderer, box_rect, background_color);
-
-					if (element_clicked) {
-						toggle->value = !toggle->value;
-					}
-
-					if (toggle->value) {
-						const alice_UIRect box_check_rect = (alice_UIRect) {
-							.x = box_rect.x + padding,
-							.y = box_rect.y + padding,
-							.w = box_rect.w - padding * 2.0f,
-							.h = box_rect.h - padding * 2.0f
-						};
-
-						alice_draw_ui_rect(context->renderer, box_check_rect, active_color);
-					}
-
-					const alice_v2f label_position = (alice_v2f){
-						.x = element_position.x,
-						.y = element_position.y + padding
-					};
-
-					const alice_v2f buffer_position = (alice_v2f){
-						.x = box_rect.x + padding,
-						.y = box_rect.y
-					};
-
-					alice_text_queue_add(&text_queue, toggle->label, label_position);
-
-					break;
-				}
-				case ALICE_UIELEMENT_LABEL: {
-					alice_UILabel* label = (alice_UILabel*)element;
-
-					alice_text_queue_add(&text_queue, label->text, element_position);
-
-					break;
-				}
-				case ALICE_UIELEMENT_TEXTINPUT: {
-					alice_UITextInput* input = (alice_UITextInput*)element;
-
-					const alice_UIRect box_rect = (alice_UIRect) {
-						.x = (window->position.x + window->dimentions.x) -
-							(padding + column_size),
-						.y = element_position.y + padding,
-						.w = column_size,
-						.h = element_dimensions.y - (padding * 2.0f)
-					};
-
-					const alice_UIRect box_outline_rect = (alice_UIRect) {
-						.x = box_rect.x - outline_thickness,
-						.y = box_rect.y - outline_thickness,
-						.w = box_rect.w + (outline_thickness * 2.0f),
-						.h = box_rect.h + (outline_thickness * 2.0f)
-					};
-
-					alice_draw_ui_rect(context->renderer, box_outline_rect, outline_color);
-					alice_draw_ui_rect(context->renderer, box_rect, background_color);
-
-					const alice_v2f label_position = (alice_v2f) {
-						.x = element_position.x,
-						.y = element_position.y + padding
-					};
-
-					const alice_v2f buffer_position = (alice_v2f) {
-						.x = box_rect.x + padding,
-						.y = box_rect.y
-					};
-
-					alice_text_queue_add(&text_queue, input->label, label_position);
-					//alice_text_queue_add(&text_queue, input->buffer, buffer_position);
-
-					break;
-				}
-			}
-
-			if (element_clicked && element->on_click) {
-				element->on_click(context, element);
 			}
 		}
 
