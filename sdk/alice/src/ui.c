@@ -385,6 +385,7 @@ void alice_apply_default_ui_config(alice_UIContext* context) {
 	context->ui_colors[ALICE_UICOLOR_HOVERED] = 0xdbdbdb;
 	context->ui_colors[ALICE_UICOLOR_ACCENT1] = 0x52528c;
 	context->ui_colors[ALICE_UICOLOR_ACCENT2] = 0x6b6bbc;
+	context->ui_colors[ALICE_UICOLOR_INACTIVE] = 0xb7b7b7;
 }
 
 alice_v2f alice_calculate_ui_element_dimentions(alice_UIContext* context, alice_UIElement* element) {
@@ -794,9 +795,15 @@ void alice_draw_ui(alice_UIContext* context) {
 			.w = window->dimentions.x,
 			.h = title_height + (outline_thickness * 2.0f)
 		};
-		alice_draw_ui_rect(context->renderer, window_rect, context->ui_colors[ALICE_UICOLOR_BACKGROUND]);
+
+		alice_Color window_background_color = context->ui_colors[ALICE_UICOLOR_INACTIVE];
+		if (window->interactable) {
+			window_background_color = context->ui_colors[ALICE_UICOLOR_BACKGROUND];
+		}
+
+		alice_draw_ui_rect(context->renderer, window_rect, window_background_color);
 		alice_draw_ui_rect(context->renderer, title_outline_rect, context->ui_colors[ALICE_UICOLOR_OUTLINE]);
-		alice_draw_ui_rect(context->renderer, title_rect, context->ui_colors[ALICE_UICOLOR_BACKGROUND]);
+		alice_draw_ui_rect(context->renderer, title_rect, window_background_color);
 
 		if (window->can_close) {
 			const alice_UIRect close_button_rect = (alice_UIRect) {
