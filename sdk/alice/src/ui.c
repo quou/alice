@@ -531,7 +531,7 @@ static bool alice_draw_ui_element(alice_UIContext* context, alice_UIWindow* wind
 			element_held = true;
 		}
 
-		if (alice_mouse_button_just_released(ALICE_MOUSE_BUTTON_LEFT)) {
+		if (window->interactable && alice_mouse_button_just_released(ALICE_MOUSE_BUTTON_LEFT)) {
 			if (element->type == ALICE_UIELEMENT_TEXTINPUT ||
 					element->type == ALICE_UIELEMENT_TOGGLE) {
 				context->active_input = element;
@@ -672,6 +672,13 @@ static bool alice_draw_ui_element(alice_UIContext* context, alice_UIWindow* wind
 	return element_hovered;
 }
 
+i32 alice_window_z_sort_compare(const void* av, const void* bv) {
+	const alice_UIWindow* a = av;
+	const alice_UIWindow* b = bv;
+
+	return b->z_index - a->z_index;
+}
+
 void alice_draw_ui(alice_UIContext* context) {
 	assert(context);
 
@@ -690,11 +697,17 @@ void alice_draw_ui(alice_UIContext* context) {
 	alice_UITextQueue text_queue;
 	alice_init_text_queue(&text_queue);
 
-	/* Draw rectangles */
-	alice_ui_renderer_begin_batch(context->renderer);
+	if (context->z_order_changed) {
+		qsort(context->windows, context->window_count,
+				sizeof(alice_UIWindow),
+				alice_window_z_sort_compare);
+		context->z_order_changed = false;
+	}
 
 	for (u32 i = 0; i < context->window_count; i++) {
 		alice_UIWindow* window = &context->windows[i];
+
+		alice_ui_renderer_begin_batch(context->renderer);
 
 		if (!window->visible) { continue; }
 
@@ -715,6 +728,21 @@ void alice_draw_ui(alice_UIContext* context) {
 			.w = window->dimentions.x - (outline_thickness * 2.0f),
 			.h = title_height
 		};
+
+		if (
+				(alice_mouse_over_ui_rect(window_rect) ||
+				alice_mouse_over_ui_rect(title_rect)) &&
+				(alice_mouse_button_just_pressed(ALICE_MOUSE_BUTTON_LEFT) ||
+				 alice_mouse_button_just_pressed(ALICE_MOUSE_BUTTON_RIGHT))) {
+			for (u32 j = 0; j < context->window_count; j++) {
+				context->windows[j].z_index++;
+			}
+
+			context->z_order_changed = true;
+			window->z_index = 0;
+		}
+
+		window->interactable = window->z_index == 0;
 
 		if (window->position.x + window->dimentions.x > (float)app->width) {
 			window->position.x = (float)app->width - window->dimentions.x;
@@ -741,6 +769,10 @@ void alice_draw_ui(alice_UIContext* context) {
 				.x = mouse_pos.x - window->position.x,
 				.y = mouse_pos.y - window->position.y
 			};
+		}
+
+		if (!window->interactable) {
+			window->being_dragged = false;
 		}
 
 		if (window->being_dragged) {
@@ -818,17 +850,17 @@ void alice_draw_ui(alice_UIContext* context) {
 		if (!any_element_hovered && alice_mouse_button_just_released(ALICE_MOUSE_BUTTON_LEFT)) {
 			context->active_input = alice_null;
 		}
+
+		alice_ui_renderer_end_batch(context->renderer);
+
+		for (u32 i = 0; i < text_queue.count; i++) {
+			alice_UITextQueueElement* e = &text_queue.elements[i];
+
+			alice_render_text(context->text_renderer, e->position, e->text);
+		}
+
+		alice_deinit_text_queue(&text_queue);
 	}
-
-	alice_ui_renderer_end_batch(context->renderer);
-
-	for (u32 i = 0; i < text_queue.count; i++) {
-		alice_UITextQueueElement* e = &text_queue.elements[i];
-
-		alice_render_text(context->text_renderer, e->position, e->text);
-	}
-
-	alice_deinit_text_queue(&text_queue);
 }
 
 static void alice_draw_gizmo(alice_UIContext* context, alice_Scene* scene, alice_Entity* entity, alice_m4f* view) {
@@ -969,6 +1001,9 @@ void alice_init_ui_window(alice_UIWindow* window, u32 id) {
 	window->elements = alice_null;
 
 	window->visible = true;
+	window->interactable = true;
+
+	window->z_index = 0;
 
 	window->being_dragged = false;
 

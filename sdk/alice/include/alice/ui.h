@@ -101,6 +101,9 @@ struct alice_UIWindow {
 
 	bool can_close;
 	bool visible;
+	bool interactable;
+
+	u32 z_index;
 
 	alice_UIElement* last_element;
 
@@ -166,6 +169,8 @@ struct alice_UIContext {
 
 	alice_UIElement* hovered_element;
 	alice_UIElement* active_input;
+
+	bool z_order_changed;
 
 	float text_size;
 
