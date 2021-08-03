@@ -1273,7 +1273,7 @@ void alice_draw_shadowmap(alice_Shadowmap* shadowmap, alice_Scene* scene, alice_
 			(alice_v3f) { 0.0f, 1.0f, 0.0f });
 
 	alice_AABB scene_aabb = alice_compute_scene_aabb(scene);
-	scene_aabb = alice_transform_aabb(scene_aabb, light_view);
+	scene_aabb = alice_transform_aabb(scene_aabb, alice_m4f_inverse(light_view));
 
 	alice_m4f light_projection = alice_m4f_ortho(
 			scene_aabb.min.x, scene_aabb.max.x,
