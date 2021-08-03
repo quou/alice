@@ -522,6 +522,22 @@ void alice_draw_ui(alice_UIContext* context) {
 			.h = title_height
 		};
 
+		if (window->position.x + window->dimentions.x > (float)app->width) {
+			window->position.x = (float)app->width - window->dimentions.x;
+		}
+
+		if (window->position.y + window->dimentions.y > (float)app->height) {
+			window->position.y = (float)app->height - window->dimentions.y;
+		}
+
+		if (window->position.x < 0.0f) {
+			window->position.x = 0.0f;
+		}
+
+		if (window->position.y - title_height < 0.0f) {
+			window->position.y = title_height;
+		}
+
 		if (alice_mouse_over_ui_rect(title_rect)
 				&& alice_mouse_button_just_pressed(ALICE_MOUSE_BUTTON_LEFT)) {
 			const alice_v2i mouse_pos = alice_get_mouse_position();
@@ -540,22 +556,6 @@ void alice_draw_ui(alice_UIContext* context) {
 				.x = mouse_pos.x - window->drag_offset.x,
 				.y = mouse_pos.y - window->drag_offset.y
 			};
-
-			if (window->position.x < 0.0f) {
-				window->position.x = 0.0f;
-			}
-
-			if (window->position.y - title_height < 0.0f) {
-				window->position.y = title_height;
-			}
-
-			if (window->position.x + window->dimentions.x > (float)app->width) {
-				window->position.x = (float)app->width - window->dimentions.x;
-			}
-
-			if (window->position.y + window->dimentions.y > (float)app->height) {
-				window->position.y = (float)app->height - window->dimentions.y;
-			}
 
 			if (alice_mouse_button_just_released(ALICE_MOUSE_BUTTON_LEFT)) {
 				window->being_dragged = false;
