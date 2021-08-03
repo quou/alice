@@ -99,6 +99,8 @@ struct alice_UIWindow {
 	u32 element_count;
 	u32 element_capacity;
 
+	bool visible;
+
 	alice_UIElement* last_element;
 
 	bool being_dragged;
