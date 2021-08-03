@@ -16,7 +16,11 @@ typedef struct Sandbox {
 	bool show_gui;
 	bool update_physics;
 	bool update_scripts;
+
 	alice_UIToggle* show_gui_toggle;
+
+	alice_UIWindow* scene_settings_window;
+
 	alice_Scene* scene;
 } Sandbox;
 
@@ -68,13 +72,16 @@ static void on_scripts_toggle(alice_UIContext* context, alice_UIElement* element
 	sandbox->update_scripts = toggle->value;
 }
 
-static void on_test_window_create(alice_UIContext* context, alice_UIWindow* window) {
+static void on_scene_settings_window_create(alice_UIContext* context, alice_UIWindow* window) {
 	window->title = "Scene Settings";
 	window->position = (alice_v2f){ 100.0f, 30.0f };
 	window->dimentions = (alice_v2f) { 350.0f, 600.0f };
-	window->can_close = false;
+	window->visible = false;
+	window->can_close = true;
 
 	Sandbox* sandbox = context->user_pointer;
+
+	sandbox->scene_settings_window = window;
 
 	alice_Scene* scene = sandbox->scene;
 
@@ -104,6 +111,23 @@ static void on_test_window_create(alice_UIContext* context, alice_UIWindow* wind
 	scripts_toggle->base.on_click = on_scripts_toggle;
 	scripts_toggle->label = "Scripts";
 	scripts_toggle->value = sandbox->update_scripts;
+}
+
+static void on_scene_settings_click(alice_UIContext* context, alice_UIElement* element) {
+	Sandbox* sandbox = context->user_pointer;
+
+	sandbox->scene_settings_window->visible = true;
+}
+
+static void on_toolbox_create(alice_UIContext* context, alice_UIWindow* window) {
+	window->title = "Toolbox";
+	window->position = (alice_v2f) { 0.0f, 3.0f, };
+	window->dimentions = (alice_v2f) { 350.0f, 200.0f };
+	window->can_close = false;
+
+	alice_UIButton* scene_settings_button = alice_add_ui_button(window);
+	scene_settings_button->base.on_click = on_scene_settings_click;
+	scene_settings_button->text = "Scene Settings";
 }
 
 void main() {
@@ -284,7 +308,8 @@ void main() {
 	ui->gizmo_textures[ALICE_GIZMOTEXTURE_DIRECTIONAL_LIGHT] =
 		alice_load_texture("textures/icons/sun.png", ALICE_TEXTURE_ALIASED);
 
-	alice_new_ui_window(ui, on_test_window_create);
+	alice_new_ui_window(ui, on_scene_settings_window_create);
+	alice_new_ui_window(ui, on_toolbox_create);
 
 	alice_TextRenderer* text_renderer = alice_new_text_renderer(alice_load_binary("fonts/opensans.ttf"),
 			32.0f, alice_load_shader("shaders/text.glsl"));
