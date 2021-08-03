@@ -14,6 +14,8 @@
 
 typedef struct Sandbox {
 	bool show_gui;
+	bool update_physics;
+	bool update_scripts;
 	alice_UIToggle* show_gui_toggle;
 	alice_Scene* scene;
 } Sandbox;
@@ -50,6 +52,22 @@ static void on_show_gui_toggle(alice_UIContext* context, alice_UIElement* elemen
 	sandbox->show_gui = toggle->value;
 }
 
+static void on_physics_toggle(alice_UIContext* context, alice_UIElement* element) {
+	alice_UIToggle* toggle = (alice_UIToggle*)element;
+
+	Sandbox* sandbox = context->user_pointer;
+
+	sandbox->update_physics = toggle->value;
+}
+
+static void on_scripts_toggle(alice_UIContext* context, alice_UIElement* element) {
+	alice_UIToggle* toggle = (alice_UIToggle*)element;
+
+	Sandbox* sandbox = context->user_pointer;
+
+	sandbox->update_scripts = toggle->value;
+}
+
 static void on_test_window_create(alice_UIContext* context, alice_UIWindow* window) {
 	window->title = "Scene Settings";
 	window->position = (alice_v2f){ 100.0f, 30.0f };
@@ -75,6 +93,16 @@ static void on_test_window_create(alice_UIContext* context, alice_UIWindow* wind
 	use_antialiasing_toggle->base.on_click = on_use_antialiasing_toggle;
 	use_antialiasing_toggle->label = "Antialiasing";
 	use_antialiasing_toggle->value = scene->renderer->use_antialiasing;
+
+	alice_UIToggle* physics_toggle = alice_add_ui_toggle(window);
+	physics_toggle->base.on_click = on_physics_toggle;
+	physics_toggle->label = "Physics";
+	physics_toggle->value = sandbox->update_physics;
+
+	alice_UIToggle* scripts_toggle = alice_add_ui_toggle(window);
+	scripts_toggle->base.on_click = on_scripts_toggle;
+	scripts_toggle->label = "Scripts";
+	scripts_toggle->value = sandbox->update_scripts;
 }
 
 void main() {
@@ -264,7 +292,9 @@ void main() {
 	double time_until_fps_write = 1.0;
 
 	bool fullscreen = false;
+	sandbox.update_physics = true;
 	sandbox.show_gui = false;
+	sandbox.update_scripts = true;
 
 	while (alice_is_application_running()) {
 		alice_reload_changed_resources();
@@ -291,9 +321,13 @@ void main() {
 			sandbox.show_gui_toggle->value = sandbox.show_gui;
 		}
 
-		alice_update_scripts(scene->script_context, app->timestep);
+		if (sandbox.update_scripts) {
+			alice_update_scripts(scene->script_context, app->timestep);
+		}
 
-		alice_update_physics_engine(scene->physics_engine, app->timestep);
+		if (sandbox.update_physics) {
+			alice_update_physics_engine(scene->physics_engine, app->timestep);
+		}
 
 		alice_render_scene_3d(scene->renderer, app->width, app->height, scene, alice_null);
 
