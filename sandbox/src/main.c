@@ -72,6 +72,7 @@ static void on_test_window_create(alice_UIContext* context, alice_UIWindow* wind
 	window->title = "Scene Settings";
 	window->position = (alice_v2f){ 100.0f, 30.0f };
 	window->dimentions = (alice_v2f) { 350.0f, 600.0f };
+	window->can_close = false;
 
 	Sandbox* sandbox = context->user_pointer;
 

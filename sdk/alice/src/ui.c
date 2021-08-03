@@ -480,7 +480,8 @@ void alice_text_queue_add(alice_UITextQueue* queue, const char* text, alice_v2f 
 	element->position = position;
 }
 
-static bool alice_draw_ui_element(alice_UIContext* context, alice_UIWindow* window, alice_UIElement* element, alice_UITextQueue* text_queue) {
+static bool alice_draw_ui_element(alice_UIContext* context, alice_UIWindow* window,
+		alice_UIElement* element, alice_UITextQueue* text_queue) {
 	assert(context);
 	assert(window);
 	assert(element);
@@ -755,31 +756,6 @@ void alice_draw_ui(alice_UIContext* context) {
 			}
 		}
 
-		const alice_UIRect close_button_rect = (alice_UIRect) {
-			.x = title_rect.x + title_rect.w - (title_height - (padding + 2.0f)),
-			.y = title_rect.y + padding,
-			.w = title_height - (padding * 2.0f),
-			.h = title_height - (padding * 2.0f)
-		};
-
-		const alice_UIRect close_button_outline_rect = (alice_UIRect) {
-			.x = close_button_rect.x - outline_thickness,
-			.y = close_button_rect.y - outline_thickness,
-			.w = close_button_rect.w + outline_thickness * 2.0f,
-			.h = close_button_rect.h + outline_thickness * 2.0f
-		};
-
-		alice_Color close_button_color = context->ui_colors[ALICE_UICOLOR_BACKGROUND];
-
-		if (alice_mouse_over_ui_rect(close_button_rect)) {
-			close_button_color = context->ui_colors[ALICE_UICOLOR_HOVERED];
-
-			if (alice_mouse_button_just_released(ALICE_MOUSE_BUTTON_LEFT)) {
-				window->visible = false;
-				continue;
-			}
-		}
-
 		alice_UIRect title_outline_rect = (alice_UIRect) {
 			.x = window->position.x,
 			.y = window->position.y - title_height,
@@ -789,9 +765,38 @@ void alice_draw_ui(alice_UIContext* context) {
 		alice_draw_ui_rect(context->renderer, window_rect, context->ui_colors[ALICE_UICOLOR_BACKGROUND]);
 		alice_draw_ui_rect(context->renderer, title_outline_rect, context->ui_colors[ALICE_UICOLOR_OUTLINE]);
 		alice_draw_ui_rect(context->renderer, title_rect, context->ui_colors[ALICE_UICOLOR_BACKGROUND]);
-		alice_draw_ui_rect(context->renderer, close_button_outline_rect,
-				context->ui_colors[ALICE_UICOLOR_OUTLINE]);
-		alice_draw_ui_rect(context->renderer, close_button_rect, close_button_color);
+
+		if (window->can_close) {
+			const alice_UIRect close_button_rect = (alice_UIRect) {
+				.x = title_rect.x + title_rect.w - (title_height - (padding + 2.0f)),
+				.y = title_rect.y + padding,
+				.w = title_height - (padding * 2.0f),
+				.h = title_height - (padding * 2.0f)
+			};
+
+			const alice_UIRect close_button_outline_rect = (alice_UIRect) {
+				.x = close_button_rect.x - outline_thickness,
+				.y = close_button_rect.y - outline_thickness,
+				.w = close_button_rect.w + outline_thickness * 2.0f,
+				.h = close_button_rect.h + outline_thickness * 2.0f
+			};
+
+			alice_Color close_button_color = context->ui_colors[ALICE_UICOLOR_BACKGROUND];
+
+			if (alice_mouse_over_ui_rect(close_button_rect)) {
+				close_button_color = context->ui_colors[ALICE_UICOLOR_HOVERED];
+
+				if (alice_mouse_button_just_released(ALICE_MOUSE_BUTTON_LEFT)) {
+					window->visible = false;
+					continue;
+				}
+			}
+
+			alice_draw_ui_rect(context->renderer, close_button_outline_rect,
+					context->ui_colors[ALICE_UICOLOR_OUTLINE]);
+			alice_draw_ui_rect(context->renderer, close_button_rect, close_button_color);
+
+		}
 
 		alice_v2f window_label_position = (alice_v2f) {
 			.x = window->position.x + padding,
