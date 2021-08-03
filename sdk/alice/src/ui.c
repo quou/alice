@@ -391,6 +391,7 @@ alice_v2f alice_calculate_ui_element_dimentions(alice_UIContext* context, alice_
 	assert(element);
 
 	const float padding = context->ui_cfg[ALICE_UICFG_PADDING];
+	const float column_size = context->ui_cfg[ALICE_UICFG_COLUMN_SIZE];
 
 	switch (element->type) {
 		case ALICE_UIELEMENT_BUTTON: {
@@ -426,7 +427,7 @@ alice_v2f alice_calculate_ui_element_dimentions(alice_UIContext* context, alice_
 				alice_calculate_text_dimentions(context->text_renderer, toggle->label);
 
 			return (alice_v2f) {
-				.x = (label_dimentions.x + toggle->base.window->dimentions.x) - (padding * 2.0f),
+				.x = column_size - (padding * 6.0f),
 				.y = label_dimentions.y + (padding * 4.0f)
 			};
 		}
@@ -539,6 +540,22 @@ void alice_draw_ui(alice_UIContext* context) {
 				.x = mouse_pos.x - window->drag_offset.x,
 				.y = mouse_pos.y - window->drag_offset.y
 			};
+
+			if (window->position.x < 0.0f) {
+				window->position.x = 0.0f;
+			}
+
+			if (window->position.y - title_height < 0.0f) {
+				window->position.y = title_height;
+			}
+
+			if (window->position.x + window->dimentions.x > (float)app->width) {
+				window->position.x = (float)app->width - window->dimentions.x;
+			}
+
+			if (window->position.y + window->dimentions.y > (float)app->height) {
+				window->position.y = (float)app->height - window->dimentions.y;
+			}
 
 			if (alice_mouse_button_just_released(ALICE_MOUSE_BUTTON_LEFT)) {
 				window->being_dragged = false;
