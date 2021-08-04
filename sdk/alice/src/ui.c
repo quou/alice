@@ -444,13 +444,13 @@ typedef struct alice_UITextQueueElement {
 	alice_v2f_t position;
 } alice_UITextQueueElement;
 
-typedef struct alice_UITextQueue {
+typedef struct alice_ui_text_queue_t {
 	alice_UITextQueueElement* elements;
 	u32 count;
 	u32 capacity;
-} alice_UITextQueue;
+} alice_ui_text_queue_t;
 
-void alice_init_text_queue(alice_UITextQueue* queue) {
+void alice_init_text_queue(alice_ui_text_queue_t* queue) {
 	assert(queue);
 
 	queue->elements = alice_null;
@@ -458,7 +458,7 @@ void alice_init_text_queue(alice_UITextQueue* queue) {
 	queue->capacity = 0;
 }
 
-void alice_deinit_text_queue(alice_UITextQueue* queue) {
+void alice_deinit_text_queue(alice_ui_text_queue_t* queue) {
 	assert(queue);
 
 	if (queue->capacity > 0) {
@@ -470,12 +470,12 @@ void alice_deinit_text_queue(alice_UITextQueue* queue) {
 	queue->capacity = 0;
 }
 
-void alice_text_queue_add(alice_UITextQueue* queue, const char* text, alice_v2f_t position) {
+void alice_text_queue_add(alice_ui_text_queue_t* queue, const char* text, alice_v2f_t position) {
 	assert(queue);
 
 	if (queue->count >= queue->capacity) {
 		queue->capacity = alice_grow_capacity(queue->capacity);
-		queue->elements = realloc(queue->elements, queue->capacity * sizeof(alice_UITextQueue));
+		queue->elements = realloc(queue->elements, queue->capacity * sizeof(alice_ui_text_queue_t));
 	}
 
 	alice_UITextQueueElement* element = &queue->elements[queue->count++];
@@ -484,7 +484,7 @@ void alice_text_queue_add(alice_UITextQueue* queue, const char* text, alice_v2f_
 }
 
 static bool alice_draw_ui_element(alice_ui_context_t* context, alice_ui_window_t* window,
-		alice_ui_element_t* element, alice_UITextQueue* text_queue) {
+		alice_ui_element_t* element, alice_ui_text_queue_t* text_queue) {
 	assert(context);
 	assert(window);
 	assert(element);
@@ -697,7 +697,7 @@ void alice_draw_ui(alice_ui_context_t* context) {
 	const float outline_thickness = context->ui_cfg[ALICE_UICFG_OUTLINE_WIDTH];
 	const float column_size = context->ui_cfg[ALICE_UICFG_COLUMN_SIZE];
 
-	alice_UITextQueue text_queue;
+	alice_ui_text_queue_t text_queue;
 	alice_init_text_queue(&text_queue);
 
 	if (context->z_order_changed) {
