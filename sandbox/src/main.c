@@ -35,41 +35,41 @@ static void on_button_click(alice_ui_context_t* context, alice_ui_element_t* but
 static void on_use_bloom_toggle(alice_ui_context_t* context, alice_ui_element_t* element) {
 	alice_ui_toggle_t* toggle = (alice_ui_toggle_t*)element;
 
-	sandbox_t* sandbox_t = context->user_pointer;
+	sandbox_t* sandbox = context->user_pointer;
 
-	sandbox_t->scene->renderer->use_bloom = toggle->value;
+	sandbox->scene->renderer->use_bloom = toggle->value;
 }
 
 static void on_use_antialiasing_toggle(alice_ui_context_t* context, alice_ui_element_t* element) {
 	alice_ui_toggle_t* toggle = (alice_ui_toggle_t*)element;
 
-	sandbox_t* sandbox_t = context->user_pointer;
+	sandbox_t* sandbox = context->user_pointer;
 
-	sandbox_t->scene->renderer->use_antialiasing = toggle->value;
+	sandbox->scene->renderer->use_antialiasing = toggle->value;
 }
 
 static void on_show_gui_toggle(alice_ui_context_t* context, alice_ui_element_t* element) {
 	alice_ui_toggle_t* toggle = (alice_ui_toggle_t*)element;
 
-	sandbox_t* sandbox_t = context->user_pointer;
+	sandbox_t* sandbox = context->user_pointer;
 
-	sandbox_t->show_gui = toggle->value;
+	sandbox->show_gui = toggle->value;
 }
 
 static void on_physics_toggle(alice_ui_context_t* context, alice_ui_element_t* element) {
 	alice_ui_toggle_t* toggle = (alice_ui_toggle_t*)element;
 
-	sandbox_t* sandbox_t = context->user_pointer;
+	sandbox_t* sandbox = context->user_pointer;
 
-	sandbox_t->update_physics = toggle->value;
+	sandbox->update_physics = toggle->value;
 }
 
 static void on_scripts_toggle(alice_ui_context_t* context, alice_ui_element_t* element) {
 	alice_ui_toggle_t* toggle = (alice_ui_toggle_t*)element;
 
-	sandbox_t* sandbox_t = context->user_pointer;
+	sandbox_t* sandbox = context->user_pointer;
 
-	sandbox_t->update_scripts = toggle->value;
+	sandbox->update_scripts = toggle->value;
 }
 
 static void on_scene_settings_window_create(alice_ui_context_t* context, alice_ui_window_t* window) {
@@ -79,18 +79,18 @@ static void on_scene_settings_window_create(alice_ui_context_t* context, alice_u
 	window->visible = false;
 	window->can_close = true;
 
-	sandbox_t* sandbox_t = context->user_pointer;
+	sandbox_t* sandbox = context->user_pointer;
 
-	sandbox_t->scene_settings_window = window;
+	sandbox->scene_settings_window = window;
 
-	alice_scene_t* scene = sandbox_t->scene;
+	alice_scene_t* scene = sandbox->scene;
 
 	alice_ui_toggle_t* show_gui_toggle = alice_add_ui_toggle(window);
 	show_gui_toggle->base.on_click = on_show_gui_toggle;
 	show_gui_toggle->label = "Show GUI";
-	show_gui_toggle->value = sandbox_t->show_gui;
+	show_gui_toggle->value = sandbox->show_gui;
 
-	sandbox_t->show_gui_toggle = show_gui_toggle;
+	sandbox->show_gui_toggle = show_gui_toggle;
 
 	alice_ui_toggle_t* use_bloom_toggle = alice_add_ui_toggle(window);
 	use_bloom_toggle->base.on_click = on_use_bloom_toggle;
@@ -105,18 +105,18 @@ static void on_scene_settings_window_create(alice_ui_context_t* context, alice_u
 	alice_ui_toggle_t* physics_toggle = alice_add_ui_toggle(window);
 	physics_toggle->base.on_click = on_physics_toggle;
 	physics_toggle->label = "Physics";
-	physics_toggle->value = sandbox_t->update_physics;
+	physics_toggle->value = sandbox->update_physics;
 
 	alice_ui_toggle_t* scripts_toggle = alice_add_ui_toggle(window);
 	scripts_toggle->base.on_click = on_scripts_toggle;
 	scripts_toggle->label = "Scripts";
-	scripts_toggle->value = sandbox_t->update_scripts;
+	scripts_toggle->value = sandbox->update_scripts;
 }
 
 static void on_scene_settings_click(alice_ui_context_t* context, alice_ui_element_t* element) {
-	sandbox_t* sandbox_t = context->user_pointer;
+	sandbox_t* sandbox = context->user_pointer;
 
-	sandbox_t->scene_settings_window->visible = true;
+	sandbox->scene_settings_window->visible = true;
 }
 
 static void on_toolbox_create(alice_ui_context_t* context, alice_ui_window_t* window) {
@@ -131,11 +131,11 @@ static void on_toolbox_create(alice_ui_context_t* context, alice_ui_window_t* wi
 }
 
 void main() {
-	sandbox_t sandbox_t;
+	sandbox_t sandbox;
 
 	alice_init_resource_manager("res");
 	alice_init_application((alice_application_config_t){
-				.name = "sandbox_t",
+				.name = "sandbox",
 				.splash_image = "splash.png",
 				.splash_shader = "shaders/splash.glsl",
 				.width = 1024,
@@ -153,7 +153,7 @@ void main() {
 
 	alice_scene_t* scene = alice_new_scene(script_lib_name);
 
-	sandbox_t.scene = scene;
+	sandbox.scene = scene;
 
 	alice_deserialise_scene(scene, "scenes/physicstest.ascn");
 	alice_serialise_scene(scene, "scenes/physicstest.ascn");
@@ -301,7 +301,7 @@ void main() {
 			alice_load_binary("fonts/opensans.ttf"),
 			18.0f);
 
-	ui->user_pointer = &sandbox_t;
+	ui->user_pointer = &sandbox;
 
 	ui->gizmo_textures[ALICE_GIZMOTEXTURE_POINT_LIGHT] =
 		alice_load_texture("textures/icons/light.png", ALICE_TEXTURE_ALIASED);
@@ -318,9 +318,9 @@ void main() {
 	double time_until_fps_write = 1.0;
 
 	bool fullscreen = false;
-	sandbox_t.update_physics = true;
-	sandbox_t.show_gui = false;
-	sandbox_t.update_scripts = true;
+	sandbox.update_physics = true;
+	sandbox.show_gui = false;
+	sandbox.update_scripts = true;
 
 	while (alice_is_application_running()) {
 		alice_reload_changed_resources();
@@ -343,21 +343,21 @@ void main() {
 		}
 
 		if (alice_key_just_pressed(ALICE_KEY_F1)) {
-			sandbox_t.show_gui = !sandbox_t.show_gui;
-			sandbox_t.show_gui_toggle->value = sandbox_t.show_gui;
+			sandbox.show_gui = !sandbox.show_gui;
+			sandbox.show_gui_toggle->value = sandbox.show_gui;
 		}
 
-		if (sandbox_t.update_scripts) {
+		if (sandbox.update_scripts) {
 			alice_update_scripts(scene->script_context, app->timestep);
 		}
 
-		if (sandbox_t.update_physics) {
+		if (sandbox.update_physics) {
 			alice_update_physics_engine(scene->physics_engine, app->timestep);
 		}
 
 		alice_render_scene_3d(scene->renderer, app->width, app->height, scene, alice_null);
 
-		if (sandbox_t.show_gui) {
+		if (sandbox.show_gui) {
 			alice_set_text_renderer_dimentions(text_renderer, (alice_v2f_t){app->width, app->height});
 			alice_render_text(text_renderer, (alice_v2f_t){0, 0}, fps_buffer);
 
