@@ -439,13 +439,13 @@ alice_v2f_t alice_calculate_ui_element_dimentions(alice_ui_context_t* context, a
 	return (alice_v2f_t) { 0.0f, 0.0f };
 }
 
-typedef struct alice_UITextQueueElement {
+typedef struct alice_ui_text_queue_element_t {
 	const char* text;
 	alice_v2f_t position;
-} alice_UITextQueueElement;
+} alice_ui_text_queue_element_t;
 
 typedef struct alice_ui_text_queue_t {
-	alice_UITextQueueElement* elements;
+	alice_ui_text_queue_element_t* elements;
 	u32 count;
 	u32 capacity;
 } alice_ui_text_queue_t;
@@ -478,7 +478,7 @@ void alice_text_queue_add(alice_ui_text_queue_t* queue, const char* text, alice_
 		queue->elements = realloc(queue->elements, queue->capacity * sizeof(alice_ui_text_queue_t));
 	}
 
-	alice_UITextQueueElement* element = &queue->elements[queue->count++];
+	alice_ui_text_queue_element_t* element = &queue->elements[queue->count++];
 	element->text = text;
 	element->position = position;
 }
@@ -863,7 +863,7 @@ void alice_draw_ui(alice_ui_context_t* context) {
 		alice_ui_renderer_end_batch(context->renderer);
 
 		for (u32 i = 0; i < text_queue.count; i++) {
-			alice_UITextQueueElement* e = &text_queue.elements[i];
+			alice_ui_text_queue_element_t* e = &text_queue.elements[i];
 
 			alice_render_text(context->text_renderer, e->position, e->text);
 		}
