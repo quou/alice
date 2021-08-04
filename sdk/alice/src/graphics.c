@@ -233,6 +233,8 @@ void alice_configure_vertex_buffer(alice_VertexBuffer* buffer, u32 index, u32 co
 }
 
 void alice_draw_vertex_buffer(alice_VertexBuffer* buffer) {
+	assert(buffer);
+
 	u32 draw_type = GL_TRIANGLES;
 	if (buffer->flags & ALICE_VERTEXBUFFER_DRAW_LINES) {
 		draw_type = GL_LINES;
@@ -245,6 +247,8 @@ void alice_draw_vertex_buffer(alice_VertexBuffer* buffer) {
 }
 
 void alice_draw_vertex_buffer_custom_count(alice_VertexBuffer* buffer, u32 count) {
+	assert(buffer);
+
 	u32 draw_type = GL_TRIANGLES;
 	if (buffer->flags & ALICE_VERTEXBUFFER_DRAW_LINES) {
 		draw_type = GL_LINES;
