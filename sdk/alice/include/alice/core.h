@@ -75,13 +75,13 @@ ALICE_API void alice_log_error(const char* fmt, ...);
 #define alice_min(x_, y_) (((x_) < (y_)) ? (x_) : (y_))
 #define alice_max(x_, y_) (((x_) > (y_)) ? (x_) : (y_))
 
-typedef struct alice_TypeInfo {
+typedef struct alice_type_info_t {
 	u32 id;
 	u32 size;
-} alice_TypeInfo;
+} alice_type_info_t;
 
 #ifndef __cplusplus
-#define alice_get_type_info(t_) ((alice_TypeInfo){ \
+#define alice_get_type_info(t_) ((alice_type_info_t){ \
 			.id = alice_hash_string(#t_), \
 			.size = sizeof(t_) \
 		})

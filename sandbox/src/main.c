@@ -17,65 +17,65 @@ typedef struct Sandbox {
 	bool update_physics;
 	bool update_scripts;
 
-	alice_UIToggle* show_gui_toggle;
+	alice_ui_toggle_t* show_gui_toggle;
 
-	alice_UIWindow* scene_settings_window;
+	alice_ui_window_t* scene_settings_window;
 
-	alice_Scene* scene;
+	alice_scene_t* scene;
 } Sandbox;
 
-static void on_button_hover(alice_UIContext* context, alice_UIElement* button) {
+static void on_button_hover(alice_ui_context_t* context, alice_ui_element_t* button) {
 	alice_log("hover");
 }
 
-static void on_button_click(alice_UIContext* context, alice_UIElement* button) {
+static void on_button_click(alice_ui_context_t* context, alice_ui_element_t* button) {
 	alice_log("click");
 }
 
-static void on_use_bloom_toggle(alice_UIContext* context, alice_UIElement* element) {
-	alice_UIToggle* toggle = (alice_UIToggle*)element;
+static void on_use_bloom_toggle(alice_ui_context_t* context, alice_ui_element_t* element) {
+	alice_ui_toggle_t* toggle = (alice_ui_toggle_t*)element;
 
 	Sandbox* sandbox = context->user_pointer;
 
 	sandbox->scene->renderer->use_bloom = toggle->value;
 }
 
-static void on_use_antialiasing_toggle(alice_UIContext* context, alice_UIElement* element) {
-	alice_UIToggle* toggle = (alice_UIToggle*)element;
+static void on_use_antialiasing_toggle(alice_ui_context_t* context, alice_ui_element_t* element) {
+	alice_ui_toggle_t* toggle = (alice_ui_toggle_t*)element;
 
 	Sandbox* sandbox = context->user_pointer;
 
 	sandbox->scene->renderer->use_antialiasing = toggle->value;
 }
 
-static void on_show_gui_toggle(alice_UIContext* context, alice_UIElement* element) {
-	alice_UIToggle* toggle = (alice_UIToggle*)element;
+static void on_show_gui_toggle(alice_ui_context_t* context, alice_ui_element_t* element) {
+	alice_ui_toggle_t* toggle = (alice_ui_toggle_t*)element;
 
 	Sandbox* sandbox = context->user_pointer;
 
 	sandbox->show_gui = toggle->value;
 }
 
-static void on_physics_toggle(alice_UIContext* context, alice_UIElement* element) {
-	alice_UIToggle* toggle = (alice_UIToggle*)element;
+static void on_physics_toggle(alice_ui_context_t* context, alice_ui_element_t* element) {
+	alice_ui_toggle_t* toggle = (alice_ui_toggle_t*)element;
 
 	Sandbox* sandbox = context->user_pointer;
 
 	sandbox->update_physics = toggle->value;
 }
 
-static void on_scripts_toggle(alice_UIContext* context, alice_UIElement* element) {
-	alice_UIToggle* toggle = (alice_UIToggle*)element;
+static void on_scripts_toggle(alice_ui_context_t* context, alice_ui_element_t* element) {
+	alice_ui_toggle_t* toggle = (alice_ui_toggle_t*)element;
 
 	Sandbox* sandbox = context->user_pointer;
 
 	sandbox->update_scripts = toggle->value;
 }
 
-static void on_scene_settings_window_create(alice_UIContext* context, alice_UIWindow* window) {
+static void on_scene_settings_window_create(alice_ui_context_t* context, alice_ui_window_t* window) {
 	window->title = "Scene Settings";
-	window->position = (alice_v2f){ 100.0f, 30.0f };
-	window->dimentions = (alice_v2f) { 350.0f, 600.0f };
+	window->position = (alice_v2f_t){ 100.0f, 30.0f };
+	window->dimentions = (alice_v2f_t) { 350.0f, 600.0f };
 	window->visible = false;
 	window->can_close = true;
 
@@ -83,49 +83,49 @@ static void on_scene_settings_window_create(alice_UIContext* context, alice_UIWi
 
 	sandbox->scene_settings_window = window;
 
-	alice_Scene* scene = sandbox->scene;
+	alice_scene_t* scene = sandbox->scene;
 
-	alice_UIToggle* show_gui_toggle = alice_add_ui_toggle(window);
+	alice_ui_toggle_t* show_gui_toggle = alice_add_ui_toggle(window);
 	show_gui_toggle->base.on_click = on_show_gui_toggle;
 	show_gui_toggle->label = "Show GUI";
 	show_gui_toggle->value = sandbox->show_gui;
 
 	sandbox->show_gui_toggle = show_gui_toggle;
 
-	alice_UIToggle* use_bloom_toggle = alice_add_ui_toggle(window);
+	alice_ui_toggle_t* use_bloom_toggle = alice_add_ui_toggle(window);
 	use_bloom_toggle->base.on_click = on_use_bloom_toggle;
 	use_bloom_toggle->label = "Bloom";
 	use_bloom_toggle->value = scene->renderer->use_bloom;
 
-	alice_UIToggle* use_antialiasing_toggle = alice_add_ui_toggle(window);
+	alice_ui_toggle_t* use_antialiasing_toggle = alice_add_ui_toggle(window);
 	use_antialiasing_toggle->base.on_click = on_use_antialiasing_toggle;
 	use_antialiasing_toggle->label = "Antialiasing";
 	use_antialiasing_toggle->value = scene->renderer->use_antialiasing;
 
-	alice_UIToggle* physics_toggle = alice_add_ui_toggle(window);
+	alice_ui_toggle_t* physics_toggle = alice_add_ui_toggle(window);
 	physics_toggle->base.on_click = on_physics_toggle;
 	physics_toggle->label = "Physics";
 	physics_toggle->value = sandbox->update_physics;
 
-	alice_UIToggle* scripts_toggle = alice_add_ui_toggle(window);
+	alice_ui_toggle_t* scripts_toggle = alice_add_ui_toggle(window);
 	scripts_toggle->base.on_click = on_scripts_toggle;
 	scripts_toggle->label = "Scripts";
 	scripts_toggle->value = sandbox->update_scripts;
 }
 
-static void on_scene_settings_click(alice_UIContext* context, alice_UIElement* element) {
+static void on_scene_settings_click(alice_ui_context_t* context, alice_ui_element_t* element) {
 	Sandbox* sandbox = context->user_pointer;
 
 	sandbox->scene_settings_window->visible = true;
 }
 
-static void on_toolbox_create(alice_UIContext* context, alice_UIWindow* window) {
+static void on_toolbox_create(alice_ui_context_t* context, alice_ui_window_t* window) {
 	window->title = "Toolbox";
-	window->position = (alice_v2f) { 0.0f, 3.0f, };
-	window->dimentions = (alice_v2f) { 350.0f, 200.0f };
+	window->position = (alice_v2f_t) { 0.0f, 3.0f, };
+	window->dimentions = (alice_v2f_t) { 350.0f, 200.0f };
 	window->can_close = false;
 
-	alice_UIButton* scene_settings_button = alice_add_ui_button(window);
+	alice_ui_button_t* scene_settings_button = alice_add_ui_button(window);
 	scene_settings_button->base.on_click = on_scene_settings_click;
 	scene_settings_button->text = "Scene Settings";
 }
@@ -134,7 +134,7 @@ void main() {
 	Sandbox sandbox;
 
 	alice_init_resource_manager("res");
-	alice_init_application((alice_ApplicationConfig){
+	alice_init_application((alice_application_config_t){
 				.name = "sandbox",
 				.splash_image = "splash.png",
 				.splash_shader = "shaders/splash.glsl",
@@ -151,7 +151,7 @@ void main() {
 	const char* script_lib_name = "./libscripts.so";
 #endif
 
-	alice_Scene* scene = alice_new_scene(script_lib_name);
+	alice_scene_t* scene = alice_new_scene(script_lib_name);
 
 	sandbox.scene = scene;
 
@@ -162,29 +162,29 @@ void main() {
 	scene->renderer->ambient_color = 0xadb0ea;
 
 /*	{
-		alice_EntityHandle monkey_handle = alice_new_entity(scene, alice_Rigidbody3D);
-		alice_Rigidbody3D* monkey = alice_get_entity_ptr(scene, monkey_handle);
+		alice_entity_handle_t monkey_handle = alice_new_entity(scene, alice_rigidbody_3d_t);
+		alice_rigidbody_3d_t* monkey = alice_get_entity_ptr(scene, monkey_handle);
 		monkey->base.position.y = 10.0f;
 		monkey->base.position.z = 3.0f;
 
 		monkey->mass = 1.0f;
 		monkey->restitution = 0.3f;
 
-		monkey->velocity = (alice_v3f){0.0f, 0.0f, 0.0f};
-		monkey->force = (alice_v3f){0.0f, 0.0f, 0.0f};
+		monkey->velocity = (alice_v3f_t){0.0f, 0.0f, 0.0f};
+		monkey->force = (alice_v3f_t){0.0f, 0.0f, 0.0f};
 
 		monkey->gravity_scale = 1.0f;
 
-		monkey->box = (alice_BoxCollider) {
-			.dimentions = (alice_v3f) {
+		monkey->box = (alice_box_collider_t) {
+			.dimentions = (alice_v3f_t) {
 				.x = 2.0f,
 				.y = 2.0f,
 				.z = 2.0f
 			}
 		};
 
-		alice_EntityHandle monkey_visible_handle = alice_new_entity(scene, alice_Renderable3D);
-		alice_Renderable3D* monkey_visible = alice_get_entity_ptr(scene, monkey_visible_handle);
+		alice_entity_handle_t monkey_visible_handle = alice_new_entity(scene, alice_renderable_3d_t);
+		alice_renderable_3d_t* monkey_visible = alice_get_entity_ptr(scene, monkey_visible_handle);
 
 		monkey_visible->base.rotation.y = 180.0f;
 
@@ -195,29 +195,29 @@ void main() {
 	}
 
 	{
-		alice_EntityHandle monkey_handle = alice_new_entity(scene, alice_Rigidbody3D);
-		alice_Rigidbody3D* monkey = alice_get_entity_ptr(scene, monkey_handle);
+		alice_entity_handle_t monkey_handle = alice_new_entity(scene, alice_rigidbody_3d_t);
+		alice_rigidbody_3d_t* monkey = alice_get_entity_ptr(scene, monkey_handle);
 		monkey->base.position.y = 5.0f;
 		monkey->base.position.z = 3.0f;
 
 		monkey->mass = 1.0f;
 		monkey->restitution = 0.3f;
 
-		monkey->velocity = (alice_v3f){0.0f, 0.0f, 0.0f};
-		monkey->force = (alice_v3f){0.0f, 0.0f, 0.0f};
+		monkey->velocity = (alice_v3f_t){0.0f, 0.0f, 0.0f};
+		monkey->force = (alice_v3f_t){0.0f, 0.0f, 0.0f};
 
 		monkey->gravity_scale = 1.0f;
 
-		monkey->box = (alice_BoxCollider) {
-			.dimentions = (alice_v3f) {
+		monkey->box = (alice_box_collider_t) {
+			.dimentions = (alice_v3f_t) {
 				.x = 2.0f,
 				.y = 2.0f,
 				.z = 2.0f
 			}
 		};
 
-		alice_EntityHandle monkey_visible_handle = alice_new_entity(scene, alice_Renderable3D);
-		alice_Renderable3D* monkey_visible = alice_get_entity_ptr(scene, monkey_visible_handle);
+		alice_entity_handle_t monkey_visible_handle = alice_new_entity(scene, alice_renderable_3d_t);
+		alice_renderable_3d_t* monkey_visible = alice_get_entity_ptr(scene, monkey_visible_handle);
 
 		monkey_visible->base.rotation.y = 180.0f;
 
@@ -228,31 +228,31 @@ void main() {
 	}
 
 	{
-		alice_EntityHandle ground_handle = alice_new_entity(scene, alice_Rigidbody3D);
-		alice_Rigidbody3D* ground = alice_get_entity_ptr(scene, ground_handle);
+		alice_entity_handle_t ground_handle = alice_new_entity(scene, alice_rigidbody_3d_t);
+		alice_rigidbody_3d_t* ground = alice_get_entity_ptr(scene, ground_handle);
 		ground->base.position.z = 3.0f;
 		ground->base.position.y = -1.0f;
 
 		ground->mass = 0.0f;
 		ground->restitution = 0.3f;
 
-		ground->velocity = (alice_v3f){0.0, 0.0f, 0.0f};
-		ground->force = (alice_v3f){0.0f, 0.0f, 0.0f};
+		ground->velocity = (alice_v3f_t){0.0, 0.0f, 0.0f};
+		ground->force = (alice_v3f_t){0.0f, 0.0f, 0.0f};
 
 		ground->gravity_scale = 0.0f;
 
-		ground->box = (alice_BoxCollider) {
-			.dimentions = (alice_v3f) {
+		ground->box = (alice_box_collider_t) {
+			.dimentions = (alice_v3f_t) {
 				.x = 10.0f,
 				.y = 0.4f,
 				.z = 10.0f
 			}
 		};
 
-		alice_EntityHandle ground_visible_handle = alice_new_entity(scene, alice_Renderable3D);
-		alice_Renderable3D* ground_visible = alice_get_entity_ptr(scene, ground_visible_handle);
+		alice_entity_handle_t ground_visible_handle = alice_new_entity(scene, alice_renderable_3d_t);
+		alice_renderable_3d_t* ground_visible = alice_get_entity_ptr(scene, ground_visible_handle);
 
-		ground_visible->base.scale = (alice_v3f) {
+		ground_visible->base.scale = (alice_v3f_t) {
 			.x = 10.0f,
 			.y = 0.4f,
 			.z = 10.0f
@@ -265,18 +265,18 @@ void main() {
 	}
 
 	{
-		alice_EntityHandle sun_handle = alice_new_entity(scene, alice_DirectionalLight);
-		alice_DirectionalLight* sun = alice_get_entity_ptr(scene, sun_handle);
+		alice_entity_handle_t sun_handle = alice_new_entity(scene, alice_directional_light_t);
+		alice_directional_light_t* sun = alice_get_entity_ptr(scene, sun_handle);
 
-		sun->base.position = (alice_v3f){ 1.0f, -1.0f, 0.0f };
+		sun->base.position = (alice_v3f_t){ 1.0f, -1.0f, 0.0f };
 
 		sun->intensity = 10.0f;
 		sun->color = ALICE_COLOR_WHITE;
 	}
 
 	{
-		alice_EntityHandle camera_handle = alice_new_entity(scene, alice_Camera3D);
-		alice_Camera3D* camera = alice_get_entity_ptr(scene, camera_handle);
+		alice_entity_handle_t camera_handle = alice_new_entity(scene, alice_camera_3d_t);
+		alice_camera_3d_t* camera = alice_get_entity_ptr(scene, camera_handle);
 
 		camera->base.position.y = 3.0f;
 		camera->base.rotation.x = -45.0f;
@@ -294,7 +294,7 @@ void main() {
 
 	alice_init_scripts(scene->script_context);
 
-	alice_UIContext* ui = alice_new_ui_context(
+	alice_ui_context_t* ui = alice_new_ui_context(
 			alice_load_shader("shaders/uirect.glsl"),
 			alice_load_shader("shaders/gizmo.glsl"),
 			alice_load_shader("shaders/text.glsl"),
@@ -311,7 +311,7 @@ void main() {
 	alice_new_ui_window(ui, on_scene_settings_window_create);
 	alice_new_ui_window(ui, on_toolbox_create);
 
-	alice_TextRenderer* text_renderer = alice_new_text_renderer(alice_load_binary("fonts/opensans.ttf"),
+	alice_text_renderer_t* text_renderer = alice_new_text_renderer(alice_load_binary("fonts/opensans.ttf"),
 			32.0f, alice_load_shader("shaders/text.glsl"));
 
 	char fps_buffer[256] = "";
@@ -329,7 +329,7 @@ void main() {
 
 		alice_render_clear();
 
-		alice_Application* app = alice_get_application();
+		alice_application_t* app = alice_get_application();
 
 		time_until_fps_write -= app->timestep;
 		if (time_until_fps_write <= 0.0) {
@@ -358,8 +358,8 @@ void main() {
 		alice_render_scene_3d(scene->renderer, app->width, app->height, scene, alice_null);
 
 		if (sandbox.show_gui) {
-			alice_set_text_renderer_dimentions(text_renderer, (alice_v2f){app->width, app->height});
-			alice_render_text(text_renderer, (alice_v2f){0, 0}, fps_buffer);
+			alice_set_text_renderer_dimentions(text_renderer, (alice_v2f_t){app->width, app->height});
+			alice_render_text(text_renderer, (alice_v2f_t){0, 0}, fps_buffer);
 
 			alice_draw_scene_gizmos(ui, scene);
 			alice_draw_ui(ui);

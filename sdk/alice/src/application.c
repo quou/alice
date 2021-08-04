@@ -57,7 +57,7 @@ static void APIENTRY gl_debug_callback(u32 source, u32 type, u32 id,
 }
 
 static void framebuffer_size_callback(GLFWwindow* window, i32 width, i32 height) {
-	alice_Application* app = glfwGetWindowUserPointer(window);
+	alice_application_t* app = glfwGetWindowUserPointer(window);
 
 	app->width = width;
 	app->height = height;
@@ -74,16 +74,16 @@ static void mouse_button_callback(GLFWwindow* window, i32 button, i32 action, i3
 }
 
 static void mouse_move_callback(GLFWwindow* window, double x, double y) {
-	alice_set_mouse_position((alice_v2i){(i32)x, (i32)y});
+	alice_set_mouse_position((alice_v2i_t){(i32)x, (i32)y});
 }
 
-alice_Application app;
+alice_application_t app;
 
-alice_Application* alice_get_application() {
+alice_application_t* alice_get_application() {
 	return &app;
 }
 
-void alice_init_application(alice_ApplicationConfig cfg) {
+void alice_init_application(alice_application_config_t cfg) {
 	srand((u32)time(alice_null));
 
 	app.name = cfg.name;
@@ -137,9 +137,9 @@ void alice_init_application(alice_ApplicationConfig cfg) {
 	alice_init_input();
 
 	if (cfg.splash_image && cfg.splash_shader) {
-		alice_Texture* splash_texture = alice_load_texture(cfg.splash_image, ALICE_TEXTURE_ANTIALIASED);
+		alice_texture_t* splash_texture = alice_load_texture(cfg.splash_image, ALICE_TEXTURE_ANTIALIASED);
 
-		alice_Shader* shader = alice_load_shader(cfg.splash_shader);
+		alice_shader_t* shader = alice_load_shader(cfg.splash_shader);
 
 		float verts[] = {
 			/* position     UV */
@@ -154,7 +154,7 @@ void alice_init_application(alice_ApplicationConfig cfg) {
 			1, 2, 3
 		};
 
-		alice_VertexBuffer* quad = alice_new_vertex_buffer(
+		alice_vertex_buffer_t* quad = alice_new_vertex_buffer(
 				ALICE_VERTEXBUFFER_STATIC_DRAW |
 				ALICE_VERTEXBUFFER_DRAW_TRIANGLES);
 
@@ -164,11 +164,11 @@ void alice_init_application(alice_ApplicationConfig cfg) {
 		alice_configure_vertex_buffer(quad, 0, 2, 4, 0);
 		alice_configure_vertex_buffer(quad, 1, 2, 4, 2);
 
-		alice_m4f projection = alice_m4f_ortho(-((float)cfg.width / 2.0f), (float)cfg.width / 2.0f,
+		alice_m4f_t projection = alice_m4f_ortho(-((float)cfg.width / 2.0f), (float)cfg.width / 2.0f,
 			(float)cfg.height / 2.0f, -((float)cfg.height / 2.0f), -1.0f, 1.0f);
-		alice_m4f model = alice_m4f_scale(
+		alice_m4f_t model = alice_m4f_scale(
 			alice_m4f_identity(),
-			(alice_v3f) {splash_texture->width / 2.0f, splash_texture->height / 2.0f, 0.0f});
+			(alice_v3f_t) {splash_texture->width / 2.0f, splash_texture->height / 2.0f, 0.0f});
 
 		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 		alice_render_clear();

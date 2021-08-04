@@ -8,13 +8,13 @@
 
 #include "alice/dtable.h"
 
-typedef struct alice_DTableScanner {
+typedef struct alice_dtable_scanner_t {
 	const char* start;
 	const char* current;
 	u32 line;
-} alice_DTableScanner;
+} alice_dtable_scanner_t;
 
-typedef enum alice_DTableTokenType {
+typedef enum alice_dtable_token_type_t {
 	ALICE_DTT_LEFT_CURL,
 	ALICE_DTT_RIGHT_CURL,
 	ALICE_DTT_LEFT_BRACE,
@@ -28,16 +28,16 @@ typedef enum alice_DTableTokenType {
 	ALICE_DTT_STRING,
 	ALICE_DTT_TRUE,
 	ALICE_DTT_FALSE
-} alice_DTableTokenType;
+} alice_dtable_token_type_t;
 
-typedef struct alice_DTableToken {
-	alice_DTableTokenType type;
+typedef struct alice_dtable_token_t {
+	alice_dtable_token_type_t type;
 	const char* start;
 	u32 length;
 	u32 line;
-} alice_DTableToken;
+} alice_dtable_token_t;
 
-alice_DTableScanner scanner;
+alice_dtable_scanner_t scanner;
 
 static void alice_init_dtable_scanner(const char* source) {
 	scanner.start = source;
@@ -49,8 +49,8 @@ static bool alice_dtable_scanner_is_at_end() {
 	return *scanner.current == '\0';
 }
 
-static alice_DTableToken alice_dtable_scanner_new_token(alice_DTableTokenType type) {
-	return (alice_DTableToken) {
+static alice_dtable_token_t alice_dtable_scanner_new_token(alice_dtable_token_type_t type) {
+	return (alice_dtable_token_t) {
 		.type = type,
 			.start = scanner.start,
 			.length = (u32)(scanner.current - scanner.start),
@@ -58,8 +58,8 @@ static alice_DTableToken alice_dtable_scanner_new_token(alice_DTableTokenType ty
 	};
 }
 
-static alice_DTableToken alice_dtable_scanner_error_token(const char* message) {
-	return (alice_DTableToken) {
+static alice_dtable_token_t alice_dtable_scanner_error_token(const char* message) {
+	return (alice_dtable_token_t) {
 		.type = ALICE_DTT_ERROR,
 			.start = message,
 			.length = (u32)strlen(message),
@@ -84,7 +84,7 @@ static char alice_dtable_scanner_peek_next() {
 	return scanner.current[1];
 }
 
-static alice_DTableToken alice_dtable_scanner_string() {
+static alice_dtable_token_t alice_dtable_scanner_string() {
 	while (alice_dtable_scanner_peek() != '"' && !alice_dtable_scanner_is_at_end()) {
 		if (alice_dtable_scanner_peek() == '\n') {
 			scanner.line++;
@@ -105,7 +105,7 @@ static bool alice_dtable_scanner_is_digit(char c) {
 	return c >= '0' && c <= '9';
 }
 
-static alice_DTableToken alice_dtable_scanner_number() {
+static alice_dtable_token_t alice_dtable_scanner_number() {
 	while (alice_dtable_scanner_is_digit(alice_dtable_scanner_peek())) {
 		alice_dtable_scanner_advance();
 	}
@@ -130,8 +130,8 @@ static bool alice_dtable_scanner_is_alpha(char c) {
 		c == '_';
 }
 
-static alice_DTableTokenType alice_dtable_scanner_check_keyword(u32 start, u32 length,
-	const char* rest, alice_DTableTokenType type) {
+static alice_dtable_token_type_t alice_dtable_scanner_check_keyword(u32 start, u32 length,
+	const char* rest, alice_dtable_token_type_t type) {
 	if (scanner.current - scanner.start == start + length &&
 		memcmp(scanner.start + start, rest, length) == 0) {
 		return type;
@@ -140,7 +140,7 @@ static alice_DTableTokenType alice_dtable_scanner_check_keyword(u32 start, u32 l
 	return ALICE_DTT_IDENTIFIER;
 }
 
-static alice_DTableTokenType alice_dtable_scanner_identifier_type() {
+static alice_dtable_token_type_t alice_dtable_scanner_identifier_type() {
 	switch (scanner.start[0]) {
 	case 't':
 		return alice_dtable_scanner_check_keyword(1, 3, "rue", ALICE_DTT_TRUE);
@@ -151,7 +151,7 @@ static alice_DTableTokenType alice_dtable_scanner_identifier_type() {
 	return ALICE_DTT_IDENTIFIER;
 }
 
-static alice_DTableToken alice_dtable_scanner_identifier() {
+static alice_dtable_token_t alice_dtable_scanner_identifier() {
 	while (alice_dtable_scanner_is_alpha(alice_dtable_scanner_peek()) ||
 		alice_dtable_scanner_is_digit(alice_dtable_scanner_peek())) {
 		alice_dtable_scanner_advance();
@@ -189,7 +189,7 @@ static void alice_dtable_scanner_skip_whitespace() {
 	}
 }
 
-static alice_DTableToken alice_dtable_scanner_next() {
+static alice_dtable_token_t alice_dtable_scanner_next() {
 	alice_dtable_scanner_skip_whitespace();
 
 	scanner.start = scanner.current;
@@ -220,16 +220,16 @@ static alice_DTableToken alice_dtable_scanner_next() {
 	return alice_dtable_scanner_error_token("Unexpected character");
 }
 
-static void alice_dtable_error(alice_DTableToken* t, const char* message) {
+static void alice_dtable_error(alice_dtable_token_t* t, const char* message) {
 	assert(t);
 
 	alice_log_error("Error parsing dtable [line %d]: %s", t->line, message);
 }
 
-static alice_DTableValue alice_parse_dtable_value(alice_DTableToken token) {
+static alice_dtable_value_t alice_parse_dtable_value(alice_dtable_token_t token) {
 	switch(token.type) {
 		case ALICE_DTT_NUMBER: {
-			alice_DTableValue value = (alice_DTableValue){
+			alice_dtable_value_t value = (alice_dtable_value_t){
 				.type = ALICE_DTABLE_NUMBER,
 				.as = {.number = strtod(token.start, NULL) }
 			};
@@ -242,7 +242,7 @@ static alice_DTableValue alice_parse_dtable_value(alice_DTableToken token) {
 			return value;
 		}
 		case ALICE_DTT_STRING: {
-			alice_DTableValue value = (alice_DTableValue){
+			alice_dtable_value_t value = (alice_dtable_value_t){
 				.type = ALICE_DTABLE_STRING,
 				.as = {.string = malloc(token.length - 1) }
 			};
@@ -258,7 +258,7 @@ static alice_DTableValue alice_parse_dtable_value(alice_DTableToken token) {
 			return value;
 		}
 		case ALICE_DTT_TRUE: {
-			alice_DTableValue value = (alice_DTableValue){
+			alice_dtable_value_t value = (alice_dtable_value_t){
 				.type = ALICE_DTABLE_BOOL,
 				.as = {.boolean = true}
 			};
@@ -271,7 +271,7 @@ static alice_DTableValue alice_parse_dtable_value(alice_DTableToken token) {
 			return value;
 		}
 		case ALICE_DTT_FALSE: {
-			alice_DTableValue value = (alice_DTableValue){
+			alice_dtable_value_t value = (alice_dtable_value_t){
 				.type = ALICE_DTABLE_BOOL,
 				.as = {.boolean = false}
 			};
@@ -285,12 +285,12 @@ static alice_DTableValue alice_parse_dtable_value(alice_DTableToken token) {
 		}
 		default:
 			alice_dtable_error(&token, "Unexpected token.");
-			return (alice_DTableValue){ 0 };
+			return (alice_dtable_value_t){ 0 };
 	}
 
 }
 
-static alice_DTableToken alice_parse_dtable(alice_DTableToken token, alice_DTable* table) {
+static alice_dtable_token_t alice_parse_dtable(alice_dtable_token_t token, alice_dtable_t* table) {
 	assert(table);
 
 	table->children = NULL;
@@ -324,19 +324,19 @@ static alice_DTableToken alice_parse_dtable(alice_DTableToken token, alice_DTabl
 				alice_dtable_error(&token, "Expected `}' after table.");
 			}
 
-			alice_DTable child;
+			alice_dtable_t child;
 			token = alice_parse_dtable(token, &child);
 			alice_dtable_add_child(table, child);
 		}
 	} else if (token.type == ALICE_DTT_LEFT_BRACE) {
-		table->value = (alice_DTableValue) {
+		table->value = (alice_dtable_value_t) {
 			.type = ALICE_DTABLE_ARRAY,
 			.as = {
 				.array = alice_new_dtable_value_array()
 			}
 		};
 
-		alice_DTableValueArray* array = table->value.as.array;
+		alice_dtable_value_array_t* array = table->value.as.array;
 
 		for (;;) {
 			token = alice_dtable_scanner_next();
@@ -347,7 +347,7 @@ static alice_DTableToken alice_parse_dtable(alice_DTableToken token, alice_DTabl
 				alice_dtable_error(&token, "Expected `]' after array.");
 			}
 
-			alice_DTableValue value = alice_parse_dtable_value(token);
+			alice_dtable_value_t value = alice_parse_dtable_value(token);
 			alice_dtable_value_array_add(array, value);
 		}
 	} else {
@@ -358,8 +358,8 @@ static alice_DTableToken alice_parse_dtable(alice_DTableToken token, alice_DTabl
 	return token;
 }
 
-alice_DTableValueArray* alice_new_dtable_value_array() {
-	alice_DTableValueArray* new = malloc(sizeof(alice_DTableValueArray));
+alice_dtable_value_array_t* alice_new_dtable_value_array() {
+	alice_dtable_value_array_t* new = malloc(sizeof(alice_dtable_value_array_t));
 
 	new->values = alice_null;
 	new->count = 0;
@@ -368,7 +368,7 @@ alice_DTableValueArray* alice_new_dtable_value_array() {
 	return new;
 }
 
-void alice_free_dtable_value_array(alice_DTableValueArray* array) {
+void alice_free_dtable_value_array(alice_dtable_value_array_t* array) {
 	assert(array);
 
 	for (u32 i = 0; i < array->count; i++) {
@@ -382,7 +382,7 @@ void alice_free_dtable_value_array(alice_DTableValueArray* array) {
 	free(array);
 }
 
-void alice_dtable_value_array_add(alice_DTableValueArray* array, alice_DTableValue value) {
+void alice_dtable_value_array_add(alice_dtable_value_array_t* array, alice_dtable_value_t value) {
 	assert(array);
 
 	if (value.type == ALICE_DTABLE_EMPTY ||
@@ -393,13 +393,13 @@ void alice_dtable_value_array_add(alice_DTableValueArray* array, alice_DTableVal
 
 	if (array->count >= array->capacity) {
 		array->capacity = alice_grow_capacity(array->capacity);
-		array->values = realloc(array->values, array->capacity * sizeof(alice_DTableValue));
+		array->values = realloc(array->values, array->capacity * sizeof(alice_dtable_value_t));
 	}
 
 	array->values[array->count++] = value;
 }
 
-void alice_free_dtable_value(alice_DTableValue* value) {
+void alice_free_dtable_value(alice_dtable_value_t* value) {
 	assert(value);
 
 	if (value->type == ALICE_DTABLE_STRING) {
@@ -409,10 +409,10 @@ void alice_free_dtable_value(alice_DTableValue* value) {
 	}
 }
 
-alice_DTable alice_new_number_dtable(const char* name, double value) {
-	alice_DTable table = alice_new_empty_dtable(name);
+alice_dtable_t alice_new_number_dtable(const char* name, double value) {
+	alice_dtable_t table = alice_new_empty_dtable(name);
 
-	table.value = (alice_DTableValue) {
+	table.value = (alice_dtable_value_t) {
 		.type = ALICE_DTABLE_NUMBER,
 		.as = {.number = value}
 	};
@@ -420,10 +420,10 @@ alice_DTable alice_new_number_dtable(const char* name, double value) {
 	return table;
 }
 
-alice_DTable alice_new_bool_dtable(const char* name, bool value) {
-	alice_DTable table = alice_new_empty_dtable(name);
+alice_dtable_t alice_new_bool_dtable(const char* name, bool value) {
+	alice_dtable_t table = alice_new_empty_dtable(name);
 
-	table.value = (alice_DTableValue) {
+	table.value = (alice_dtable_value_t) {
 		.type = ALICE_DTABLE_BOOL,
 		.as = {.boolean = value}
 	};
@@ -431,10 +431,10 @@ alice_DTable alice_new_bool_dtable(const char* name, bool value) {
 	return table;
 }
 
-alice_DTable alice_new_string_dtable(const char* name, const char* value) {
-	alice_DTable table = alice_new_empty_dtable(name);
+alice_dtable_t alice_new_string_dtable(const char* name, const char* value) {
+	alice_dtable_t table = alice_new_empty_dtable(name);
 
-	table.value = (alice_DTableValue) {
+	table.value = (alice_dtable_value_t) {
 		.type = ALICE_DTABLE_STRING,
 		.as = {.string = alice_copy_string(value) }
 	};
@@ -442,12 +442,12 @@ alice_DTable alice_new_string_dtable(const char* name, const char* value) {
 	return table;
 }
 
-alice_DTable alice_new_array_dtable(const char* name, alice_DTableValueArray* array) {
+alice_dtable_t alice_new_array_dtable(const char* name, alice_dtable_value_array_t* array) {
 	assert(array);
 
-	alice_DTable table = alice_new_empty_dtable(name);
+	alice_dtable_t table = alice_new_empty_dtable(name);
 
-	table.value = (alice_DTableValue) {
+	table.value = (alice_dtable_value_t) {
 		.type = ALICE_DTABLE_ARRAY,
 		.as = {.array = array}
 	};
@@ -455,12 +455,12 @@ alice_DTable alice_new_array_dtable(const char* name, alice_DTableValueArray* ar
 	return table;
 }
 
-alice_DTable alice_new_empty_dtable(const char* name) {
-	alice_DTable table = (alice_DTable){
+alice_dtable_t alice_new_empty_dtable(const char* name) {
+	alice_dtable_t table = (alice_dtable_t){
 		.name = alice_copy_string(name),
 		.name_hash = alice_hash_string(name),
 
-		.value = (alice_DTableValue){
+		.value = (alice_dtable_value_t){
 			.type = ALICE_DTABLE_EMPTY,
 			.as = {.number = 0.0 }
 		},
@@ -473,13 +473,13 @@ alice_DTable alice_new_empty_dtable(const char* name) {
 	return table;
 }
 
-alice_DTable* alice_dtable_find_child(alice_DTable* table, const char* name) {
+alice_dtable_t* alice_dtable_find_child(alice_dtable_t* table, const char* name) {
 	assert(table);
 
 	u32 name_hash = alice_hash_string(name);
 
 	for (u32 i = 0; i < table->child_count; i++) {
-		alice_DTable* child = &table->children[i];
+		alice_dtable_t* child = &table->children[i];
 
 		if (name_hash == child->name_hash) {
 			return child;
@@ -489,18 +489,18 @@ alice_DTable* alice_dtable_find_child(alice_DTable* table, const char* name) {
 	return alice_null;
 }
 
-alice_DTable* alice_read_dtable(alice_Resource* string) {
+alice_dtable_t* alice_read_dtable(alice_resource_t* string) {
 	assert(string);
 
 	alice_init_dtable_scanner(string->payload);
 
-	alice_DTable* table = malloc(sizeof(alice_DTable));
+	alice_dtable_t* table = malloc(sizeof(alice_dtable_t));
 	alice_parse_dtable(alice_dtable_scanner_next(), table);
 
 	return table;
 }
 
-static void alice_write_dtable_value(PHYSFS_File* file, alice_DTableValue value, u32 indent) {
+static void alice_write_dtable_value(PHYSFS_File* file, alice_dtable_value_t value, u32 indent) {
 	switch (value.type) {
 	case ALICE_DTABLE_NUMBER: {
 		char number_str[256];
@@ -522,7 +522,7 @@ static void alice_write_dtable_value(PHYSFS_File* file, alice_DTableValue value,
 		break;
 	}
 	case ALICE_DTABLE_ARRAY: {
-		alice_DTableValueArray* array = value.as.array;
+		alice_dtable_value_array_t* array = value.as.array;
 		PHYSFS_writeBytes(file, "[\n", 2);
 		for (u32 i = 0; i < array->count; i++) {
 			for (u32 i = 0; i < indent + 1; i++) {
@@ -550,7 +550,7 @@ static void alice_write_dtable_value(PHYSFS_File* file, alice_DTableValue value,
 	}
 }
 
-static void impl_alice_write_dtable(alice_DTable* table, PHYSFS_File* file, u32 indent) {
+static void impl_alice_write_dtable(alice_dtable_t* table, PHYSFS_File* file, u32 indent) {
 	assert(table);
 	assert(file);
 
@@ -581,7 +581,7 @@ static void impl_alice_write_dtable(alice_DTable* table, PHYSFS_File* file, u32 
 	}
 }
 
-void alice_write_dtable(alice_DTable* table, const char* file_path) {
+void alice_write_dtable(alice_dtable_t* table, const char* file_path) {
 	assert(table);
 
 	PHYSFS_File* file = PHYSFS_openWrite(file_path);
@@ -595,19 +595,19 @@ void alice_write_dtable(alice_DTable* table, const char* file_path) {
 	PHYSFS_close(file);
 }
 
-void alice_dtable_add_child(alice_DTable* table, alice_DTable child) {
+void alice_dtable_add_child(alice_dtable_t* table, alice_dtable_t child) {
 	assert(table);
 
 	if (table->child_count >= table->child_capacity) {
 		table->child_capacity = alice_grow_capacity(table->child_capacity);
 		table->children = realloc(table->children,
-			table->child_capacity * sizeof(alice_DTable));
+			table->child_capacity * sizeof(alice_dtable_t));
 	}
 
 	table->children[table->child_count++] = child;
 }
 
-void alice_deinit_dtable(alice_DTable* table) {
+void alice_deinit_dtable(alice_dtable_t* table) {
 	assert(table);
 
 	free(table->name);
@@ -623,7 +623,7 @@ void alice_deinit_dtable(alice_DTable* table) {
 	}
 }
 
-void alice_free_dtable(alice_DTable* table) {
+void alice_free_dtable(alice_dtable_t* table) {
 	assert(table);
 
 	alice_deinit_dtable(table);

@@ -5,32 +5,32 @@
 #include <alice/resource.h>
 #include <alice/physics.h>
 
-typedef struct MonkeyPhysics {
+typedef struct monkey_physics_t {
 	bool panic;
-} MonkeyPhysics;
+} monkey_physics_t;
 
 ALICE_API u32 ALICE_CALL alice_get_monkey_physics_size() {
-	return sizeof(MonkeyPhysics);
+	return sizeof(monkey_physics_t);
 }
 
-ALICE_API void ALICE_CALL monkey_physics_init(alice_Scene* scene, alice_EntityHandle handle, void* instance) {
-	MonkeyPhysics* mp = instance;
+ALICE_API void ALICE_CALL monkey_physics_init(alice_scene_t* scene, alice_entity_handle_t handle, void* instance) {
+	monkey_physics_t* mp = instance;
 
 	mp->panic = false;
-	if (alice_get_entity_handle_type(handle) != alice_get_type_info(alice_Rigidbody3D).id) {
+	if (alice_get_entity_handle_type(handle) != alice_get_type_info(alice_rigidbody_3d_t).id) {
 		mp->panic = true;
 	}
 }
 
 ALICE_API void ALICE_CALL
-monkey_physics_update(alice_Scene* scene, alice_EntityHandle handle, void* instance, double timestep) {
-	MonkeyPhysics* mp = instance;
+monkey_physics_update(alice_scene_t* scene, alice_entity_handle_t handle, void* instance, double timestep) {
+	monkey_physics_t* mp = instance;
 
 	if (mp->panic) {
 		return;
 	}
 
-	alice_Rigidbody3D* rigidbody = alice_get_entity_ptr(scene, handle);
+	alice_rigidbody_3d_t* rigidbody = alice_get_entity_ptr(scene, handle);
 
 	if (alice_key_pressed(ALICE_KEY_SPACE)) {
 		rigidbody->force.y = 100.0f;

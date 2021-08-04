@@ -4,28 +4,28 @@
 #include "alice/maths.h"
 #include "alice/entity.h"
 
-typedef struct alice_AABB {
-	alice_v3f min;
-	alice_v3f max;
-} alice_AABB;
+typedef struct alice_aabb_t {
+	alice_v3f_t min;
+	alice_v3f_t max;
+} alice_aabb_t;
 
-typedef struct alice_Manifold {
+typedef struct alice_manifold_t {
 	float penetration;
-	alice_v3f normal;
-} alice_Manifold;
+	alice_v3f_t normal;
+} alice_manifold_t;
 
-ALICE_API bool alice_aabb_vs_aabb(alice_AABB a, alice_AABB b, alice_Manifold* manifold);
-ALICE_API bool alice_sphere_vs_aabb(alice_AABB a, alice_v3f sphere_position, float sphere_radius);
+ALICE_API bool alice_aabb_vs_aabb(alice_aabb_t a, alice_aabb_t b, alice_manifold_t* manifold);
+ALICE_API bool alice_sphere_vs_aabb(alice_aabb_t a, alice_v3f_t sphere_position, float sphere_radius);
 
-typedef struct alice_BoxCollider {
-	alice_v3f position;
-	alice_v3f dimentions;
-} alice_BoxCollider;
+typedef struct alice_box_collider_t {
+	alice_v3f_t position;
+	alice_v3f_t dimentions;
+} alice_box_collider_t;
 
-typedef struct alice_Rigidbody3D {
-	alice_Entity base;
+typedef struct alice_rigidbody_3d_t {
+	alice_entity_t base;
 
-	alice_v3f old_position;
+	alice_v3f_t old_position;
 
 	float mass;
 	float inverse_mass;
@@ -35,21 +35,21 @@ typedef struct alice_Rigidbody3D {
 	float dynamic_friction;
 	float static_friction;
 
-	alice_v3f velocity;
-	alice_v3f force;
+	alice_v3f_t velocity;
+	alice_v3f_t force;
 
 	float gravity_scale;
 
-	alice_BoxCollider box;
-} alice_Rigidbody3D;
+	alice_box_collider_t box;
+} alice_rigidbody_3d_t;
 
 typedef struct alice_RigidbodyPair {
-	alice_Rigidbody3D* a;
-	alice_Rigidbody3D* b;
-	alice_Manifold manifold;
+	alice_rigidbody_3d_t* a;
+	alice_rigidbody_3d_t* b;
+	alice_manifold_t manifold;
 } alice_RigidbodyPair;
 
-typedef struct alice_PhysicsEngine {
+typedef struct alice_physics_engine_t {
 	alice_RigidbodyPair* pairs;
 	u32 pair_count;
 	u32 pair_capacity;
@@ -58,15 +58,15 @@ typedef struct alice_PhysicsEngine {
 	u32 unique_pair_count;
 	u32 unique_pair_capacity;
 
-	alice_Scene* scene;
+	alice_scene_t* scene;
 
 	float gravity;
 
 	float accumulator;
-} alice_PhysicsEngine;
+} alice_physics_engine_t;
 
-ALICE_API alice_PhysicsEngine* alice_new_physics_engine(alice_Scene* scene);
-ALICE_API void alice_free_physics_engine(alice_PhysicsEngine* engine);
-ALICE_API void alice_update_physics_engine(alice_PhysicsEngine* engine, double timestep);
+ALICE_API alice_physics_engine_t* alice_new_physics_engine(alice_scene_t* scene);
+ALICE_API void alice_free_physics_engine(alice_physics_engine_t* engine);
+ALICE_API void alice_update_physics_engine(alice_physics_engine_t* engine, double timestep);
 
-ALICE_API void alice_on_rigidbody_3d_create(alice_Scene* scene, alice_EntityHandle handle, void* ptr);
+ALICE_API void alice_on_rigidbody_3d_create(alice_scene_t* scene, alice_entity_handle_t handle, void* ptr);

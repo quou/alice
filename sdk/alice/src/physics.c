@@ -5,19 +5,19 @@
 #include "alice/physics.h"
 #include "alice/scripting.h"
 
-static void alice_calculate_body_aabb(alice_PhysicsEngine* engine, alice_Rigidbody3D* body, alice_AABB* aabb) {
+static void alice_calculate_body_aabb(alice_physics_engine_t* engine, alice_rigidbody_3d_t* body, alice_aabb_t* aabb) {
 	assert(engine);
 	assert(body);
 	assert(aabb);
 
-	alice_v3f position = alice_get_entity_world_position(engine->scene, (alice_Entity*)body);
+	alice_v3f_t position = alice_get_entity_world_position(engine->scene, (alice_entity_t*)body);
 
-	aabb->min = (alice_v3f) {
+	aabb->min = (alice_v3f_t) {
 		.x = body->box.position.x + position.x,
 		.y = body->box.position.y + position.y,
 		.z = body->box.position.z + position.z,
 	};
-	aabb->max = (alice_v3f) {
+	aabb->max = (alice_v3f_t) {
 		.x = body->box.position.x + position.x + body->box.dimentions.x,
 		.y = body->box.position.y + position.y + body->box.dimentions.y,
 		.z = body->box.position.z + position.z + body->box.dimentions.z,
@@ -42,37 +42,37 @@ static i32 alice_compare_rigidbody_pair(const void* a, const void* b) {
 static void alice_correct_rigidbody_positions(alice_RigidbodyPair* pair) {
 	assert(pair);
 
-	alice_Rigidbody3D* a = pair->a;
-	alice_Rigidbody3D* b = pair->b;
+	alice_rigidbody_3d_t* a = pair->a;
+	alice_rigidbody_3d_t* b = pair->b;
 
 	const float percentage = 0.2f;
 	const float slop = 0.01f;
 
 	const float correction = alice_max(pair->manifold.penetration - slop, 0.0f) /
 		(a->inverse_mass + b->inverse_mass) * percentage;
-	const alice_v3f correction_vector = (alice_v3f) {
+	const alice_v3f_t correction_vector = (alice_v3f_t) {
 		.x = correction * pair->manifold.normal.x,
 		.y = correction * pair->manifold.normal.y,
 		.z = correction * pair->manifold.normal.z
 	};
 
-	a->base.position = (alice_v3f) {
+	a->base.position = (alice_v3f_t) {
 		.x = a->base.position.x - a->inverse_mass * correction_vector.x,
 		.y = a->base.position.y - a->inverse_mass * correction_vector.y,
 		.z = a->base.position.z - a->inverse_mass * correction_vector.z,
 	};
 
-	b->base.position = (alice_v3f) {
+	b->base.position = (alice_v3f_t) {
 		.x = b->base.position.x + b->inverse_mass * correction_vector.x,
 		.y = b->base.position.y + b->inverse_mass * correction_vector.y,
 		.z = b->base.position.z + b->inverse_mass * correction_vector.z,
 	};
 }
 
-bool alice_aabb_vs_aabb(alice_AABB a, alice_AABB b, alice_Manifold* manifold) {
+bool alice_aabb_vs_aabb(alice_aabb_t a, alice_aabb_t b, alice_manifold_t* manifold) {
 	assert(manifold);
 
-	const alice_v3f n = (alice_v3f) {
+	const alice_v3f_t n = (alice_v3f_t) {
 		.x = b.min.x - a.min.x,
 		.y = b.min.y - a.min.y,
 		.z = b.min.z - a.min.z,
@@ -105,9 +105,9 @@ bool alice_aabb_vs_aabb(alice_AABB a, alice_AABB b, alice_Manifold* manifold) {
 
 				if (smallest_overlap == x_overlap) {
 					if (n.x < 0) {
-						manifold->normal = (alice_v3f){-1.0f, 0.0f, 0.0f};
+						manifold->normal = (alice_v3f_t){-1.0f, 0.0f, 0.0f};
 					} else {
-						manifold->normal = (alice_v3f){1.0f, 0.0f, 0.0f};
+						manifold->normal = (alice_v3f_t){1.0f, 0.0f, 0.0f};
 					}
 
 					manifold->penetration = x_overlap;
@@ -117,9 +117,9 @@ bool alice_aabb_vs_aabb(alice_AABB a, alice_AABB b, alice_Manifold* manifold) {
 
 				if (smallest_overlap == y_overlap) {
 					if (n.y < 0) {
-						manifold->normal = (alice_v3f){0.0f, -1.0f, 0.0f};
+						manifold->normal = (alice_v3f_t){0.0f, -1.0f, 0.0f};
 					} else {
-						manifold->normal = (alice_v3f){0.0f, 1.0f, 0.0f};
+						manifold->normal = (alice_v3f_t){0.0f, 1.0f, 0.0f};
 					}
 
 					manifold->penetration = y_overlap;
@@ -129,9 +129,9 @@ bool alice_aabb_vs_aabb(alice_AABB a, alice_AABB b, alice_Manifold* manifold) {
 
 				if (smallest_overlap == z_overlap) {
 					if (n.z < 0) {
-						manifold->normal = (alice_v3f){0.0f, 0.0f, -1.0f};
+						manifold->normal = (alice_v3f_t){0.0f, 0.0f, -1.0f};
 					} else {
-						manifold->normal = (alice_v3f){0.0f, 0.0f, 1.0f};
+						manifold->normal = (alice_v3f_t){0.0f, 0.0f, 1.0f};
 					}
 
 					manifold->penetration = z_overlap;
@@ -147,7 +147,7 @@ bool alice_aabb_vs_aabb(alice_AABB a, alice_AABB b, alice_Manifold* manifold) {
 	return false;
 }
 
-bool alice_sphere_vs_aabb(alice_AABB aabb, alice_v3f sphere_position, float sphere_radius) {
+bool alice_sphere_vs_aabb(alice_aabb_t aabb, alice_v3f_t sphere_position, float sphere_radius) {
 	float dist_squared = sphere_radius * sphere_radius;
 
 	if (sphere_position.x < aabb.min.x) {
@@ -171,8 +171,8 @@ bool alice_sphere_vs_aabb(alice_AABB aabb, alice_v3f sphere_position, float sphe
 	return dist_squared > 0.0f;
 }
 
-alice_PhysicsEngine* alice_new_physics_engine(alice_Scene* scene) {
-	alice_PhysicsEngine* new = malloc(sizeof(alice_PhysicsEngine));
+alice_physics_engine_t* alice_new_physics_engine(alice_scene_t* scene) {
+	alice_physics_engine_t* new = malloc(sizeof(alice_physics_engine_t));
 
 	new->pairs = alice_null;
 	new->pair_count = 0;
@@ -191,7 +191,7 @@ alice_PhysicsEngine* alice_new_physics_engine(alice_Scene* scene) {
 	return new;
 }
 
-void alice_free_physics_engine(alice_PhysicsEngine* engine) {
+void alice_free_physics_engine(alice_physics_engine_t* engine) {
 	assert(engine);
 
 	if (engine->pair_capacity > 0) {
@@ -205,29 +205,29 @@ void alice_free_physics_engine(alice_PhysicsEngine* engine) {
 	free(engine);
 }
 
-static void alice_tick_physics_engine(alice_PhysicsEngine* engine, double timestep) {
+static void alice_tick_physics_engine(alice_physics_engine_t* engine, double timestep) {
 	assert(engine);
 
 	engine->pair_count = 0;
 	engine->unique_pair_count = 0;
 
-	alice_AABB a_box;
-	alice_AABB b_box;
+	alice_aabb_t a_box;
+	alice_aabb_t b_box;
 
 	/* Integration */
-	for (alice_entity_iter(engine->scene, iter, alice_Rigidbody3D)) {
-		alice_Rigidbody3D* body = iter.current_ptr;
+	for (alice_entity_iter(engine->scene, iter, alice_rigidbody_3d_t)) {
+		alice_rigidbody_3d_t* body = iter.current_ptr;
 
 		body->inverse_mass = body->mass == 0.0f ? 0.0f : 1.0f / body->mass;
 
-		body->velocity = (alice_v3f) {
+		body->velocity = (alice_v3f_t) {
 			.x = body->velocity.x + ((body->inverse_mass * body->force.x) * (float)timestep),
 			.y = body->velocity.y + ((body->inverse_mass * body->force.y
 						+ (engine->gravity * body->gravity_scale)) * (float)timestep),
 			.z = body->velocity.z + ((body->inverse_mass * body->force.z) * (float)timestep),
 		};
 
-		body->base.position = (alice_v3f){
+		body->base.position = (alice_v3f_t){
 			.x = body->base.position.x + body->velocity.x * (float)timestep,
 			.y = body->base.position.y + body->velocity.y * (float)timestep,
 			.z = body->base.position.z + body->velocity.z * (float)timestep,
@@ -235,10 +235,10 @@ static void alice_tick_physics_engine(alice_PhysicsEngine* engine, double timest
 	}
 
 	/* Check collisions */
-	for (alice_entity_iter(engine->scene, i, alice_Rigidbody3D)) {
-		for (alice_entity_iter(engine->scene, j, alice_Rigidbody3D)) {
-			alice_Rigidbody3D* a = i.current_ptr;
-			alice_Rigidbody3D* b = j.current_ptr;
+	for (alice_entity_iter(engine->scene, i, alice_rigidbody_3d_t)) {
+		for (alice_entity_iter(engine->scene, j, alice_rigidbody_3d_t)) {
+			alice_rigidbody_3d_t* a = i.current_ptr;
+			alice_rigidbody_3d_t* b = j.current_ptr;
 
 			if (a == b || a->mass == 0.0f && b->mass == 0.0f) {
 				continue;
@@ -295,10 +295,10 @@ static void alice_tick_physics_engine(alice_PhysicsEngine* engine, double timest
 	for (u32 i = 0; i < engine->unique_pair_count; i++) {
 		alice_RigidbodyPair* pair = engine->unique_pairs[i];
 
-		alice_Rigidbody3D* a = pair->a;
-		alice_Rigidbody3D* b = pair->b;
+		alice_rigidbody_3d_t* a = pair->a;
+		alice_rigidbody_3d_t* b = pair->b;
 
-		alice_v3f relative_velocity = (alice_v3f) {
+		alice_v3f_t relative_velocity = (alice_v3f_t) {
 			.x = b->velocity.x - a->velocity.x,
 			.y = b->velocity.y - a->velocity.y,
 			.z = b->velocity.z - a->velocity.z
@@ -315,33 +315,33 @@ static void alice_tick_physics_engine(alice_PhysicsEngine* engine, double timest
 		float j = -(1.0f + e) * vel_along_normal;
 		j /= a->inverse_mass + b->inverse_mass;
 
-		const alice_v3f impulse = (alice_v3f) {
+		const alice_v3f_t impulse = (alice_v3f_t) {
 			.x = j * pair->manifold.normal.x,
 			.y = j * pair->manifold.normal.y,
 			.z = j * pair->manifold.normal.z
 		};
 
-		a->velocity = (alice_v3f){
+		a->velocity = (alice_v3f_t){
 			.x = a->velocity.x - (a->inverse_mass * impulse.x),
 			.y = a->velocity.y - (a->inverse_mass * impulse.y),
 			.z = a->velocity.z - (a->inverse_mass * impulse.z),
 		};
 
-		b->velocity = (alice_v3f){
+		b->velocity = (alice_v3f_t){
 			.x = b->velocity.x + (b->inverse_mass * impulse.x),
 			.y = b->velocity.y + (b->inverse_mass * impulse.y),
 			.z = b->velocity.z + (b->inverse_mass * impulse.z),
 		};
 
 		/* Friction */
-		relative_velocity = (alice_v3f) {
+		relative_velocity = (alice_v3f_t) {
 			.x = b->velocity.x - a->velocity.x,
 			.y = b->velocity.y - a->velocity.y,
 			.z = b->velocity.z - a->velocity.z
 		};
 
 		const float rv_dot_normal = alice_v3f_dot(relative_velocity, pair->manifold.normal);
-		const alice_v3f tangent_vector = alice_v3f_normalise((alice_v3f) {
+		const alice_v3f_t tangent_vector = alice_v3f_normalise((alice_v3f_t) {
 			.x = relative_velocity.x - rv_dot_normal * pair->manifold.normal.x,
 			.y = relative_velocity.y - rv_dot_normal * pair->manifold.normal.y,
 			.z = relative_velocity.z - rv_dot_normal * pair->manifold.normal.z,
@@ -353,9 +353,9 @@ static void alice_tick_physics_engine(alice_PhysicsEngine* engine, double timest
 		const float mu = sqrtf((a->static_friction * a->static_friction)
 				+ (b->static_friction * b->static_friction));
 
-		alice_v3f friction_impulse;
+		alice_v3f_t friction_impulse;
 		if (fabs(jt) < j * mu) {
-			friction_impulse = (alice_v3f){
+			friction_impulse = (alice_v3f_t){
 				.x = jt * tangent_vector.x,
 				.y = jt * tangent_vector.y,
 				.z = jt * tangent_vector.z,
@@ -363,20 +363,20 @@ static void alice_tick_physics_engine(alice_PhysicsEngine* engine, double timest
 		} else {
 			const float dynamic_friction = sqrtf((a->dynamic_friction * a->dynamic_friction) +
 					(b->dynamic_friction * b->dynamic_friction));
-			friction_impulse = (alice_v3f){
+			friction_impulse = (alice_v3f_t){
 				.x = -j * dynamic_friction * tangent_vector.x,
 				.y = -j * dynamic_friction * tangent_vector.y,
 				.z = -j * dynamic_friction * tangent_vector.z,
 			};
 		}
 
-		a->velocity = (alice_v3f){
+		a->velocity = (alice_v3f_t){
 			.x = a->velocity.x - a->inverse_mass * friction_impulse.x,
 			.y = a->velocity.y - a->inverse_mass * friction_impulse.y,
 			.z = a->velocity.z - a->inverse_mass * friction_impulse.z,
 		};
 
-		b->velocity = (alice_v3f){
+		b->velocity = (alice_v3f_t){
 			.x = b->velocity.x + b->inverse_mass * friction_impulse.x,
 			.y = b->velocity.y + b->inverse_mass * friction_impulse.y,
 			.z = b->velocity.z + b->inverse_mass * friction_impulse.z,
@@ -386,7 +386,7 @@ static void alice_tick_physics_engine(alice_PhysicsEngine* engine, double timest
 	}
 }
 
-void alice_update_physics_engine(alice_PhysicsEngine* engine, double timestep) {
+void alice_update_physics_engine(alice_physics_engine_t* engine, double timestep) {
 	assert(engine);
 
 	const double fps = 60.0f;
@@ -409,10 +409,10 @@ void alice_update_physics_engine(alice_PhysicsEngine* engine, double timestep) {
 
 	const float alpha = engine->accumulator / (float)dt;
 
-	for (alice_entity_iter(engine->scene, iter, alice_Rigidbody3D)) {
-		alice_Rigidbody3D* rigidbody = iter.current_ptr;
+	for (alice_entity_iter(engine->scene, iter, alice_rigidbody_3d_t)) {
+		alice_rigidbody_3d_t* rigidbody = iter.current_ptr;
 
-		rigidbody->base.position = (alice_v3f) {
+		rigidbody->base.position = (alice_v3f_t) {
 			.x = rigidbody->old_position.x * alpha + rigidbody->base.position.x * (1.0f - alpha),
 			.y = rigidbody->old_position.y * alpha + rigidbody->base.position.y * (1.0f - alpha),
 			.z = rigidbody->old_position.z * alpha + rigidbody->base.position.z * (1.0f - alpha),
@@ -422,29 +422,29 @@ void alice_update_physics_engine(alice_PhysicsEngine* engine, double timestep) {
 	}
 }
 
-void alice_on_rigidbody_3d_create(alice_Scene* scene, alice_EntityHandle handle, void* ptr) {
-	alice_Rigidbody3D* rigidbody = ptr;
+void alice_on_rigidbody_3d_create(alice_scene_t* scene, alice_entity_handle_t handle, void* ptr) {
+	alice_rigidbody_3d_t* rigidbody = ptr;
 
 	rigidbody->old_position = rigidbody->base.position;
 
 	rigidbody->mass = 1.0f;
 	rigidbody->restitution = 0.3f;
 
-	rigidbody->velocity = (alice_v3f){0.0f, 0.0f, 0.0f};
-	rigidbody->force = (alice_v3f){0.0f, 0.0f, 0.0f};
+	rigidbody->velocity = (alice_v3f_t){0.0f, 0.0f, 0.0f};
+	rigidbody->force = (alice_v3f_t){0.0f, 0.0f, 0.0f};
 
 	rigidbody->gravity_scale = 1.0f;
 
 	rigidbody->dynamic_friction = 0.3f;
 	rigidbody->static_friction = 0.3f;
 
-	rigidbody->box = (alice_BoxCollider) {
-		.position = (alice_v3f) {
+	rigidbody->box = (alice_box_collider_t) {
+		.position = (alice_v3f_t) {
 			.x = 0.0f,
 			.y = 0.0f,
 			.z = 0.0f
 		},
-		.dimentions = (alice_v3f) {
+		.dimentions = (alice_v3f_t) {
 			.x = 2.0f,
 			.y = 2.0f,
 			.z = 2.0f

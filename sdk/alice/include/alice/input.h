@@ -155,7 +155,7 @@ ALICE_API void alice_reset_input();
 
 ALICE_API void alice_set_key(i32 key, i32 action);
 ALICE_API void alice_set_mouse_button(i32 button, i32 action);
-ALICE_API void alice_set_mouse_position(alice_v2i position);
+ALICE_API void alice_set_mouse_position(alice_v2i_t position);
 
 ALICE_API bool alice_key_pressed(i32 key);
 ALICE_API bool alice_key_just_pressed(i32 key);
@@ -165,4 +165,4 @@ ALICE_API bool alice_mouse_button_pressed(i32 button);
 ALICE_API bool alice_mouse_button_just_pressed(i32 button);
 ALICE_API bool alice_mouse_button_just_released(i32 button);
 
-ALICE_API alice_v2i alice_get_mouse_position();
+ALICE_API alice_v2i_t alice_get_mouse_position();

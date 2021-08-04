@@ -7,7 +7,7 @@
 #ifdef ALICE_PLATFORM_WINDOWS
 #include <windows.h>
 
-static void alice_init_script_context_library(alice_ScriptContext* context, const char* assembly_path) {
+static void alice_init_script_context_library(alice_script_context_t* context, const char* assembly_path) {
 	assert(context);
 
 	context->handle = LoadLibraryA(assembly_path);
@@ -16,7 +16,7 @@ static void alice_init_script_context_library(alice_ScriptContext* context, cons
 	}
 }
 
-static void* alice_get_script_proc(alice_ScriptContext* context, const char* name) {
+static void* alice_get_script_proc(alice_script_context_t* context, const char* name) {
 	assert(context);
 
 	void* function = GetProcAddress(context->handle, name);
@@ -27,7 +27,7 @@ static void* alice_get_script_proc(alice_ScriptContext* context, const char* nam
 	return function;
 }
 
-static void alice_deinit_script_context_library(alice_ScriptContext* context) {
+static void alice_deinit_script_context_library(alice_script_context_t* context) {
 	assert(context);
 
 	FreeLibrary(context->handle);
@@ -37,7 +37,7 @@ static void alice_deinit_script_context_library(alice_ScriptContext* context) {
 
 #include <dlfcn.h>
 
-static void alice_init_script_context_library(alice_ScriptContext* context, const char* assembly_path) {
+static void alice_init_script_context_library(alice_script_context_t* context, const char* assembly_path) {
 	assert(context);
 
 	context->handle = dlopen(assembly_path, RTLD_NOW);
@@ -46,7 +46,7 @@ static void alice_init_script_context_library(alice_ScriptContext* context, cons
 	}
 }
 
-static void* alice_get_script_proc(alice_ScriptContext* context, const char* name) {
+static void* alice_get_script_proc(alice_script_context_t* context, const char* name) {
 	assert(context);
 
 	void* function = dlsym(context->handle, name);
@@ -57,7 +57,7 @@ static void* alice_get_script_proc(alice_ScriptContext* context, const char* nam
 	return function;
 }
 
-static void alice_deinit_script_context_library(alice_ScriptContext* context) {
+static void alice_deinit_script_context_library(alice_script_context_t* context) {
 	assert(context);
 
 	dlclose(context->handle);
@@ -65,10 +65,10 @@ static void alice_deinit_script_context_library(alice_ScriptContext* context) {
 
 #endif
 
-alice_ScriptContext* alice_new_script_context(alice_Scene* scene, const char* assembly_path) {
+alice_script_context_t* alice_new_script_context(alice_scene_t* scene, const char* assembly_path) {
 	assert(scene);
 
-	alice_ScriptContext* new = malloc(sizeof(alice_ScriptContext));
+	alice_script_context_t* new = malloc(sizeof(alice_script_context_t));
 
 	new->scripts = alice_null;
 	new->script_count = 0;
@@ -81,7 +81,7 @@ alice_ScriptContext* alice_new_script_context(alice_Scene* scene, const char* as
 	return new;
 }
 
-void alice_free_script_context(alice_ScriptContext* context) {
+void alice_free_script_context(alice_script_context_t* context) {
 	assert(context);
 
 	alice_deinit_script_context_library(context);
@@ -93,7 +93,7 @@ void alice_free_script_context(alice_ScriptContext* context) {
 	free(context);
 }
 
-alice_Script* alice_new_script(alice_ScriptContext* context, alice_EntityHandle entity,
+alice_script_t* alice_new_script(alice_script_context_t* context, alice_entity_handle_t entity,
 		const char* get_instance_size_name,
 		const char* on_init_name,
 		const char* on_update_name,
@@ -103,16 +103,16 @@ alice_Script* alice_new_script(alice_ScriptContext* context, alice_EntityHandle 
 
 	if (context->script_count >= context->script_capacity) {
 		context->script_capacity = alice_grow_capacity(context->script_capacity);
-		context->scripts = realloc(context->scripts, context->script_capacity * sizeof(alice_Script));
+		context->scripts = realloc(context->scripts, context->script_capacity * sizeof(alice_script_t));
 	}
 
-	alice_Script* new = &context->scripts[context->script_count++];
+	alice_script_t* new = &context->scripts[context->script_count++];
 
 	new->instance = alice_null;
 
 	new->entity = entity;
 
-	alice_Entity* entity_ptr = alice_get_entity_ptr(context->scene, entity);
+	alice_entity_t* entity_ptr = alice_get_entity_ptr(context->scene, entity);
 	entity_ptr->script = new;
 
 	new->get_instance_size_name = alice_null;
@@ -126,7 +126,7 @@ alice_Script* alice_new_script(alice_ScriptContext* context, alice_EntityHandle 
 	new->on_physics_update = alice_null;
 	new->on_free = alice_null;
 
-	alice_ScriptGetInstanceSizeFunction get_size = alice_null;
+	alice_script_get_instance_size_f get_size = alice_null;
 	if (get_instance_size_name) {
 		new->get_instance_size_name = alice_copy_string(get_instance_size_name);
 
@@ -164,7 +164,7 @@ alice_Script* alice_new_script(alice_ScriptContext* context, alice_EntityHandle 
 	return new;
 }
 
-void alice_delete_script(alice_ScriptContext* context, alice_Script* script) {
+void alice_delete_script(alice_script_context_t* context, alice_script_t* script) {
 	assert(context);
 	assert(script);
 
@@ -190,7 +190,7 @@ void alice_delete_script(alice_ScriptContext* context, alice_Script* script) {
 	context->script_count--;
 }
 
-void alice_deinit_script(alice_ScriptContext* context, alice_Script* script) {
+void alice_deinit_script(alice_script_context_t* context, alice_script_t* script) {
 	assert(context);
 	assert(script);
 
@@ -202,7 +202,7 @@ void alice_deinit_script(alice_ScriptContext* context, alice_Script* script) {
 		free(script->instance);
 	}
 
-	alice_Entity* entity_ptr = alice_get_entity_ptr(context->scene, script->entity);
+	alice_entity_t* entity_ptr = alice_get_entity_ptr(context->scene, script->entity);
 	entity_ptr->script = alice_null;
 
 	free(script->get_instance_size_name);
@@ -211,44 +211,44 @@ void alice_deinit_script(alice_ScriptContext* context, alice_Script* script) {
 	free(script->on_free_name);
 }
 
-void alice_init_scripts(alice_ScriptContext* context) {
+void alice_init_scripts(alice_script_context_t* context) {
 	assert(context);
 
 	for (u32 i = 0; i < context->script_count; i++) {
-		alice_Script* script = &context->scripts[i];
+		alice_script_t* script = &context->scripts[i];
 		if (script->on_init) {
 			script->on_init(context->scene, script->entity, script->instance);
 		}
 	}
 }
 
-void alice_update_scripts(alice_ScriptContext* context, double timestep) {
+void alice_update_scripts(alice_script_context_t* context, double timestep) {
 	assert(context);
 
 	for (u32 i = 0; i < context->script_count; i++) {
-		alice_Script* script = &context->scripts[i];
+		alice_script_t* script = &context->scripts[i];
 		if (script->on_update) {
 			script->on_update(context->scene, script->entity, script->instance, timestep);
 		}
 	}
 }
 
-void alice_physics_update_scripts(alice_ScriptContext* context, double timestep) {
+void alice_physics_update_scripts(alice_script_context_t* context, double timestep) {
 	assert(context);
 
 	for (u32 i = 0; i < context->script_count; i++) {
-		alice_Script* script = &context->scripts[i];
+		alice_script_t* script = &context->scripts[i];
 		if (script->on_physics_update) {
 			script->on_physics_update(context->scene, script->entity, script->instance, timestep);
 		}
 	}
 }
 
-void alice_free_scripts(alice_ScriptContext* context) {
+void alice_free_scripts(alice_script_context_t* context) {
 	assert(context);
 
 	for (u32 i = 0; i < context->script_count; i++) {
-		alice_Script* script = &context->scripts[i];
+		alice_script_t* script = &context->scripts[i];
 		alice_deinit_script(context, script);
 	}
 }

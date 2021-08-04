@@ -6,13 +6,13 @@
 #include "alice/entity.h"
 #include "alice/physics.h"
 
-typedef struct alice_DebugRenderer alice_DebugRenderer;
+typedef struct alice_debug_renderer_t alice_debug_renderer_t;
 
-typedef struct alice_RGBColor {
+typedef struct alice_rgb_color_t {
 	float r, g, b;
-} alice_RGBColor;
+} alice_rgb_color_t;
 
-typedef u32 alice_Color;
+typedef u32 alice_color_t;
 
 #define ALICE_COLOR_WHITE 0xffffff
 #define ALICE_COLOR_RED 0xff0000
@@ -22,67 +22,67 @@ typedef u32 alice_Color;
 #define ALICE_COLOR_PINK 0xff00ff
 #define ALICE_COLOR_CYAN 0x00ffff
 
-ALICE_API alice_Color alice_color_from_rgb_color(alice_RGBColor rgb);
-ALICE_API alice_RGBColor alice_rgb_color_from_color(alice_Color color);
+ALICE_API alice_color_t alice_color_from_rgb_color(alice_rgb_color_t rgb);
+ALICE_API alice_rgb_color_t alice_rgb_color_from_color(alice_color_t color);
 
-typedef struct alice_Shader {
+typedef struct alice_shader_t {
 	u32 id;
 
 	bool panic_mode;
-} alice_Shader;
+} alice_shader_t;
 
-ALICE_API alice_Shader* alice_init_shader(alice_Shader* shader, char* source);
-ALICE_API void alice_deinit_shader(alice_Shader* shader);
+ALICE_API alice_shader_t* alice_init_shader(alice_shader_t* shader, char* source);
+ALICE_API void alice_deinit_shader(alice_shader_t* shader);
 
-ALICE_API alice_Shader* alice_new_shader(alice_Resource* resource);
-ALICE_API void alice_free_shader(alice_Shader* shader);
+ALICE_API alice_shader_t* alice_new_shader(alice_resource_t* resource);
+ALICE_API void alice_free_shader(alice_shader_t* shader);
 
-ALICE_API void alice_bind_shader(alice_Shader* shader);
-ALICE_API void alice_shader_set_int(alice_Shader* shader, const char* name, i32 v);
-ALICE_API void alice_shader_set_uint(alice_Shader* shader, const char* name, u32 v);
-ALICE_API void alice_shader_set_float(alice_Shader* shader, const char* name, float v);
-ALICE_API void alice_shader_set_color(alice_Shader* shader, const char* name, alice_Color color);
-ALICE_API void alice_shader_set_rgb_color(alice_Shader* shader, const char* name, alice_RGBColor color);
-ALICE_API void alice_shader_set_v2i(alice_Shader* shader, const char* name, alice_v2i v);
-ALICE_API void alice_shader_set_v2u(alice_Shader* shader, const char* name, alice_v2u v);
-ALICE_API void alice_shader_set_v2f(alice_Shader* shader, const char* name, alice_v2f v);
-ALICE_API void alice_shader_set_v3i(alice_Shader* shader, const char* name, alice_v3i v);
-ALICE_API void alice_shader_set_v3u(alice_Shader* shader, const char* name, alice_v3u v);
-ALICE_API void alice_shader_set_v3f(alice_Shader* shader, const char* name, alice_v3f v);
-ALICE_API void alice_shader_set_v4i(alice_Shader* shader, const char* name, alice_v4i v);
-ALICE_API void alice_shader_set_v4u(alice_Shader* shader, const char* name, alice_v4u v);
-ALICE_API void alice_shader_set_v4f(alice_Shader* shader, const char* name, alice_v4f v);
-ALICE_API void alice_shader_set_m4f(alice_Shader* shader, const char* name, alice_m4f v);
+ALICE_API void alice_bind_shader(alice_shader_t* shader);
+ALICE_API void alice_shader_set_int(alice_shader_t* shader, const char* name, i32 v);
+ALICE_API void alice_shader_set_uint(alice_shader_t* shader, const char* name, u32 v);
+ALICE_API void alice_shader_set_float(alice_shader_t* shader, const char* name, float v);
+ALICE_API void alice_shader_set_color(alice_shader_t* shader, const char* name, alice_color_t color);
+ALICE_API void alice_shader_set_rgb_color(alice_shader_t* shader, const char* name, alice_rgb_color_t color);
+ALICE_API void alice_shader_set_v2i(alice_shader_t* shader, const char* name, alice_v2i_t v);
+ALICE_API void alice_shader_set_v2u(alice_shader_t* shader, const char* name, alice_v2u_t v);
+ALICE_API void alice_shader_set_v2f(alice_shader_t* shader, const char* name, alice_v2f_t v);
+ALICE_API void alice_shader_set_v3i(alice_shader_t* shader, const char* name, alice_v3i_t v);
+ALICE_API void alice_shader_set_v3u(alice_shader_t* shader, const char* name, alice_v3u_t v);
+ALICE_API void alice_shader_set_v3f(alice_shader_t* shader, const char* name, alice_v3f_t v);
+ALICE_API void alice_shader_set_v4i(alice_shader_t* shader, const char* name, alice_v4i v);
+ALICE_API void alice_shader_set_v4u(alice_shader_t* shader, const char* name, alice_v4u v);
+ALICE_API void alice_shader_set_v4f(alice_shader_t* shader, const char* name, alice_v4f_t v);
+ALICE_API void alice_shader_set_m4f(alice_shader_t* shader, const char* name, alice_m4f_t v);
 
-typedef enum alice_VertexBufferFlags {
+typedef enum alice_vertex_buffer_flags_t {
 	ALICE_VERTEXBUFFER_STATIC_DRAW = 1 << 0,
 	ALICE_VERTEXBUFFER_DYNAMIC_DRAW = 1 << 1,
 	ALICE_VERTEXBUFFER_DRAW_LINES = 1 << 2,
 	ALICE_VERTEXBUFFER_DRAW_LINE_STRIP = 1 << 3,
 	ALICE_VERTEXBUFFER_DRAW_TRIANGLES = 1 << 4,
-} alice_VertexBufferFlags;
+} alice_vertex_buffer_flags_t;
 
-typedef struct alice_VertexBuffer {
+typedef struct alice_vertex_buffer_t {
 	u32 va_id;
 	u32 vb_id;
 	u32 ib_id;
 	u32 index_count;
 
-	alice_VertexBufferFlags flags;
-} alice_VertexBuffer;
+	alice_vertex_buffer_flags_t flags;
+} alice_vertex_buffer_t;
 
-ALICE_API alice_VertexBuffer* alice_new_vertex_buffer(alice_VertexBufferFlags flags);
-ALICE_API void alice_free_vertex_buffer(alice_VertexBuffer* buffer);
-ALICE_API void alice_bind_vertex_buffer_for_draw(alice_VertexBuffer* buffer);
-ALICE_API void alice_bind_vertex_buffer_for_edit(alice_VertexBuffer* buffer);
-ALICE_API void alice_push_vertices(alice_VertexBuffer* buffer, float* vertices, u32 count);
-ALICE_API void alice_push_indices(alice_VertexBuffer* buffer, u32* indices, u32 count);
-ALICE_API void alice_update_vertices(alice_VertexBuffer* buffer, float* vertices, u32 offset, u32 count);
-ALICE_API void alice_update_indices(alice_VertexBuffer* buffer, u32* indices, u32 offset, u32 count);
-ALICE_API void alice_configure_vertex_buffer(alice_VertexBuffer* buffer, u32 index, u32 component_count,
+ALICE_API alice_vertex_buffer_t* alice_new_vertex_buffer(alice_vertex_buffer_flags_t flags);
+ALICE_API void alice_free_vertex_buffer(alice_vertex_buffer_t* buffer);
+ALICE_API void alice_bind_vertex_buffer_for_draw(alice_vertex_buffer_t* buffer);
+ALICE_API void alice_bind_vertex_buffer_for_edit(alice_vertex_buffer_t* buffer);
+ALICE_API void alice_push_vertices(alice_vertex_buffer_t* buffer, float* vertices, u32 count);
+ALICE_API void alice_push_indices(alice_vertex_buffer_t* buffer, u32* indices, u32 count);
+ALICE_API void alice_update_vertices(alice_vertex_buffer_t* buffer, float* vertices, u32 offset, u32 count);
+ALICE_API void alice_update_indices(alice_vertex_buffer_t* buffer, u32* indices, u32 offset, u32 count);
+ALICE_API void alice_configure_vertex_buffer(alice_vertex_buffer_t* buffer, u32 index, u32 component_count,
 	u32 stride, u32 offset);
-ALICE_API void alice_draw_vertex_buffer(alice_VertexBuffer* buffer);
-ALICE_API void alice_draw_vertex_buffer_custom_count(alice_VertexBuffer* buffer, u32 count);
+ALICE_API void alice_draw_vertex_buffer(alice_vertex_buffer_t* buffer);
+ALICE_API void alice_draw_vertex_buffer_custom_count(alice_vertex_buffer_t* buffer, u32 count);
 
 ALICE_API void alice_render_clear();
 ALICE_API void alice_depth_clear();
@@ -90,40 +90,36 @@ ALICE_API void alice_depth_clear();
 ALICE_API void alice_enable_depth();
 ALICE_API void alice_disable_depth();
 
-typedef enum alice_TextureFlags {
+typedef enum alice_texture_flags_t {
 	ALICE_TEXTURE_ALIASED = 1 << 0,
 	ALICE_TEXTURE_ANTIALIASED = 1 << 1,
-} alice_TextureFlags;
+} alice_texture_flags_t;
 
-typedef struct alice_Texture {
+typedef struct alice_texture_t {
 	u32 id;
 	i32 width, height, component_count;
 
-	alice_TextureFlags flags;
-} alice_Texture;
+	alice_texture_flags_t flags;
+} alice_texture_t;
 
-ALICE_API alice_Texture* alice_new_texture(alice_Resource* resource, alice_TextureFlags flags);
-ALICE_API alice_Texture* alice_new_texture_from_memory(void* data, u32 size, alice_TextureFlags flags);
-ALICE_API alice_Texture* alice_new_texture_from_memory_uncompressed(unsigned char* pixels,
-	u32 size, i32 width, i32 height, i32 component_count, alice_TextureFlags flags);
-ALICE_API void alice_init_texture(alice_Texture* texture, alice_Resource* resource, alice_TextureFlags flags);
-ALICE_API void alice_init_texture_from_memory(alice_Texture* texture, void* data, u32 size, alice_TextureFlags flags);
-ALICE_API void alice_init_texture_from_memory_uncompressed(alice_Texture* texture, unsigned char* pixels,
-	u32 size, i32 width, i32 height, i32 component_count, alice_TextureFlags flags);
-ALICE_API void alice_deinit_texture(alice_Texture* texture);
+ALICE_API alice_texture_t* alice_new_texture(alice_resource_t* resource, alice_texture_flags_t flags);
+ALICE_API alice_texture_t* alice_new_texture_from_memory(void* data, u32 size, alice_texture_flags_t flags);
+ALICE_API alice_texture_t* alice_new_texture_from_memory_uncompressed(unsigned char* pixels,
+	u32 size, i32 width, i32 height, i32 component_count, alice_texture_flags_t flags);
+ALICE_API void alice_init_texture(alice_texture_t* texture, alice_resource_t* resource, alice_texture_flags_t flags);
+ALICE_API void alice_init_texture_from_memory(alice_texture_t* texture, void* data, u32 size, alice_texture_flags_t flags);
+ALICE_API void alice_init_texture_from_memory_uncompressed(alice_texture_t* texture, unsigned char* pixels,
+	u32 size, i32 width, i32 height, i32 component_count, alice_texture_flags_t flags);
+ALICE_API void alice_deinit_texture(alice_texture_t* texture);
 
-ALICE_API void alice_free_texture(alice_Texture* texture);
-ALICE_API void alice_bind_texture(alice_Texture* texture, u32 slot);
+ALICE_API void alice_free_texture(alice_texture_t* texture);
+ALICE_API void alice_bind_texture(alice_texture_t* texture, u32 slot);
 
-typedef struct alice_EnvironmentMap {
-	u32 cubemap;
-} alice_EnvironmentMap;
-
-typedef struct alice_Rect {
+typedef struct alice_rect_t {
 	float x, y, w, h;
-} alice_Rect;
+} alice_rect_t;
 
-typedef struct alice_RenderTarget {
+typedef struct alice_render_target_t {
 	u32 frame_buffer, render_buffer;
 
 	u32* color_attachments;
@@ -132,49 +128,49 @@ typedef struct alice_RenderTarget {
 	u32 width, height;
 
 	u32 old_width, old_height;
-} alice_RenderTarget;
+} alice_render_target_t;
 
-ALICE_API alice_RenderTarget* alice_new_render_target(u32 width, u32 height, u32 color_attachment_count);
-ALICE_API void alice_free_render_target(alice_RenderTarget* target);
-ALICE_API void alice_bind_render_target(alice_RenderTarget* target, u32 old_width, u32 old_height);
-ALICE_API void alice_unbind_render_target(alice_RenderTarget* target);
-ALICE_API void alice_resize_render_target(alice_RenderTarget* target, u32 width, u32 height);
-ALICE_API void alice_render_target_bind_output(alice_RenderTarget* rt, u32 attachment_index, u32 unit);
+ALICE_API alice_render_target_t* alice_new_render_target(u32 width, u32 height, u32 color_attachment_count);
+ALICE_API void alice_free_render_target(alice_render_target_t* target);
+ALICE_API void alice_bind_render_target(alice_render_target_t* target, u32 old_width, u32 old_height);
+ALICE_API void alice_unbind_render_target(alice_render_target_t* target);
+ALICE_API void alice_resize_render_target(alice_render_target_t* target, u32 width, u32 height);
+ALICE_API void alice_render_target_bind_output(alice_render_target_t* rt, u32 attachment_index, u32 unit);
 
-typedef struct alice_Mesh {
-	alice_m4f transform;
+typedef struct alice_mesh_t {
+	alice_m4f_t transform;
 
-	alice_VertexBuffer* vb;
+	alice_vertex_buffer_t* vb;
 
-	alice_AABB aabb;
-} alice_Mesh;
+	alice_aabb_t aabb;
+} alice_mesh_t;
 
-ALICE_API void alice_init_mesh(alice_Mesh* mesh, alice_VertexBuffer* vb);
-ALICE_API void alice_deinit_mesh(alice_Mesh* mesh);
+ALICE_API void alice_init_mesh(alice_mesh_t* mesh, alice_vertex_buffer_t* vb);
+ALICE_API void alice_deinit_mesh(alice_mesh_t* mesh);
 
-ALICE_API alice_Mesh alice_new_cube_mesh();
-ALICE_API alice_Mesh alice_new_sphere_mesh();
+ALICE_API alice_mesh_t alice_new_cube_mesh();
+ALICE_API alice_mesh_t alice_new_sphere_mesh();
 
-typedef struct alice_Model {
-	alice_Mesh* meshes;
+typedef struct alice_model_t {
+	alice_mesh_t* meshes;
 	u32 mesh_count;
 	u32 mesh_capacity;
-} alice_Model;
+} alice_model_t;
 
-ALICE_API void alice_init_model(alice_Model* model);
-ALICE_API void alice_deinit_model(alice_Model* model);
+ALICE_API void alice_init_model(alice_model_t* model);
+ALICE_API void alice_deinit_model(alice_model_t* model);
 
-ALICE_API alice_Model* alice_new_model();
-ALICE_API void alice_free_model(alice_Model* model);
-ALICE_API void alice_model_add_mesh(alice_Model* model, alice_Mesh mesh);
+ALICE_API alice_model_t* alice_new_model();
+ALICE_API void alice_free_model(alice_model_t* model);
+ALICE_API void alice_model_add_mesh(alice_model_t* model, alice_mesh_t mesh);
 
-ALICE_API void alice_calculate_aabb_from_mesh(alice_AABB* aabb,
+ALICE_API void alice_calculate_aabb_from_mesh(alice_aabb_t* aabb,
 	float* vertices, u32 position_count, u32 position_stride);
 
-typedef struct alice_Camera3D {
-	alice_Entity base;
+typedef struct alice_camera_3d_t {
+	alice_entity_t base;
 
-	alice_v2f dimentions;
+	alice_v2f_t dimentions;
 
 	float fov;
 	float near;
@@ -184,96 +180,96 @@ typedef struct alice_Camera3D {
 	float gamma;
 
 	bool active;
-} alice_Camera3D;
+} alice_camera_3d_t;
 
-ALICE_API alice_Camera3D* alice_get_scene_camera(alice_Scene* scene);
-ALICE_API alice_m4f alice_get_camera_3d_matrix(alice_Scene* scene, alice_Camera3D* camera);
-ALICE_API alice_m4f alice_get_camera_3d_view(alice_Scene* scene, alice_Camera3D* camera);
-ALICE_API alice_m4f alice_get_camera_3d_view_no_direction(alice_Scene* scene, alice_Camera3D* camera);
-ALICE_API alice_m4f alice_get_camera_3d_projection(alice_Camera3D* camera);
+ALICE_API alice_camera_3d_t* alice_get_scene_camera(alice_scene_t* scene);
+ALICE_API alice_m4f_t alice_get_camera_3d_matrix(alice_scene_t* scene, alice_camera_3d_t* camera);
+ALICE_API alice_m4f_t alice_get_camera_3d_view(alice_scene_t* scene, alice_camera_3d_t* camera);
+ALICE_API alice_m4f_t alice_get_camera_3d_view_no_direction(alice_scene_t* scene, alice_camera_3d_t* camera);
+ALICE_API alice_m4f_t alice_get_camera_3d_projection(alice_camera_3d_t* camera);
 
-typedef struct alice_PointLight {
-	alice_Entity base;
+typedef struct alice_point_light_t {
+	alice_entity_t base;
 
-	alice_Color color;
+	alice_color_t color;
 	float intensity;
 	float range;
-} alice_PointLight;
+} alice_point_light_t;
 
-typedef struct alice_DirectionalLight {
-	alice_Entity base;
+typedef struct alice_directional_light_t {
+	alice_entity_t base;
 
-	alice_Color color;
+	alice_color_t color;
 	float intensity;
 
 	bool cast_shadows;
 
-	alice_m4f transform;
-} alice_DirectionalLight;
+	alice_m4f_t transform;
+} alice_directional_light_t;
 
-typedef struct alice_PBRMaterial {
-	alice_Color albedo;
+typedef struct alice_pbr_material_t {
+	alice_color_t albedo;
 	float metallic;
 	float roughness;
 
 	float emissive;
 
-	alice_Texture* albedo_map;
-	alice_Texture* normal_map;
-	alice_Texture* metallic_map;
-	alice_Texture* roughness_map;
-	alice_Texture* ambient_occlusion_map;
-} alice_PBRMaterial;
+	alice_texture_t* albedo_map;
+	alice_texture_t* normal_map;
+	alice_texture_t* metallic_map;
+	alice_texture_t* roughness_map;
+	alice_texture_t* ambient_occlusion_map;
+} alice_pbr_material_t;
 
-typedef struct alice_PhongMaterial {
-	alice_Color diffuse;
-	alice_Color specular;
-	alice_Color ambient;
+typedef struct alice_phong_material_t {
+	alice_color_t diffuse;
+	alice_color_t specular;
+	alice_color_t ambient;
 
 	float shininess;
 	float emissive;
 
-	alice_Texture* diffuse_map;
-} alice_PhongMaterial;
+	alice_texture_t* diffuse_map;
+} alice_phong_material_t;
 
-typedef enum alice_MaterialType {
+typedef enum alice_material_type_t {
 	ALICE_MATERIAL_PBR,
 	ALICE_MATERIAL_PHONG
-} alice_MaterialType;
+} alice_material_type_t;
 
-typedef struct alice_Material {
-	alice_Shader* shader;
+typedef struct alice_material_t {
+	alice_shader_t* shader;
 
-	alice_MaterialType type;
+	alice_material_type_t type;
 
 	union {
-		alice_PBRMaterial pbr;
-		alice_PhongMaterial phong;
+		alice_pbr_material_t pbr;
+		alice_phong_material_t phong;
 	} as;
-} alice_Material;
+} alice_material_t;
 
-ALICE_API void alice_apply_material(alice_Scene* scene, alice_Material* material);
+ALICE_API void alice_apply_material(alice_scene_t* scene, alice_material_t* material);
 
-typedef struct alice_Renderable3D {
-	alice_Entity base;
+typedef struct alice_renderable_3d_t {
+	alice_entity_t base;
 
-	alice_Material** materials;
+	alice_material_t** materials;
 	u32 material_count;
 	u32 material_capacity;
 
-	alice_Model* model;
+	alice_model_t* model;
 
 	bool cast_shadows;
-} alice_Renderable3D;
+} alice_renderable_3d_t;
 
-ALICE_API void alice_apply_point_lights(alice_Scene* scene, alice_AABB mesh_aabb, alice_Material* material);
+ALICE_API void alice_apply_point_lights(alice_scene_t* scene, alice_aabb_t mesh_aabb, alice_material_t* material);
 
-ALICE_API void alice_on_renderable_3d_create(alice_Scene* scene, alice_EntityHandle handle, void* ptr);
-ALICE_API void alice_on_renderable_3d_destroy(alice_Scene* scene, alice_EntityHandle handle, void* ptr);
-ALICE_API void alice_renderable_3d_add_material(alice_Renderable3D* renderable, const char* material_path);
+ALICE_API void alice_on_renderable_3d_create(alice_scene_t* scene, alice_entity_handle_t handle, void* ptr);
+ALICE_API void alice_on_renderable_3d_destroy(alice_scene_t* scene, alice_entity_handle_t handle, void* ptr);
+ALICE_API void alice_renderable_3d_add_material(alice_renderable_3d_t* renderable, const char* material_path);
 
-typedef struct alice_Shadowmap {
-	alice_Shader* shader;
+typedef struct alice_shadowmap_t {
+	alice_shader_t* shader;
 
 	u32 res;
 
@@ -281,26 +277,26 @@ typedef struct alice_Shadowmap {
 
 	u32 framebuffer;
 	u32 output;
-} alice_Shadowmap;
+} alice_shadowmap_t;
 
-ALICE_API alice_Shadowmap* alice_new_shadowmap(u32 res, alice_Shader* shader);
-ALICE_API void alice_free_shadowmap(alice_Shadowmap* shadowmap);
-ALICE_API void alice_draw_shadowmap(alice_Shadowmap* shadowmap, alice_Scene* scene, alice_Camera3D* camera);
-ALICE_API void alice_bind_shadowmap_output(alice_Shadowmap* shadowmap, u32 unit);
+ALICE_API alice_shadowmap_t* alice_new_shadowmap(u32 res, alice_shader_t* shader);
+ALICE_API void alice_free_shadowmap(alice_shadowmap_t* shadowmap);
+ALICE_API void alice_draw_shadowmap(alice_shadowmap_t* shadowmap, alice_scene_t* scene, alice_camera_3d_t* camera);
+ALICE_API void alice_bind_shadowmap_output(alice_shadowmap_t* shadowmap, u32 unit);
 
-typedef struct alice_SceneRenderer3D {
-	alice_RenderTarget* bright_pixels;
-	alice_RenderTarget* bloom_ping_pong[2];
-	alice_RenderTarget* output;
-	alice_VertexBuffer* quad;
-	alice_Shader* postprocess;
-	alice_Shader* extract;
-	alice_Shader* blur;
+typedef struct alice_scene_renderer_3d_t {
+	alice_render_target_t* bright_pixels;
+	alice_render_target_t* bloom_ping_pong[2];
+	alice_render_target_t* output;
+	alice_vertex_buffer_t* quad;
+	alice_shader_t* postprocess;
+	alice_shader_t* extract;
+	alice_shader_t* blur;
 
 	bool debug;
-	alice_DebugRenderer* debug_renderer;
+	alice_debug_renderer_t* debug_renderer;
 
-	alice_Shadowmap* shadowmap;
+	alice_shadowmap_t* shadowmap;
 
 	bool use_bloom;
 	float bloom_threshold;
@@ -308,17 +304,17 @@ typedef struct alice_SceneRenderer3D {
 
 	bool use_antialiasing;
 
-	alice_Color color_mod;
-	alice_Color ambient_color;
+	alice_color_t color_mod;
+	alice_color_t ambient_color;
 	float ambient_intensity;
-} alice_SceneRenderer3D;
+} alice_scene_renderer_3d_t;
 
-ALICE_API alice_SceneRenderer3D* alice_new_scene_renderer_3d(alice_Shader* postprocess_shader,
-	alice_Shader* extract_shader, alice_Shader* blur_shader, alice_Shader* depth_shader,
-	bool debug, alice_Shader* debug_shader);
-ALICE_API void alice_free_scene_renderer_3d(alice_SceneRenderer3D* renderer);
-ALICE_API void alice_render_scene_3d(alice_SceneRenderer3D* renderer, u32 width, u32 height,
-	alice_Scene* scene, alice_RenderTarget* render_target);
+ALICE_API alice_scene_renderer_3d_t* alice_new_scene_renderer_3d(alice_shader_t* postprocess_shader,
+	alice_shader_t* extract_shader, alice_shader_t* blur_shader, alice_shader_t* depth_shader,
+	bool debug, alice_shader_t* debug_shader);
+ALICE_API void alice_free_scene_renderer_3d(alice_scene_renderer_3d_t* renderer);
+ALICE_API void alice_render_scene_3d(alice_scene_renderer_3d_t* renderer, u32 width, u32 height,
+	alice_scene_t* scene, alice_render_target_t* render_target);
 
-ALICE_API alice_AABB alice_transform_aabb(alice_AABB aabb, alice_m4f m);
-ALICE_API alice_AABB alice_compute_scene_aabb(alice_Scene* scene);
+ALICE_API alice_aabb_t alice_transform_aabb(alice_aabb_t aabb, alice_m4f_t m);
+ALICE_API alice_aabb_t alice_compute_scene_aabb(alice_scene_t* scene);

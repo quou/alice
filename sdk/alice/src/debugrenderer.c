@@ -3,14 +3,14 @@
 
 #include "alice/debugrenderer.h"
 
-alice_DebugRenderer* alice_new_debug_renderer(alice_Shader* line_shader) {
+alice_debug_renderer_t* alice_new_debug_renderer(alice_shader_t* line_shader) {
 	assert(line_shader);
 
-	alice_DebugRenderer* new = malloc(sizeof(alice_DebugRenderer));
+	alice_debug_renderer_t* new = malloc(sizeof(alice_debug_renderer_t));
 
 	new->line_shader = line_shader;
 
-	alice_VertexBuffer* buffer = alice_new_vertex_buffer(
+	alice_vertex_buffer_t* buffer = alice_new_vertex_buffer(
 			ALICE_VERTEXBUFFER_DRAW_LINES | ALICE_VERTEXBUFFER_DYNAMIC_DRAW);
 
 	new->camera = alice_null;
@@ -32,7 +32,7 @@ alice_DebugRenderer* alice_new_debug_renderer(alice_Shader* line_shader) {
 	return new;
 }
 
-void alice_free_debug_renderer(alice_DebugRenderer* renderer) {
+void alice_free_debug_renderer(alice_debug_renderer_t* renderer) {
 	assert(renderer);
 
 	alice_free_vertex_buffer(renderer->line_vb);
@@ -40,7 +40,7 @@ void alice_free_debug_renderer(alice_DebugRenderer* renderer) {
 	free(renderer);
 }
 
-void alice_debug_renderer_draw_line(alice_DebugRenderer* renderer, alice_v3f start, alice_v3f end) {
+void alice_debug_renderer_draw_line(alice_debug_renderer_t* renderer, alice_v3f_t start, alice_v3f_t end) {
 	assert(renderer);
 
 	float verts[] = {
@@ -72,54 +72,54 @@ void alice_debug_renderer_draw_line(alice_DebugRenderer* renderer, alice_v3f sta
 	alice_bind_shader(alice_null);
 }
 
-void alice_debug_renderer_draw_aabb(alice_DebugRenderer* renderer, alice_AABB aabb) {
+void alice_debug_renderer_draw_aabb(alice_debug_renderer_t* renderer, alice_aabb_t aabb) {
 	assert(renderer);
 
 	alice_debug_renderer_draw_line(renderer,
-			(alice_v3f) { aabb.min.x, aabb.min.y, aabb.min.z },
-			(alice_v3f) { aabb.min.x, aabb.max.y, aabb.min.z });
+			(alice_v3f_t) { aabb.min.x, aabb.min.y, aabb.min.z },
+			(alice_v3f_t) { aabb.min.x, aabb.max.y, aabb.min.z });
 
 	alice_debug_renderer_draw_line(renderer,
-			(alice_v3f) { aabb.max.x, aabb.min.y, aabb.min.z },
-			(alice_v3f) { aabb.max.x, aabb.max.y, aabb.min.z });
+			(alice_v3f_t) { aabb.max.x, aabb.min.y, aabb.min.z },
+			(alice_v3f_t) { aabb.max.x, aabb.max.y, aabb.min.z });
 
 	alice_debug_renderer_draw_line(renderer,
-			(alice_v3f) { aabb.min.x, aabb.min.y, aabb.max.z },
-			(alice_v3f) { aabb.min.x, aabb.max.y, aabb.max.z });
+			(alice_v3f_t) { aabb.min.x, aabb.min.y, aabb.max.z },
+			(alice_v3f_t) { aabb.min.x, aabb.max.y, aabb.max.z });
 
 	alice_debug_renderer_draw_line(renderer,
-			(alice_v3f) { aabb.max.x, aabb.min.y, aabb.max.z },
-			(alice_v3f) { aabb.max.x, aabb.max.y, aabb.max.z });
+			(alice_v3f_t) { aabb.max.x, aabb.min.y, aabb.max.z },
+			(alice_v3f_t) { aabb.max.x, aabb.max.y, aabb.max.z });
 
 	alice_debug_renderer_draw_line(renderer,
-			(alice_v3f) { aabb.max.x, aabb.min.y, aabb.min.z },
-			(alice_v3f) { aabb.min.x, aabb.min.y, aabb.min.z });
+			(alice_v3f_t) { aabb.max.x, aabb.min.y, aabb.min.z },
+			(alice_v3f_t) { aabb.min.x, aabb.min.y, aabb.min.z });
 
 	alice_debug_renderer_draw_line(renderer,
-			(alice_v3f) { aabb.min.x, aabb.min.y, aabb.max.z },
-			(alice_v3f) { aabb.min.x, aabb.min.y, aabb.min.z });
+			(alice_v3f_t) { aabb.min.x, aabb.min.y, aabb.max.z },
+			(alice_v3f_t) { aabb.min.x, aabb.min.y, aabb.min.z });
 
 	alice_debug_renderer_draw_line(renderer,
-			(alice_v3f) { aabb.min.x, aabb.max.y, aabb.max.z },
-			(alice_v3f) { aabb.max.x, aabb.max.y, aabb.max.z });
+			(alice_v3f_t) { aabb.min.x, aabb.max.y, aabb.max.z },
+			(alice_v3f_t) { aabb.max.x, aabb.max.y, aabb.max.z });
 
 	alice_debug_renderer_draw_line(renderer,
-			(alice_v3f) { aabb.max.x, aabb.max.y, aabb.min.z },
-			(alice_v3f) { aabb.max.x, aabb.max.y, aabb.max.z });
+			(alice_v3f_t) { aabb.max.x, aabb.max.y, aabb.min.z },
+			(alice_v3f_t) { aabb.max.x, aabb.max.y, aabb.max.z });
 
 	alice_debug_renderer_draw_line(renderer,
-			(alice_v3f) { aabb.min.x, aabb.min.y, aabb.max.z },
-			(alice_v3f) { aabb.max.x, aabb.min.y, aabb.max.z });
+			(alice_v3f_t) { aabb.min.x, aabb.min.y, aabb.max.z },
+			(alice_v3f_t) { aabb.max.x, aabb.min.y, aabb.max.z });
 
 	alice_debug_renderer_draw_line(renderer,
-			(alice_v3f) { aabb.max.x, aabb.min.y, aabb.min.z },
-			(alice_v3f) { aabb.max.x, aabb.min.y, aabb.max.z });
+			(alice_v3f_t) { aabb.max.x, aabb.min.y, aabb.min.z },
+			(alice_v3f_t) { aabb.max.x, aabb.min.y, aabb.max.z });
 
 	alice_debug_renderer_draw_line(renderer,
-			(alice_v3f) { aabb.min.x, aabb.max.y, aabb.min.z },
-			(alice_v3f) { aabb.min.x, aabb.max.y, aabb.max.z });
+			(alice_v3f_t) { aabb.min.x, aabb.max.y, aabb.min.z },
+			(alice_v3f_t) { aabb.min.x, aabb.max.y, aabb.max.z });
 
 	alice_debug_renderer_draw_line(renderer,
-			(alice_v3f) { aabb.min.x, aabb.max.y, aabb.min.z },
-			(alice_v3f) { aabb.max.x, aabb.max.y, aabb.min.z });
+			(alice_v3f_t) { aabb.min.x, aabb.max.y, aabb.min.z },
+			(alice_v3f_t) { aabb.max.x, aabb.max.y, aabb.min.z });
 }

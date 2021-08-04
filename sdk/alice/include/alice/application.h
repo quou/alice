@@ -4,7 +4,7 @@
 
 typedef struct GLFWwindow GLFWwindow;
 
-typedef struct alice_Application {
+typedef struct alice_application_t {
 	const char* name;
 	u32 width;
 	u32 height;
@@ -13,21 +13,21 @@ typedef struct alice_Application {
 	double last, now;
 
 	GLFWwindow* window;
-} alice_Application;
+} alice_application_t;
 
-typedef struct alice_ApplicationConfig {
+typedef struct alice_application_config_t {
 	const char* name;
 	const char* splash_image;
 	const char* splash_shader;
 	u32 width;
 	u32 height;
 	bool fullscreen;
-} alice_ApplicationConfig;
+} alice_application_config_t;
 
-ALICE_API void alice_init_application(alice_ApplicationConfig cfg);
+ALICE_API void alice_init_application(alice_application_config_t cfg);
 ALICE_API void alice_free_application();
 
-ALICE_API alice_Application* alice_get_application();
+ALICE_API alice_application_t* alice_get_application();
 
 ALICE_API void alice_update_events();
 ALICE_API void alice_update_application();

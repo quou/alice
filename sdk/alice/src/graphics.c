@@ -10,7 +10,7 @@
 #include "alice/graphics.h"
 #include "alice/debugrenderer.h"
 
-alice_Color alice_color_from_rgb_color(alice_RGBColor rgb) {
+alice_color_t alice_color_from_rgb_color(alice_rgb_color_t rgb) {
 	i8 r = (i8)(rgb.r * 255.0);
 	i8 g = (i8)(rgb.g * 255.0);
 	i8 b = (i8)(rgb.b * 255.0);
@@ -18,7 +18,7 @@ alice_Color alice_color_from_rgb_color(alice_RGBColor rgb) {
 	return ((r & 0xff) << 16) + ((g & 0xff) << 8) + (b & 0xff);
 }
 
-alice_RGBColor alice_rgb_color_from_color(alice_Color color) {
+alice_rgb_color_t alice_rgb_color_from_color(alice_color_t color) {
 	int r = (color >> 16) & 0xFF;
 	int g = (color >> 8) & 0xFF;
 	int b = color & 0xFF;
@@ -27,11 +27,11 @@ alice_RGBColor alice_rgb_color_from_color(alice_Color color) {
 	float gf = (float)g / 255.0f;
 	float bf = (float)b / 255.0f;
 
-	return (alice_RGBColor) { rf, gf, bf };
+	return (alice_rgb_color_t) { rf, gf, bf };
 }
 
-alice_RenderTarget* alice_new_render_target(u32 width, u32 height, u32 color_attachment_count) {
-	alice_RenderTarget* target = malloc(sizeof(alice_RenderTarget));
+alice_render_target_t* alice_new_render_target(u32 width, u32 height, u32 color_attachment_count) {
+	alice_render_target_t* target = malloc(sizeof(alice_render_target_t));
 
 	target->width = width;
 	target->height = height;
@@ -73,7 +73,7 @@ alice_RenderTarget* alice_new_render_target(u32 width, u32 height, u32 color_att
 	return target;
 }
 
-void alice_free_render_target(alice_RenderTarget* target) {
+void alice_free_render_target(alice_render_target_t* target) {
 	assert(target);
 
 	glDeleteRenderbuffers(1, &target->render_buffer);
@@ -88,7 +88,7 @@ void alice_free_render_target(alice_RenderTarget* target) {
 	free(target);
 }
 
-void alice_bind_render_target(alice_RenderTarget* target, u32 old_width, u32 old_height) {
+void alice_bind_render_target(alice_render_target_t* target, u32 old_width, u32 old_height) {
 	assert(target);
 
 	target->old_width = old_width;
@@ -100,7 +100,7 @@ void alice_bind_render_target(alice_RenderTarget* target, u32 old_width, u32 old
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void alice_unbind_render_target(alice_RenderTarget* target) {
+void alice_unbind_render_target(alice_render_target_t* target) {
 	assert(target);
 
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
@@ -109,7 +109,7 @@ void alice_unbind_render_target(alice_RenderTarget* target) {
 	glViewport(0, 0, target->old_width, target->old_height);
 }
 
-void alice_resize_render_target(alice_RenderTarget* target, u32 width, u32 height) {
+void alice_resize_render_target(alice_render_target_t* target, u32 width, u32 height) {
 	assert(target);
 
 	if (target->width == width && target->height == height) {
@@ -136,7 +136,7 @@ void alice_resize_render_target(alice_RenderTarget* target, u32 width, u32 heigh
 	alice_unbind_render_target(target);
 }
 
-void alice_render_target_bind_output(alice_RenderTarget* target, u32 attachment_index, u32 unit) {
+void alice_render_target_bind_output(alice_render_target_t* target, u32 attachment_index, u32 unit) {
 	assert(target);
 	assert(attachment_index < target->color_attachment_count);
 
@@ -144,8 +144,8 @@ void alice_render_target_bind_output(alice_RenderTarget* target, u32 attachment_
 	glBindTexture(GL_TEXTURE_2D, target->color_attachments[attachment_index]);
 }
 
-alice_VertexBuffer* alice_new_vertex_buffer(alice_VertexBufferFlags flags) {
-	alice_VertexBuffer* buffer = malloc(sizeof(alice_VertexBuffer));
+alice_vertex_buffer_t* alice_new_vertex_buffer(alice_vertex_buffer_flags_t flags) {
+	alice_vertex_buffer_t* buffer = malloc(sizeof(alice_vertex_buffer_t));
 
 	buffer->flags = flags;
 
@@ -156,7 +156,7 @@ alice_VertexBuffer* alice_new_vertex_buffer(alice_VertexBufferFlags flags) {
 	return buffer;
 }
 
-void alice_free_vertex_buffer(alice_VertexBuffer* buffer) {
+void alice_free_vertex_buffer(alice_vertex_buffer_t* buffer) {
 	assert(buffer);
 
 	glDeleteVertexArrays(1, &buffer->va_id);
@@ -166,11 +166,11 @@ void alice_free_vertex_buffer(alice_VertexBuffer* buffer) {
 	free(buffer);
 }
 
-void alice_bind_vertex_buffer_for_draw(alice_VertexBuffer* buffer) {
+void alice_bind_vertex_buffer_for_draw(alice_vertex_buffer_t* buffer) {
 	glBindVertexArray(buffer ? buffer->va_id : 0);
 }
 
-void alice_bind_vertex_buffer_for_edit(alice_VertexBuffer* buffer) {
+void alice_bind_vertex_buffer_for_edit(alice_vertex_buffer_t* buffer) {
 	if (!buffer) {
 		glBindVertexArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -183,7 +183,7 @@ void alice_bind_vertex_buffer_for_edit(alice_VertexBuffer* buffer) {
 	}
 }
 
-void alice_push_vertices(alice_VertexBuffer* buffer, float* vertices, u32 count) {
+void alice_push_vertices(alice_vertex_buffer_t* buffer, float* vertices, u32 count) {
 	assert(buffer);
 
 	u32 mode = GL_STATIC_DRAW;
@@ -194,7 +194,7 @@ void alice_push_vertices(alice_VertexBuffer* buffer, float* vertices, u32 count)
 	glBufferData(GL_ARRAY_BUFFER, count * sizeof(float), vertices, mode);
 }
 
-void alice_push_indices(alice_VertexBuffer* buffer, u32* indices, u32 count) {
+void alice_push_indices(alice_vertex_buffer_t* buffer, u32* indices, u32 count) {
 	assert(buffer);
 
 	u32 mode = GL_STATIC_DRAW;
@@ -207,14 +207,14 @@ void alice_push_indices(alice_VertexBuffer* buffer, u32* indices, u32 count) {
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * sizeof(u32), indices, mode);
 }
 
-void alice_update_vertices(alice_VertexBuffer* buffer, float* vertices, u32 offset, u32 count) {
+void alice_update_vertices(alice_vertex_buffer_t* buffer, float* vertices, u32 offset, u32 count) {
 	assert(buffer);
 
 	glBufferSubData(GL_ARRAY_BUFFER, offset * sizeof(float),
 		count * sizeof(float), vertices);
 }
 
-void alice_update_indices(alice_VertexBuffer* buffer, u32* indices, u32 offset, u32 count) {
+void alice_update_indices(alice_vertex_buffer_t* buffer, u32* indices, u32 offset, u32 count) {
 	assert(buffer);
 
 	buffer->index_count = count;
@@ -223,7 +223,7 @@ void alice_update_indices(alice_VertexBuffer* buffer, u32* indices, u32 offset, 
 		count * sizeof(u32), indices);
 }
 
-void alice_configure_vertex_buffer(alice_VertexBuffer* buffer, u32 index, u32 component_count,
+void alice_configure_vertex_buffer(alice_vertex_buffer_t* buffer, u32 index, u32 component_count,
 	u32 stride, u32 offset) {
 	assert(buffer);
 
@@ -232,7 +232,7 @@ void alice_configure_vertex_buffer(alice_VertexBuffer* buffer, u32 index, u32 co
 	glEnableVertexAttribArray(index);
 }
 
-void alice_draw_vertex_buffer(alice_VertexBuffer* buffer) {
+void alice_draw_vertex_buffer(alice_vertex_buffer_t* buffer) {
 	assert(buffer);
 
 	u32 draw_type = GL_TRIANGLES;
@@ -246,7 +246,7 @@ void alice_draw_vertex_buffer(alice_VertexBuffer* buffer) {
 	glDrawElements(draw_type, buffer->index_count, GL_UNSIGNED_INT, 0);
 }
 
-void alice_draw_vertex_buffer_custom_count(alice_VertexBuffer* buffer, u32 count) {
+void alice_draw_vertex_buffer_custom_count(alice_vertex_buffer_t* buffer, u32 count) {
 	assert(buffer);
 
 	u32 draw_type = GL_TRIANGLES;
@@ -260,7 +260,7 @@ void alice_draw_vertex_buffer_custom_count(alice_VertexBuffer* buffer, u32 count
 	glDrawElements(draw_type, count, GL_UNSIGNED_INT, 0);
 }
 
-alice_Shader* alice_init_shader(alice_Shader* shader, char* source) {
+alice_shader_t* alice_init_shader(alice_shader_t* shader, char* source) {
 	assert(shader);
 
 	shader->panic_mode = false;
@@ -394,7 +394,7 @@ alice_Shader* alice_init_shader(alice_Shader* shader, char* source) {
 	return shader;
 }
 
-void alice_deinit_shader(alice_Shader* shader) {
+void alice_deinit_shader(alice_shader_t* shader) {
 	assert(shader);
 
 	if (shader->panic_mode) { return; };
@@ -402,7 +402,7 @@ void alice_deinit_shader(alice_Shader* shader) {
 	glDeleteProgram(shader->id);
 }
 
-alice_Shader* alice_new_shader(alice_Resource* resource) {
+alice_shader_t* alice_new_shader(alice_resource_t* resource) {
 	assert(resource);
 
 	if (resource->type != ALICE_RESOURCE_STRING || resource->payload_size <= 0) {
@@ -410,26 +410,26 @@ alice_Shader* alice_new_shader(alice_Resource* resource) {
 		return NULL;
 	}
 
-	alice_Shader* s = malloc(sizeof(alice_Shader));
+	alice_shader_t* s = malloc(sizeof(alice_shader_t));
 	alice_init_shader(s, resource->payload);
 
 	return s;
 }
 
-void alice_free_shader(alice_Shader* shader) {
+void alice_free_shader(alice_shader_t* shader) {
 	assert(shader);
 	alice_deinit_shader(shader);
 
 	free(shader);
 }
 
-void alice_bind_shader(alice_Shader* shader) {
+void alice_bind_shader(alice_shader_t* shader) {
 	if (!shader || shader->panic_mode) { return; };
 
 	glUseProgram(shader ? shader->id : 0);
 }
 
-void alice_shader_set_int(alice_Shader* shader, const char* name, i32 v) {
+void alice_shader_set_int(alice_shader_t* shader, const char* name, i32 v) {
 	assert(shader);
 
 	if (shader->panic_mode) { return; };
@@ -438,7 +438,7 @@ void alice_shader_set_int(alice_Shader* shader, const char* name, i32 v) {
 	glUniform1i(location, v);
 }
 
-void alice_shader_set_uint(alice_Shader* shader, const char* name, u32 v) {
+void alice_shader_set_uint(alice_shader_t* shader, const char* name, u32 v) {
 	assert(shader);
 
 	if (shader->panic_mode) { return; };
@@ -447,7 +447,7 @@ void alice_shader_set_uint(alice_Shader* shader, const char* name, u32 v) {
 	glUniform1ui(location, v);
 }
 
-void alice_shader_set_float(alice_Shader* shader, const char* name, float v) {
+void alice_shader_set_float(alice_shader_t* shader, const char* name, float v) {
 	assert(shader);
 
 	if (shader->panic_mode) { return; };
@@ -456,21 +456,21 @@ void alice_shader_set_float(alice_Shader* shader, const char* name, float v) {
 	glUniform1f(location, v);
 }
 
-void alice_shader_set_color(alice_Shader* shader, const char* name, alice_Color color) {
+void alice_shader_set_color(alice_shader_t* shader, const char* name, alice_color_t color) {
 	assert(shader);
 
-	alice_RGBColor rgb = alice_rgb_color_from_color(color);
+	alice_rgb_color_t rgb = alice_rgb_color_from_color(color);
 
-	alice_shader_set_v3f(shader, name, (alice_v3f) { rgb.r, rgb.g, rgb.b });
+	alice_shader_set_v3f(shader, name, (alice_v3f_t) { rgb.r, rgb.g, rgb.b });
 }
 
-void alice_shader_set_rgb_color(alice_Shader* shader, const char* name, alice_RGBColor color) {
+void alice_shader_set_rgb_color(alice_shader_t* shader, const char* name, alice_rgb_color_t color) {
 	assert(shader);
 
-	alice_shader_set_v3f(shader, name, (alice_v3f) { color.r, color.g, color.b });
+	alice_shader_set_v3f(shader, name, (alice_v3f_t) { color.r, color.g, color.b });
 }
 
-void alice_shader_set_v2i(alice_Shader* shader, const char* name, alice_v2i v) {
+void alice_shader_set_v2i(alice_shader_t* shader, const char* name, alice_v2i_t v) {
 	assert(shader);
 
 	if (shader->panic_mode) { return; };
@@ -479,7 +479,7 @@ void alice_shader_set_v2i(alice_Shader* shader, const char* name, alice_v2i v) {
 	glUniform2i(location, v.x, v.y);
 }
 
-void alice_shader_set_v2u(alice_Shader* shader, const char* name, alice_v2u v) {
+void alice_shader_set_v2u(alice_shader_t* shader, const char* name, alice_v2u_t v) {
 	assert(shader);
 
 	if (shader->panic_mode) { return; };
@@ -488,7 +488,7 @@ void alice_shader_set_v2u(alice_Shader* shader, const char* name, alice_v2u v) {
 	glUniform2ui(location, v.x, v.y);
 }
 
-void alice_shader_set_v2f(alice_Shader* shader, const char* name, alice_v2f v) {
+void alice_shader_set_v2f(alice_shader_t* shader, const char* name, alice_v2f_t v) {
 	assert(shader);
 
 	if (shader->panic_mode) { return; };
@@ -497,7 +497,7 @@ void alice_shader_set_v2f(alice_Shader* shader, const char* name, alice_v2f v) {
 	glUniform2f(location, v.x, v.y);
 }
 
-void alice_shader_set_v3i(alice_Shader* shader, const char* name, alice_v3i v) {
+void alice_shader_set_v3i(alice_shader_t* shader, const char* name, alice_v3i_t v) {
 	assert(shader);
 
 	if (shader->panic_mode) { return; };
@@ -506,7 +506,7 @@ void alice_shader_set_v3i(alice_Shader* shader, const char* name, alice_v3i v) {
 	glUniform3i(location, v.x, v.y, v.z);
 }
 
-void alice_shader_set_v3u(alice_Shader* shader, const char* name, alice_v3u v) {
+void alice_shader_set_v3u(alice_shader_t* shader, const char* name, alice_v3u_t v) {
 	assert(shader);
 
 	if (shader->panic_mode) { return; };
@@ -515,7 +515,7 @@ void alice_shader_set_v3u(alice_Shader* shader, const char* name, alice_v3u v) {
 	glUniform3ui(location, v.x, v.y, v.z);
 }
 
-void alice_shader_set_v3f(alice_Shader* shader, const char* name, alice_v3f v) {
+void alice_shader_set_v3f(alice_shader_t* shader, const char* name, alice_v3f_t v) {
 	assert(shader);
 
 	if (shader->panic_mode) { return; };
@@ -524,7 +524,7 @@ void alice_shader_set_v3f(alice_Shader* shader, const char* name, alice_v3f v) {
 	glUniform3f(location, v.x, v.y, v.z);
 }
 
-void alice_shader_set_v4i(alice_Shader* shader, const char* name, alice_v4i v) {
+void alice_shader_set_v4i(alice_shader_t* shader, const char* name, alice_v4i v) {
 	assert(shader);
 
 	if (shader->panic_mode) { return; };
@@ -533,7 +533,7 @@ void alice_shader_set_v4i(alice_Shader* shader, const char* name, alice_v4i v) {
 	glUniform4i(location, v.x, v.y, v.z, v.w);
 }
 
-void alice_shader_set_v4u(alice_Shader* shader, const char* name, alice_v4u v) {
+void alice_shader_set_v4u(alice_shader_t* shader, const char* name, alice_v4u v) {
 	assert(shader);
 
 	if (shader->panic_mode) { return; };
@@ -542,7 +542,7 @@ void alice_shader_set_v4u(alice_Shader* shader, const char* name, alice_v4u v) {
 	glUniform4ui(location, v.x, v.y, v.z, v.w);
 }
 
-void alice_shader_set_v4f(alice_Shader* shader, const char* name, alice_v4f v) {
+void alice_shader_set_v4f(alice_shader_t* shader, const char* name, alice_v4f_t v) {
 	assert(shader);
 
 	if (shader->panic_mode) { return; };
@@ -551,7 +551,7 @@ void alice_shader_set_v4f(alice_Shader* shader, const char* name, alice_v4f v) {
 	glUniform4f(location, v.x, v.y, v.z, v.w);
 }
 
-void alice_shader_set_m4f(alice_Shader* shader, const char* name, alice_m4f v) {
+void alice_shader_set_m4f(alice_shader_t* shader, const char* name, alice_m4f_t v) {
 	assert(shader);
 
 	if (shader->panic_mode) { return; };
@@ -560,29 +560,29 @@ void alice_shader_set_m4f(alice_Shader* shader, const char* name, alice_m4f v) {
 	glUniformMatrix4fv(location, 1, GL_FALSE, (float*)v.elements);
 }
 
-alice_Texture* alice_new_texture(alice_Resource* resource, alice_TextureFlags flags) {
+alice_texture_t* alice_new_texture(alice_resource_t* resource, alice_texture_flags_t flags) {
 	assert(resource);
 
-	alice_Texture* texture = malloc(sizeof(alice_Texture));
+	alice_texture_t* texture = malloc(sizeof(alice_texture_t));
 	alice_init_texture(texture, resource, flags);
 	return texture;
 }
 
-alice_Texture* alice_new_texture_from_memory(void* data, u32 size, alice_TextureFlags flags) {
-	alice_Texture* texture = malloc(sizeof(alice_Texture));
+alice_texture_t* alice_new_texture_from_memory(void* data, u32 size, alice_texture_flags_t flags) {
+	alice_texture_t* texture = malloc(sizeof(alice_texture_t));
 	alice_init_texture_from_memory(texture, data, size, flags);
 	return texture;
 }
 
 
-alice_Texture* alice_new_texture_from_memory_uncompressed(unsigned char* pixels,
-	u32 size, i32 width, i32 height, i32 component_count, alice_TextureFlags flags) {
-	alice_Texture* texture = malloc(sizeof(alice_Texture));
+alice_texture_t* alice_new_texture_from_memory_uncompressed(unsigned char* pixels,
+	u32 size, i32 width, i32 height, i32 component_count, alice_texture_flags_t flags) {
+	alice_texture_t* texture = malloc(sizeof(alice_texture_t));
 	alice_init_texture_from_memory_uncompressed(texture, pixels, size, width, height, component_count, flags);
 	return texture;
 }
 
-void alice_init_texture(alice_Texture* texture, alice_Resource* resource, alice_TextureFlags flags) {
+void alice_init_texture(alice_texture_t* texture, alice_resource_t* resource, alice_texture_flags_t flags) {
 	if (resource->payload == NULL || resource->type != ALICE_RESOURCE_BINARY) {
 		alice_log_error("Resource insufficient for texture creation.");
 		return;
@@ -591,7 +591,7 @@ void alice_init_texture(alice_Texture* texture, alice_Resource* resource, alice_
 	alice_init_texture_from_memory(texture, resource->payload, resource->payload_size, flags);
 }
 
-void alice_init_texture_from_memory(alice_Texture* texture, void* data, u32 size, alice_TextureFlags flags) {
+void alice_init_texture_from_memory(alice_texture_t* texture, void* data, u32 size, alice_texture_flags_t flags) {
 	if (data == NULL || size == 0) {
 		alice_log_error("Data insufficient for texture creation.");
 		return;
@@ -616,8 +616,8 @@ void alice_init_texture_from_memory(alice_Texture* texture, void* data, u32 size
 	free(pixels);
 }
 
-void alice_init_texture_from_memory_uncompressed(alice_Texture* texture, unsigned char* pixels,
-	u32 size, i32 width, i32 height, i32 component_count, alice_TextureFlags flags) {
+void alice_init_texture_from_memory_uncompressed(alice_texture_t* texture, unsigned char* pixels,
+	u32 size, i32 width, i32 height, i32 component_count, alice_texture_flags_t flags) {
 	if (pixels == NULL || size == 0) {
 		alice_log_error("Data insufficient for texture creation.");
 		return;
@@ -660,12 +660,12 @@ void alice_init_texture_from_memory_uncompressed(alice_Texture* texture, unsigne
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void alice_deinit_texture(alice_Texture* texture) {
+void alice_deinit_texture(alice_texture_t* texture) {
 	assert(texture);
 	glDeleteTextures(1, &texture->id);
 }
 
-void alice_free_texture(alice_Texture* texture) {
+void alice_free_texture(alice_texture_t* texture) {
 	assert(texture);
 
 	alice_deinit_texture(texture);
@@ -673,28 +673,28 @@ void alice_free_texture(alice_Texture* texture) {
 	free(texture);
 }
 
-void alice_bind_texture(alice_Texture* texture, u32 slot) {
+void alice_bind_texture(alice_texture_t* texture, u32 slot) {
 	glActiveTexture(GL_TEXTURE0 + slot);
 	glBindTexture(GL_TEXTURE_2D, texture ? texture->id : 0);
 }
 
-void alice_init_mesh(alice_Mesh* mesh, alice_VertexBuffer* vb) {
+void alice_init_mesh(alice_mesh_t* mesh, alice_vertex_buffer_t* vb) {
 	assert(mesh);
 
-	*mesh = (alice_Mesh){
+	*mesh = (alice_mesh_t){
 		.transform = alice_m4f_identity(),
 
 		.vb = vb
 	};
 }
 
-void alice_deinit_mesh(alice_Mesh* mesh) {
+void alice_deinit_mesh(alice_mesh_t* mesh) {
 	assert(mesh);
 
 	alice_free_vertex_buffer(mesh->vb);
 }
 
-alice_Mesh alice_new_cube_mesh() {
+alice_mesh_t alice_new_cube_mesh() {
 	float verts[] = {
 		 0.5f,  0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.625, 0.500,
 		-0.5f,  0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.875, 0.500,
@@ -743,7 +743,7 @@ alice_Mesh alice_new_cube_mesh() {
 		35,
 	};
 
-	alice_VertexBuffer* cube = alice_new_vertex_buffer(
+	alice_vertex_buffer_t* cube = alice_new_vertex_buffer(
 		ALICE_VERTEXBUFFER_DRAW_TRIANGLES | ALICE_VERTEXBUFFER_STATIC_DRAW);
 
 	alice_bind_vertex_buffer_for_edit(cube);
@@ -754,7 +754,7 @@ alice_Mesh alice_new_cube_mesh() {
 	alice_configure_vertex_buffer(cube, 2, 2, 8, 6); /* vec2 uv */
 	alice_bind_vertex_buffer_for_edit(NULL);
 
-	alice_Mesh mesh;
+	alice_mesh_t mesh;
 
 	alice_init_mesh(&mesh, cube);
 
@@ -763,7 +763,7 @@ alice_Mesh alice_new_cube_mesh() {
 	return mesh;
 }
 
-alice_Mesh alice_new_sphere_mesh() {
+alice_mesh_t alice_new_sphere_mesh() {
 	const float sector_count = 36.0f;
 	const float stack_count = 18.0f;
 	const float radius = 0.5;
@@ -832,7 +832,7 @@ alice_Mesh alice_new_sphere_mesh() {
 		}
 	}
 
-	alice_VertexBuffer* sphere = alice_new_vertex_buffer(
+	alice_vertex_buffer_t* sphere = alice_new_vertex_buffer(
 		ALICE_VERTEXBUFFER_DRAW_TRIANGLES | ALICE_VERTEXBUFFER_STATIC_DRAW);
 
 	alice_bind_vertex_buffer_for_edit(sphere);
@@ -843,7 +843,7 @@ alice_Mesh alice_new_sphere_mesh() {
 	alice_configure_vertex_buffer(sphere, 2, 2, 8, 6); /* vec2 uv */
 	alice_bind_vertex_buffer_for_edit(NULL);
 
-	alice_Mesh mesh;
+	alice_mesh_t mesh;
 
 	alice_init_mesh(&mesh, sphere);
 
@@ -855,7 +855,7 @@ alice_Mesh alice_new_sphere_mesh() {
 	return mesh;
 }
 
-void alice_init_model(alice_Model* model) {
+void alice_init_model(alice_model_t* model) {
 	assert(model);
 
 	model->meshes = alice_null;
@@ -863,7 +863,7 @@ void alice_init_model(alice_Model* model) {
 	model->mesh_capacity = 0;
 }
 
-void alice_deinit_model(alice_Model* model) {
+void alice_deinit_model(alice_model_t* model) {
 	assert(model);
 
 	for (u32 i = 0; i < model->mesh_count; i++) {
@@ -875,15 +875,15 @@ void alice_deinit_model(alice_Model* model) {
 	}
 }
 
-alice_Model* alice_new_model() {
-	alice_Model* new = malloc(sizeof(alice_Model));
+alice_model_t* alice_new_model() {
+	alice_model_t* new = malloc(sizeof(alice_model_t));
 
 	alice_init_model(new);
 
 	return new;
 }
 
-void alice_free_model(alice_Model* model) {
+void alice_free_model(alice_model_t* model) {
 	assert(model);
 
 	alice_deinit_model(model);
@@ -891,29 +891,29 @@ void alice_free_model(alice_Model* model) {
 	free(model);
 }
 
-void alice_model_add_mesh(alice_Model* model, alice_Mesh mesh) {
+void alice_model_add_mesh(alice_model_t* model, alice_mesh_t mesh) {
 	assert(model);
 
 	if (model->mesh_count >= model->mesh_capacity) {
 		model->mesh_capacity = alice_grow_capacity(model->mesh_capacity);
-		model->meshes = realloc(model->meshes, model->mesh_capacity * sizeof(alice_Mesh));
+		model->meshes = realloc(model->meshes, model->mesh_capacity * sizeof(alice_mesh_t));
 	}
 
 	model->meshes[model->mesh_count++] = mesh;
 }
 
-void alice_calculate_aabb_from_mesh(alice_AABB* aabb,
+void alice_calculate_aabb_from_mesh(alice_aabb_t* aabb,
 		float* vertices, u32 position_count, u32 position_stride) {
 	assert(aabb);
 	assert(vertices);
 
-	*aabb = (alice_AABB){
+	*aabb = (alice_aabb_t){
 		.min = {INFINITY, INFINITY, INFINITY},
 		.max = {-INFINITY, -INFINITY, -INFINITY}
 	};
 
 	for (u32 i = 0; i < position_count; i += position_stride) {
-		alice_v3f position = (alice_v3f) {
+		alice_v3f_t position = (alice_v3f_t) {
 			.x = vertices[i],
 			.y = vertices[i + 1],
 			.z = vertices[i + 2]
@@ -961,13 +961,13 @@ void alice_disable_depth() {
 	glDisable(GL_DEPTH_TEST);
 }
 
-alice_Camera3D* alice_get_scene_camera(alice_Scene* scene) {
+alice_camera_3d_t* alice_get_scene_camera(alice_scene_t* scene) {
 	assert(scene);
 
-	alice_Camera3D* camera = alice_null;
+	alice_camera_3d_t* camera = alice_null;
 
-	for (alice_entity_iter(scene, iter, alice_Camera3D)) {
-		alice_Camera3D* entity = iter.current_ptr;
+	for (alice_entity_iter(scene, iter, alice_camera_3d_t)) {
+		alice_camera_3d_t* entity = iter.current_ptr;
 		if (entity->active) {
 			camera = entity;
 			break;
@@ -977,44 +977,44 @@ alice_Camera3D* alice_get_scene_camera(alice_Scene* scene) {
 	return camera;
 }
 
-alice_m4f alice_get_camera_3d_view(alice_Scene* scene, alice_Camera3D* camera) {
+alice_m4f_t alice_get_camera_3d_view(alice_scene_t* scene, alice_camera_3d_t* camera) {
 	assert(scene);
 	assert(camera);
 
-	alice_v3f rotation = alice_torad_v3f(alice_get_entity_world_rotation(scene, (alice_Entity*)camera));
+	alice_v3f_t rotation = alice_torad_v3f(alice_get_entity_world_rotation(scene, (alice_entity_t*)camera));
 
-	alice_v3f position = alice_get_entity_world_position(scene, (alice_Entity*)camera);
+	alice_v3f_t position = alice_get_entity_world_position(scene, (alice_entity_t*)camera);
 
-	alice_v3f direction = (alice_v3f){
+	alice_v3f_t direction = (alice_v3f_t){
 		.x = cosf(rotation.x) * sinf(rotation.y),
 		.y = sinf(rotation.x),
 		.z = cosf(rotation.x) * cosf(rotation.y)
 	};
 
 	return alice_m4f_lookat(position,
-		(alice_v3f){
+		(alice_v3f_t){
 			.x = position.x + direction.x,
 			.y = position.y + direction.y,
 			.z = position.z + direction.z
-		}, (alice_v3f){0.0, 1.0, 0.0});
+		}, (alice_v3f_t){0.0, 1.0, 0.0});
 }
 
-alice_m4f alice_get_camera_3d_view_no_direction(alice_Scene* scene, alice_Camera3D* camera) {
+alice_m4f_t alice_get_camera_3d_view_no_direction(alice_scene_t* scene, alice_camera_3d_t* camera) {
 	assert(scene);
 	assert(camera);
 
 
-	alice_v3f position = alice_get_entity_world_position(scene, (alice_Entity*)camera);
+	alice_v3f_t position = alice_get_entity_world_position(scene, (alice_entity_t*)camera);
 
 	return alice_m4f_lookat(position,
-		(alice_v3f){
+		(alice_v3f_t){
 			.x = position.x,
 			.y = position.y,
 			.z = position.z
-		}, (alice_v3f){0.0, 1.0, 0.0});
+		}, (alice_v3f_t){0.0, 1.0, 0.0});
 }
 
-alice_m4f alice_get_camera_3d_projection(alice_Camera3D* camera) {
+alice_m4f_t alice_get_camera_3d_projection(alice_camera_3d_t* camera) {
 	assert(camera);
 
 	return alice_m4f_persp(camera->fov,
@@ -1022,14 +1022,14 @@ alice_m4f alice_get_camera_3d_projection(alice_Camera3D* camera) {
 		camera->near, camera->far);
 }
 
-alice_m4f alice_get_camera_3d_matrix(alice_Scene* scene, alice_Camera3D* camera) {
-	alice_m4f projection = alice_get_camera_3d_projection(camera);
-	alice_m4f view = alice_get_camera_3d_view(scene, camera);
+alice_m4f_t alice_get_camera_3d_matrix(alice_scene_t* scene, alice_camera_3d_t* camera) {
+	alice_m4f_t projection = alice_get_camera_3d_projection(camera);
+	alice_m4f_t view = alice_get_camera_3d_view(scene, camera);
 
 	return alice_m4f_multiply(projection, view);
 }
 
-static void alice_apply_pbr_material(alice_Shader* shader, alice_PBRMaterial* material) {
+static void alice_apply_pbr_material(alice_shader_t* shader, alice_pbr_material_t* material) {
 	assert(shader);
 	assert(material);
 
@@ -1079,7 +1079,7 @@ static void alice_apply_pbr_material(alice_Shader* shader, alice_PBRMaterial* ma
 	}
 }
 
-static void alice_apply_phong_material(alice_Shader* shader, alice_PhongMaterial* material) {
+static void alice_apply_phong_material(alice_shader_t* shader, alice_phong_material_t* material) {
 	assert(shader);
 	assert(material);
 
@@ -1099,7 +1099,7 @@ static void alice_apply_phong_material(alice_Shader* shader, alice_PhongMaterial
 	}
 }
 
-void alice_apply_material(alice_Scene* scene, alice_Material* material) {
+void alice_apply_material(alice_scene_t* scene, alice_material_t* material) {
 	assert(material);
 
 	if (!material->shader) {
@@ -1121,8 +1121,8 @@ void alice_apply_material(alice_Scene* scene, alice_Material* material) {
 
 	/* Apply directional lights */
 	u32 light_count = 0;
-	for (alice_entity_iter(scene, iter, alice_DirectionalLight)) {
-		alice_DirectionalLight* light = iter.current_ptr;
+	for (alice_entity_iter(scene, iter, alice_directional_light_t)) {
+		alice_directional_light_t* light = iter.current_ptr;
 
 		char name[256];
 
@@ -1144,15 +1144,15 @@ void alice_apply_material(alice_Scene* scene, alice_Material* material) {
 	alice_shader_set_uint(material->shader, "directional_light_count", light_count);
 }
 
-void alice_apply_point_lights(alice_Scene* scene, alice_AABB mesh_aabb, alice_Material* material) {
+void alice_apply_point_lights(alice_scene_t* scene, alice_aabb_t mesh_aabb, alice_material_t* material) {
 	assert(scene);
 	assert(material);
 
 	u32 light_count = 0;
-	for (alice_entity_iter(scene, iter, alice_PointLight)) {
-		alice_PointLight* light = iter.current_ptr;
+	for (alice_entity_iter(scene, iter, alice_point_light_t)) {
+		alice_point_light_t* light = iter.current_ptr;
 
-		alice_v3f world_position = alice_get_entity_world_position(scene, (alice_Entity*)light);
+		alice_v3f_t world_position = alice_get_entity_world_position(scene, (alice_entity_t*)light);
 
 		if (!alice_sphere_vs_aabb(mesh_aabb, world_position, light->range * 5.0f)) {
 			continue;
@@ -1178,8 +1178,8 @@ void alice_apply_point_lights(alice_Scene* scene, alice_AABB mesh_aabb, alice_Ma
 	alice_shader_set_uint(material->shader, "point_light_count", light_count);
 }
 
-void alice_on_renderable_3d_create(alice_Scene* scene, alice_EntityHandle handle, void* ptr) {
-	alice_Renderable3D* renderable = ptr;
+void alice_on_renderable_3d_create(alice_scene_t* scene, alice_entity_handle_t handle, void* ptr) {
+	alice_renderable_3d_t* renderable = ptr;
 
 	renderable->materials = alice_null;
 	renderable->material_count = 0;
@@ -1190,27 +1190,27 @@ void alice_on_renderable_3d_create(alice_Scene* scene, alice_EntityHandle handle
 	renderable->cast_shadows = true;
 }
 
-void alice_on_renderable_3d_destroy(alice_Scene* scene, alice_EntityHandle handle, void* ptr) {
-	alice_Renderable3D* renderable = ptr;
+void alice_on_renderable_3d_destroy(alice_scene_t* scene, alice_entity_handle_t handle, void* ptr) {
+	alice_renderable_3d_t* renderable = ptr;
 
 	if (renderable->material_capacity > 0) {
 		free(renderable->materials);
 	}
 }
 
-void alice_renderable_3d_add_material(alice_Renderable3D* renderable, const char* material_path) {
+void alice_renderable_3d_add_material(alice_renderable_3d_t* renderable, const char* material_path) {
 	assert(renderable);
 
 	if (renderable->material_count >= renderable->material_capacity) {
 		renderable->material_capacity = alice_grow_capacity(renderable->material_capacity);
-		renderable->materials = realloc(renderable->materials, renderable->material_capacity * sizeof(alice_Material*));
+		renderable->materials = realloc(renderable->materials, renderable->material_capacity * sizeof(alice_material_t*));
 	}
 
 	renderable->materials[renderable->material_count++] = alice_load_material(material_path);
 }
 
-alice_Shadowmap* alice_new_shadowmap(u32 res, alice_Shader* shader) {
-	alice_Shadowmap* new = malloc(sizeof(alice_Shadowmap));
+alice_shadowmap_t* alice_new_shadowmap(u32 res, alice_shader_t* shader) {
+	alice_shadowmap_t* new = malloc(sizeof(alice_shadowmap_t));
 
 	new->shader = shader;
 	new->res = res;
@@ -1241,7 +1241,7 @@ alice_Shadowmap* alice_new_shadowmap(u32 res, alice_Shader* shader) {
 	return new;
 }
 
-void alice_free_shadowmap(alice_Shadowmap* shadowmap) {
+void alice_free_shadowmap(alice_shadowmap_t* shadowmap) {
 	assert(shadowmap);
 
 	glDeleteTextures(1, &shadowmap->output);
@@ -1250,15 +1250,15 @@ void alice_free_shadowmap(alice_Shadowmap* shadowmap) {
 	free(shadowmap);
 }
 
-void alice_draw_shadowmap(alice_Shadowmap* shadowmap, alice_Scene* scene, alice_Camera3D* camera) {
+void alice_draw_shadowmap(alice_shadowmap_t* shadowmap, alice_scene_t* scene, alice_camera_3d_t* camera) {
 	assert(shadowmap);
 
 	shadowmap->in_use = false;
 
-	alice_DirectionalLight* light = alice_null;
+	alice_directional_light_t* light = alice_null;
 
-	for (alice_entity_iter(scene, iter, alice_DirectionalLight)) {
-		alice_DirectionalLight* entity = iter.current_ptr;
+	for (alice_entity_iter(scene, iter, alice_directional_light_t)) {
+		alice_directional_light_t* entity = iter.current_ptr;
 
 		if (entity->cast_shadows) {
 			light = entity;
@@ -1274,43 +1274,43 @@ void alice_draw_shadowmap(alice_Shadowmap* shadowmap, alice_Scene* scene, alice_
 	glBindFramebuffer(GL_FRAMEBUFFER, shadowmap->framebuffer);
 	glClear(GL_DEPTH_BUFFER_BIT);
 
-	alice_m4f light_view = alice_m4f_lookat(
-			(alice_v3f) {
+	alice_m4f_t light_view = alice_m4f_lookat(
+			(alice_v3f_t) {
 				-light->base.position.x,
 				-light->base.position.y,
 				-light->base.position.z },
-			(alice_v3f) { 0.0f, 0.0f, 0.0f },
-			(alice_v3f) { 0.0f, 1.0f, 0.0f });
+			(alice_v3f_t) { 0.0f, 0.0f, 0.0f },
+			(alice_v3f_t) { 0.0f, 1.0f, 0.0f });
 
-	alice_AABB scene_aabb = alice_compute_scene_aabb(scene);
+	alice_aabb_t scene_aabb = alice_compute_scene_aabb(scene);
 	scene_aabb = alice_transform_aabb(scene_aabb, alice_m4f_inverse(light_view));
 
-	alice_m4f light_projection = alice_m4f_ortho(
+	alice_m4f_t light_projection = alice_m4f_ortho(
 			scene_aabb.min.x, scene_aabb.max.x,
 			scene_aabb.min.y, scene_aabb.max.y,
 			scene_aabb.min.z, scene_aabb.max.z);
-	alice_m4f light_matrix = alice_m4f_multiply(light_projection, light_view);
+	alice_m4f_t light_matrix = alice_m4f_multiply(light_projection, light_view);
 
 	light->transform = light_matrix;
 
 	alice_bind_shader(shadowmap->shader);
 	alice_shader_set_m4f(shadowmap->shader, "light", light_matrix);
 
-	for (alice_entity_iter(scene, iter, alice_Renderable3D)) {
-		alice_Renderable3D* renderable = iter.current_ptr;
+	for (alice_entity_iter(scene, iter, alice_renderable_3d_t)) {
+		alice_renderable_3d_t* renderable = iter.current_ptr;
 
-		alice_Model* model = renderable->model;
+		alice_model_t* model = renderable->model;
 		if (!model || !renderable->cast_shadows) {
 			continue;
 		}
 
-		alice_m4f transform_matrix = alice_get_entity_transform(scene, (alice_Entity*)renderable);
+		alice_m4f_t transform_matrix = alice_get_entity_transform(scene, (alice_entity_t*)renderable);
 
 		for (u32 i = 0; i < model->mesh_count; i++) {
-			alice_Mesh* mesh = &model->meshes[i];
-			alice_VertexBuffer* vb = mesh->vb;
+			alice_mesh_t* mesh = &model->meshes[i];
+			alice_vertex_buffer_t* vb = mesh->vb;
 
-			alice_m4f model = alice_m4f_multiply(transform_matrix, mesh->transform);
+			alice_m4f_t model = alice_m4f_multiply(transform_matrix, mesh->transform);
 			alice_shader_set_m4f(shadowmap->shader, "transform", model);
 
 			alice_bind_vertex_buffer_for_draw(vb);
@@ -1319,22 +1319,22 @@ void alice_draw_shadowmap(alice_Shadowmap* shadowmap, alice_Scene* scene, alice_
 	}
 }
 
-void alice_bind_shadowmap_output(alice_Shadowmap* shadowmap, u32 unit) {
+void alice_bind_shadowmap_output(alice_shadowmap_t* shadowmap, u32 unit) {
 	assert(shadowmap);
 
 	glActiveTexture(GL_TEXTURE0 + unit);
 	glBindTexture(GL_TEXTURE_2D, shadowmap->output);
 }
 
-alice_SceneRenderer3D* alice_new_scene_renderer_3d(alice_Shader* postprocess_shader,
-		alice_Shader* extract_shader, alice_Shader* blur_shader, alice_Shader* depth_shader,
-		bool debug, alice_Shader* debug_shader) {
+alice_scene_renderer_3d_t* alice_new_scene_renderer_3d(alice_shader_t* postprocess_shader,
+		alice_shader_t* extract_shader, alice_shader_t* blur_shader, alice_shader_t* depth_shader,
+		bool debug, alice_shader_t* debug_shader) {
 	assert(postprocess_shader);
 	assert(extract_shader);
 	assert(blur_shader);
 	assert(depth_shader);
 
-	alice_SceneRenderer3D* new = malloc(sizeof(alice_SceneRenderer3D));
+	alice_scene_renderer_3d_t* new = malloc(sizeof(alice_scene_renderer_3d_t));
 
 	new->output = alice_new_render_target(128, 128, 1);
 	new->bright_pixels = alice_new_render_target(128, 128, 1);
@@ -1384,7 +1384,7 @@ alice_SceneRenderer3D* alice_new_scene_renderer_3d(alice_Shader* postprocess_sha
 	return new;
 }
 
-void alice_free_scene_renderer_3d(alice_SceneRenderer3D* renderer) {
+void alice_free_scene_renderer_3d(alice_scene_renderer_3d_t* renderer) {
 	assert(renderer);
 
 	alice_free_render_target(renderer->output);
@@ -1402,26 +1402,26 @@ void alice_free_scene_renderer_3d(alice_SceneRenderer3D* renderer) {
 	free(renderer);
 }
 
-alice_AABB alice_transform_aabb(alice_AABB aabb, alice_m4f m) {
-	alice_v3f corners[]  = {
+alice_aabb_t alice_transform_aabb(alice_aabb_t aabb, alice_m4f_t m) {
+	alice_v3f_t corners[]  = {
 		aabb.min,
-		(alice_v3f) { aabb.min.x, aabb.max.y, aabb.min.z },
-		(alice_v3f) { aabb.min.x, aabb.max.y, aabb.max.z },
-		(alice_v3f) { aabb.min.x, aabb.min.y, aabb.max.z },
-		(alice_v3f) { aabb.max.x, aabb.min.y, aabb.min.z },
-		(alice_v3f) { aabb.max.x, aabb.max.y, aabb.min.z },
+		(alice_v3f_t) { aabb.min.x, aabb.max.y, aabb.min.z },
+		(alice_v3f_t) { aabb.min.x, aabb.max.y, aabb.max.z },
+		(alice_v3f_t) { aabb.min.x, aabb.min.y, aabb.max.z },
+		(alice_v3f_t) { aabb.max.x, aabb.min.y, aabb.min.z },
+		(alice_v3f_t) { aabb.max.x, aabb.max.y, aabb.min.z },
 		aabb.max,
-		(alice_v3f) { aabb.max.x, aabb.min.y, aabb.max.z }
+		(alice_v3f_t) { aabb.max.x, aabb.min.y, aabb.max.z }
 	};
 
-	alice_v3f tmin = (alice_v3f) { 0.0f, 0.0f, 0.0f };
-	alice_v3f tmax = tmin;
+	alice_v3f_t tmin = (alice_v3f_t) { 0.0f, 0.0f, 0.0f };
+	alice_v3f_t tmax = tmin;
 
 	for (u32 i = 0; i < 8; i++) {
-		alice_v4f point_4 =
-			alice_v4f_transform((alice_v4f) { corners[i].x, corners[i].y, corners[i].z, 1.0f }, m);
+		alice_v4f_t point_4 =
+			alice_v4f_transform((alice_v4f_t) { corners[i].x, corners[i].y, corners[i].z, 1.0f }, m);
 
-		alice_v3f point = (alice_v3f) { point_4.x, point_4.y, point_4.z };
+		alice_v3f_t point = (alice_v3f_t) { point_4.x, point_4.y, point_4.z };
 
 		if (point.x < tmin.x) {
 			tmin.x = point.x;
@@ -1448,36 +1448,36 @@ alice_AABB alice_transform_aabb(alice_AABB aabb, alice_m4f m) {
 		}
 	}
 
-	return (alice_AABB) {
+	return (alice_aabb_t) {
 		.min = tmin,
 		.max = tmax
 	};
 }
 
-alice_AABB alice_compute_scene_aabb(alice_Scene* scene) {
+alice_aabb_t alice_compute_scene_aabb(alice_scene_t* scene) {
 	assert(scene);
 
-	alice_AABB result = (alice_AABB) {
+	alice_aabb_t result = (alice_aabb_t) {
 		.min = {INFINITY, INFINITY, INFINITY},
 		.max = {-INFINITY, -INFINITY, -INFINITY}
 	};
 
-	for (alice_entity_iter(scene, iter, alice_Renderable3D)) {
-		alice_Renderable3D* renderable = iter.current_ptr;
+	for (alice_entity_iter(scene, iter, alice_renderable_3d_t)) {
+		alice_renderable_3d_t* renderable = iter.current_ptr;
 
-		alice_m4f transform_matrix = alice_get_entity_transform(scene, (alice_Entity*)renderable);
+		alice_m4f_t transform_matrix = alice_get_entity_transform(scene, (alice_entity_t*)renderable);
 
-		alice_Model* model = renderable->model;
+		alice_model_t* model = renderable->model;
 		if (!model) {
 			continue;
 		}
 
 		for (u32 i = 0; i < model->mesh_count; i++) {
-			alice_Mesh* mesh = &model->meshes[i];
+			alice_mesh_t* mesh = &model->meshes[i];
 
-			alice_m4f mesh_transform = alice_m4f_multiply(transform_matrix, mesh->transform);
+			alice_m4f_t mesh_transform = alice_m4f_multiply(transform_matrix, mesh->transform);
 
-			alice_AABB mesh_aabb = alice_transform_aabb(mesh->aabb, mesh_transform);
+			alice_aabb_t mesh_aabb = alice_transform_aabb(mesh->aabb, mesh_transform);
 			mesh_aabb.min.x += mesh_transform.elements[3][0];
 			mesh_aabb.min.y += mesh_transform.elements[3][1];
 			mesh_aabb.min.z += mesh_transform.elements[3][2];
@@ -1497,18 +1497,18 @@ alice_AABB alice_compute_scene_aabb(alice_Scene* scene) {
 	return result;
 }
 
-void alice_render_scene_3d(alice_SceneRenderer3D* renderer, u32 width, u32 height,
-		alice_Scene* scene, alice_RenderTarget* render_target) {
+void alice_render_scene_3d(alice_scene_renderer_3d_t* renderer, u32 width, u32 height,
+		alice_scene_t* scene, alice_render_target_t* render_target) {
 	assert(renderer);
 	assert(scene);
 
-	alice_Camera3D* camera = alice_get_scene_camera(scene);
+	alice_camera_3d_t* camera = alice_get_scene_camera(scene);
 	if (!camera) {
 		alice_log_warning("Attempting 3D scene render with no active 3D camera");
 		return;
 	}
 
-	camera->dimentions = (alice_v2f){(float)width, (float)height};
+	camera->dimentions = (alice_v2f_t){(float)width, (float)height};
 
 	alice_enable_depth();
 
@@ -1522,23 +1522,23 @@ void alice_render_scene_3d(alice_SceneRenderer3D* renderer, u32 width, u32 heigh
 		renderer->debug_renderer->camera = camera;
 	}
 
-	alice_m4f camera_matrix = alice_get_camera_3d_matrix(scene, camera);
+	alice_m4f_t camera_matrix = alice_get_camera_3d_matrix(scene, camera);
 
-	for (alice_entity_iter(scene, iter, alice_Renderable3D)) {
-		alice_Renderable3D* renderable = iter.current_ptr;
+	for (alice_entity_iter(scene, iter, alice_renderable_3d_t)) {
+		alice_renderable_3d_t* renderable = iter.current_ptr;
 
-		alice_m4f transform_matrix = alice_get_entity_transform(scene, (alice_Entity*)renderable);
+		alice_m4f_t transform_matrix = alice_get_entity_transform(scene, (alice_entity_t*)renderable);
 
-		alice_Model* model = renderable->model;
+		alice_model_t* model = renderable->model;
 		if (!model) {
 			continue;
 		}
 
 		for (u32 i = 0; i < model->mesh_count; i++) {
-			alice_Mesh* mesh = &model->meshes[i];
-			alice_VertexBuffer* vb = mesh->vb;
+			alice_mesh_t* mesh = &model->meshes[i];
+			alice_vertex_buffer_t* vb = mesh->vb;
 
-			alice_Material* material = alice_null;
+			alice_material_t* material = alice_null;
 			if (i < renderable->material_count) {
 				material = renderable->materials[i];
 			} else if (renderable->material_count == 1) {
@@ -1550,9 +1550,9 @@ void alice_render_scene_3d(alice_SceneRenderer3D* renderer, u32 width, u32 heigh
 				goto renderable_iter_continue;
 			}
 
-			alice_m4f mesh_transform = alice_m4f_multiply(transform_matrix, mesh->transform);
+			alice_m4f_t mesh_transform = alice_m4f_multiply(transform_matrix, mesh->transform);
 
-			alice_AABB mesh_aabb = alice_transform_aabb(mesh->aabb, mesh_transform);
+			alice_aabb_t mesh_aabb = alice_transform_aabb(mesh->aabb, mesh_transform);
 			mesh_aabb.min.x += mesh_transform.elements[3][0];
 			mesh_aabb.min.y += mesh_transform.elements[3][1];
 			mesh_aabb.min.z += mesh_transform.elements[3][2];
@@ -1563,7 +1563,7 @@ void alice_render_scene_3d(alice_SceneRenderer3D* renderer, u32 width, u32 heigh
 			alice_apply_material(scene, material);
 			alice_apply_point_lights(scene, mesh_aabb, material);
 
-			alice_Shader* shader = material->shader;
+			alice_shader_t* shader = material->shader;
 
 			alice_shader_set_color(shader, "ambient_color", renderer->ambient_color);
 			alice_shader_set_int(shader, "use_shadows", renderer->shadowmap->in_use);
@@ -1572,10 +1572,10 @@ void alice_render_scene_3d(alice_SceneRenderer3D* renderer, u32 width, u32 heigh
 			alice_shader_set_int(shader, "shadowmap", 8);
 			alice_bind_shadowmap_output(renderer->shadowmap, 8);
 
-			alice_m4f model = alice_m4f_multiply(transform_matrix, mesh->transform);
+			alice_m4f_t model = alice_m4f_multiply(transform_matrix, mesh->transform);
 
 			alice_shader_set_m4f(shader, "transform", model);
-			alice_shader_set_v3f(shader, "camera_position", alice_get_entity_world_position(scene, (alice_Entity*)camera));
+			alice_shader_set_v3f(shader, "camera_position", alice_get_entity_world_position(scene, (alice_entity_t*)camera));
 			alice_shader_set_float(shader, "gamma", camera->gamma);
 			alice_shader_set_m4f(shader, "camera", camera_matrix);
 
@@ -1590,25 +1590,25 @@ renderable_iter_continue:
 	alice_disable_depth();
 
 	if (renderer->debug) {
-		alice_AABB scene_aabb = alice_compute_scene_aabb(scene);
+		alice_aabb_t scene_aabb = alice_compute_scene_aabb(scene);
 		alice_debug_renderer_draw_aabb(renderer->debug_renderer, scene_aabb);
 
-		for (alice_entity_iter(scene, iter, alice_Renderable3D)) {
-			alice_Renderable3D* renderable = iter.current_ptr;
+		for (alice_entity_iter(scene, iter, alice_renderable_3d_t)) {
+			alice_renderable_3d_t* renderable = iter.current_ptr;
 
-			alice_m4f transform_matrix = alice_get_entity_transform(scene, (alice_Entity*)renderable);
+			alice_m4f_t transform_matrix = alice_get_entity_transform(scene, (alice_entity_t*)renderable);
 
-			alice_Model* model = renderable->model;
+			alice_model_t* model = renderable->model;
 			if (!model) {
 				continue;
 			}
 
 			for (u32 i = 0; i < model->mesh_count; i++) {
-				alice_Mesh* mesh = &model->meshes[i];
+				alice_mesh_t* mesh = &model->meshes[i];
 
-				alice_m4f mesh_transform = alice_m4f_multiply(transform_matrix, mesh->transform);
+				alice_m4f_t mesh_transform = alice_m4f_multiply(transform_matrix, mesh->transform);
 
-				alice_AABB mesh_aabb = alice_transform_aabb(mesh->aabb, mesh_transform);
+				alice_aabb_t mesh_aabb = alice_transform_aabb(mesh->aabb, mesh_transform);
 				mesh_aabb.min.x += mesh_transform.elements[3][0];
 				mesh_aabb.min.y += mesh_transform.elements[3][1];
 				mesh_aabb.min.z += mesh_transform.elements[3][2];
@@ -1623,7 +1623,7 @@ renderable_iter_continue:
 
 	alice_unbind_render_target(renderer->output);
 
-	alice_RenderTarget* bloom_output;
+	alice_render_target_t* bloom_output;
 	if (renderer->use_bloom) {
 		/* Draw bright areas to bloom target */
 		alice_resize_render_target(renderer->bright_pixels, width, height);

@@ -16,7 +16,7 @@ typedef struct alice_Input {
 	bool pressed_mouse_buttons[ALICE_MOUSE_BUTTON_COUNT];
 	bool released_mouse_buttons[ALICE_MOUSE_BUTTON_COUNT];
 
-	alice_v2i mouse_position;
+	alice_v2i_t mouse_position;
 } alice_Input;
 
 alice_Input input;
@@ -51,7 +51,7 @@ void alice_set_mouse_button(i32 button, i32 action) {
 	input.released_mouse_buttons[button] = action == GLFW_RELEASE;
 }
 
-void alice_set_mouse_position(alice_v2i pos) {
+void alice_set_mouse_position(alice_v2i_t pos) {
 	input.mouse_position = pos;
 }
 
@@ -79,6 +79,6 @@ bool alice_mouse_button_just_released(i32 button) {
 	return input.released_mouse_buttons[button];
 }
 
-alice_v2i alice_get_mouse_position() {
+alice_v2i_t alice_get_mouse_position() {
 	return input.mouse_position;
 }

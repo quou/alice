@@ -5,22 +5,22 @@
 #include <alice/resource.h>
 #include <alice/application.h>
 
-typedef struct CameraController {
+typedef struct camera_controller_t {
 	bool panic;
 
 	bool first_move;
-	alice_v2i old_mouse;
-	alice_v2i mouse_delta;
-} CameraController;
+	alice_v2i_t old_mouse;
+	alice_v2i_t mouse_delta;
+} camera_controller_t;
 
 ALICE_API u32 ALICE_CALL get_camera_controller_size() {
-	return sizeof(CameraController);
+	return sizeof(camera_controller_t);
 }
 
-ALICE_API void ALICE_CALL camera_controller_init(alice_Scene* scene, alice_EntityHandle entity, void* instance) {
-	CameraController* controller = instance;
+ALICE_API void ALICE_CALL camera_controller_init(alice_scene_t* scene, alice_entity_handle_t entity, void* instance) {
+	camera_controller_t* controller = instance;
 
-	if (alice_get_entity_handle_type(entity) != alice_get_type_info(alice_Camera3D).id) {
+	if (alice_get_entity_handle_type(entity) != alice_get_type_info(alice_camera_3d_t).id) {
 		alice_log_error("Camera controller must be applied to a 3D camera entity");
 
 		controller->panic = true;
@@ -32,8 +32,8 @@ ALICE_API void ALICE_CALL camera_controller_init(alice_Scene* scene, alice_Entit
 	alice_hide_mouse();
 }
 
-ALICE_API void ALICE_CALL camera_controller_update(alice_Scene* scene, alice_EntityHandle entity, void* instance, double timestep) {
-	CameraController* controller = instance;
+ALICE_API void ALICE_CALL camera_controller_update(alice_scene_t* scene, alice_entity_handle_t entity, void* instance, double timestep) {
+	camera_controller_t* controller = instance;
 
 	if (controller->panic) { return; };
 
@@ -43,14 +43,14 @@ ALICE_API void ALICE_CALL camera_controller_update(alice_Scene* scene, alice_Ent
 		alice_hide_mouse();
 	}
 
-	alice_Camera3D* camera = alice_get_entity_ptr(scene, entity);
+	alice_camera_3d_t* camera = alice_get_entity_ptr(scene, entity);
 
 	if (controller->first_move) {
 		controller->first_move = false;
 		controller->old_mouse = alice_get_mouse_position();
 	}
 
-	alice_v2i mouse_pos = alice_get_mouse_position();
+	alice_v2i_t mouse_pos = alice_get_mouse_position();
 
 	i32 change_x = mouse_pos.x - controller->old_mouse.x;
 	i32 change_y = controller->old_mouse.y - mouse_pos.y;

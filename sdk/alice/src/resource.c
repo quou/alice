@@ -22,19 +22,19 @@ typedef struct aiMesh aiMesh;
 typedef struct aiFace aiFace;
 typedef struct aiMatrix4x4 aiMatrix4x4;
 
-typedef struct alice_ResourceTableEntry {
+typedef struct alice_resource_table_entry_t {
 	u32 key;
-	alice_Resource* value;
-} alice_ResourceTableEntry;
+	alice_resource_t* value;
+} alice_resource_table_entry_t;
 
-typedef struct alice_ResourceTable {
-	alice_ResourceTableEntry* entries;
+typedef struct alice_resource_table_t {
+	alice_resource_table_entry_t* entries;
 	u32 count;
 	u32 capacity;
-} alice_ResourceTable;
+} alice_resource_table_t;
 
-static alice_ResourceTable* alice_new_resource_table() {
-	alice_ResourceTable* table = malloc(sizeof(alice_ResourceTable));
+static alice_resource_table_t* alice_new_resource_table() {
+	alice_resource_table_t* table = malloc(sizeof(alice_resource_table_t));
 
 	table->count = 0;
 	table->capacity = 0;
@@ -43,11 +43,11 @@ static alice_ResourceTable* alice_new_resource_table() {
 	return table;
 }
 
-static void alice_free_resource_table(alice_ResourceTable* table) {
+static void alice_free_resource_table(alice_resource_table_t* table) {
 	assert(table);
 
 	for (u32 i = 0; i < table->capacity; i++) {
-		alice_ResourceTableEntry* entry = &table->entries[i];
+		alice_resource_table_entry_t* entry = &table->entries[i];
 
 		if (entry->value) {
 			alice_free_resource(entry->value);
@@ -64,13 +64,13 @@ static void alice_free_resource_table(alice_ResourceTable* table) {
 	free(table);
 }
 
-static alice_ResourceTableEntry* alice_resource_table_find_entry(
-	alice_ResourceTableEntry* entries, u32 capacity, u32 key) {
+static alice_resource_table_entry_t* alice_resource_table_find_entry(
+	alice_resource_table_entry_t* entries, u32 capacity, u32 key) {
 
 	u32 index = key % capacity;
 
 	for (;;) {
-		alice_ResourceTableEntry* entry = &entries[index];
+		alice_resource_table_entry_t* entry = &entries[index];
 		if (entry->key == key || entry->key == 0) {
 			return entry;
 		}
@@ -79,19 +79,19 @@ static alice_ResourceTableEntry* alice_resource_table_find_entry(
 	}
 }
 
-static void alice_resource_table_adjust_capacity(alice_ResourceTable* table, u32 capacity) {
-	alice_ResourceTableEntry* entries =
-		malloc(capacity * sizeof(alice_ResourceTableEntry));
+static void alice_resource_table_adjust_capacity(alice_resource_table_t* table, u32 capacity) {
+	alice_resource_table_entry_t* entries =
+		malloc(capacity * sizeof(alice_resource_table_entry_t));
 	for (u32 i = 0; i < capacity; i++) {
 		entries[i].key = 0;
 		entries[i].value = NULL;
 	}
 
 	for (u32 i = 0; i < table->capacity; i++) {
-		alice_ResourceTableEntry* entry = &table->entries[i];
+		alice_resource_table_entry_t* entry = &table->entries[i];
 		if (entry->key == 0) { continue; }
 
-		alice_ResourceTableEntry* dest =
+		alice_resource_table_entry_t* dest =
 			alice_resource_table_find_entry(entries, capacity, entry->key);
 		dest->key = entry->key;
 		dest->value = entry->value;
@@ -103,15 +103,15 @@ static void alice_resource_table_adjust_capacity(alice_ResourceTable* table, u32
 	table->capacity = capacity;
 }
 
-static bool alice_resource_table_set(alice_ResourceTable* table,
-	u32 key, alice_Resource* value) {
+static bool alice_resource_table_set(alice_resource_table_t* table,
+	u32 key, alice_resource_t* value) {
 
 	if (table->count + 1 > table->capacity * ALICE_RESOURCE_TABLE_MAX_LOAD) {
 		u32 capacity = alice_grow_capacity(table->capacity);
 		alice_resource_table_adjust_capacity(table, capacity);
 	}
 
-	alice_ResourceTableEntry* entry =
+	alice_resource_table_entry_t* entry =
 		alice_resource_table_find_entry(table->entries, table->capacity, key);
 	bool is_new_key = entry->key == 0;
 	if (is_new_key) { table->count++; }
@@ -122,36 +122,36 @@ static bool alice_resource_table_set(alice_ResourceTable* table,
 	return is_new_key;
 }
 
-static alice_Resource* alice_resource_table_get(
-	alice_ResourceTable* table, u32 key) {
+static alice_resource_t* alice_resource_table_get(
+	alice_resource_table_t* table, u32 key) {
 
 	if (table->count == 0) { return NULL; }
 
-	alice_ResourceTableEntry* entry = alice_resource_table_find_entry(
+	alice_resource_table_entry_t* entry = alice_resource_table_find_entry(
 		table->entries, table->capacity, key);
 	if (entry->key == 0) { return NULL; }
 
 	return entry->value;
 }
 
-static void alice_resource_table_copy(alice_ResourceTable* from, alice_ResourceTable* to) {
+static void alice_resource_table_copy(alice_resource_table_t* from, alice_resource_table_t* to) {
 	for (u32 i = 0; i < from->capacity; i++) {
-		alice_ResourceTableEntry* entry = &from->entries[i];
+		alice_resource_table_entry_t* entry = &from->entries[i];
 		if (entry->key != 0) {
 			alice_resource_table_set(to, entry->key, entry->value);
 		}
 	}
 }
 
-typedef struct alice_ResourceManager {
+typedef struct alice_resource_mananger_t {
 	const char* working_dir;
 
-	alice_ResourceTable* table;
-} alice_ResourceManager;
+	alice_resource_table_t* table;
+} alice_resource_mananger_t;
 
-alice_ResourceManager rm;
+alice_resource_mananger_t rm;
 
-void alice_free_resource(alice_Resource* resource) {
+void alice_free_resource(alice_resource_t* resource) {
 	alice_free_resource_payload(resource);
 	if (resource->type == ALICE_RESOURCE_SHADER ||
 		resource->type == ALICE_RESOURCE_TEXTURE ||
@@ -164,7 +164,7 @@ void alice_free_resource(alice_Resource* resource) {
 	free(resource);
 }
 
-void alice_free_resource_payload(alice_Resource* resource) {
+void alice_free_resource_payload(alice_resource_t* resource) {
 	if (resource->type == ALICE_RESOURCE_TEXTURE) {
 		alice_deinit_texture(resource->payload);
 	}
@@ -183,7 +183,7 @@ void alice_free_resource_payload(alice_Resource* resource) {
 	}
 }
 
-static alice_Resource* alice_resource_manager_add(alice_Resource* resource) {
+static alice_resource_t* alice_resource_manager_add(alice_resource_t* resource) {
 	alice_resource_table_set(rm.table, resource->file_name_hash, resource);
 
 	return resource;
@@ -206,12 +206,12 @@ void alice_init_resource_manager(const char* working_dir) {
 void alice_init_default_resources() {
 	/* Default cube */
 	{
-		alice_Resource* cube_resource = malloc(sizeof(alice_Resource));
-		*cube_resource = (alice_Resource){
+		alice_resource_t* cube_resource = malloc(sizeof(alice_resource_t));
+		*cube_resource = (alice_resource_t){
 			.type = ALICE_RESOURCE_MODEL,
 
 			.payload = alice_new_model(),
-			.payload_size = sizeof(alice_Model),
+			.payload_size = sizeof(alice_model_t),
 
 			.modtime = 0,
 
@@ -228,12 +228,12 @@ void alice_init_default_resources() {
 
 	/* Default sphere */
 	{
-		alice_Resource* sphere_resource = malloc(sizeof(alice_Resource));
-		*sphere_resource = (alice_Resource){
+		alice_resource_t* sphere_resource = malloc(sizeof(alice_resource_t));
+		*sphere_resource = (alice_resource_t){
 			.type = ALICE_RESOURCE_MODEL,
 
 			.payload = alice_new_model(),
-			.payload_size = sizeof(alice_Model),
+			.payload_size = sizeof(alice_model_t),
 
 			.modtime = 0,
 
@@ -253,12 +253,12 @@ void alice_init_default_resources() {
 		const char* name = "default_material";
 		const u32 name_len = (u32)strlen(name);
 
-		alice_Resource* default_material_resource = malloc(sizeof(alice_Resource));
-		*default_material_resource = (alice_Resource) {
+		alice_resource_t* default_material_resource = malloc(sizeof(alice_resource_t));
+		*default_material_resource = (alice_resource_t) {
 			.type = ALICE_RESOURCE_MATERIAL,
 
-			.payload = malloc(sizeof(alice_Material)),
-			.payload_size = sizeof(alice_Material),
+			.payload = malloc(sizeof(alice_material_t)),
+			.payload_size = sizeof(alice_material_t),
 
 			.modtime = 0,
 
@@ -268,7 +268,7 @@ void alice_init_default_resources() {
 		};
 		strcpy(default_material_resource->file_name, name);
 
-		*((alice_Material*)default_material_resource->payload) = (alice_Material) {
+		*((alice_material_t*)default_material_resource->payload) = (alice_material_t) {
 			.shader = alice_load_shader("shaders/pbr.glsl"),
 			.as.pbr = {
 				.albedo = 0xffffff,
@@ -319,11 +319,11 @@ const char* alice_get_file_name(const char* file_path) {
 	return slash + 1;
 }
 
-const char* alice_get_texture_resource_filename(alice_Texture* texture) {
+const char* alice_get_texture_resource_filename(alice_texture_t* texture) {
 	assert(texture);
 
 	for (u32 i = 0; i < rm.table->capacity; i++) {
-		alice_Resource* resource = rm.table->entries[i].value;
+		alice_resource_t* resource = rm.table->entries[i].value;
 
 		if (resource && resource->payload == texture) {
 			return resource->file_name;
@@ -333,11 +333,11 @@ const char* alice_get_texture_resource_filename(alice_Texture* texture) {
 	return NULL;
 }
 
-const char* alice_get_shader_resource_filename(alice_Shader* shader) {
+const char* alice_get_shader_resource_filename(alice_shader_t* shader) {
 	assert(shader);
 
 	for (u32 i = 0; i < rm.table->capacity; i++) {
-		alice_Resource* resource = rm.table->entries[i].value;
+		alice_resource_t* resource = rm.table->entries[i].value;
 
 		if (resource && resource->payload == shader) {
 			return resource->file_name;
@@ -347,11 +347,11 @@ const char* alice_get_shader_resource_filename(alice_Shader* shader) {
 	return NULL;
 }
 
-const char* alice_get_material_resource_filename(alice_Material* material) {
+const char* alice_get_material_resource_filename(alice_material_t* material) {
 	assert(material);
 
 	for (u32 i = 0; i < rm.table->capacity; i++) {
-		alice_Resource* resource = rm.table->entries[i].value;
+		alice_resource_t* resource = rm.table->entries[i].value;
 
 		if (resource && resource->payload == material) {
 			return resource->file_name;
@@ -361,11 +361,11 @@ const char* alice_get_material_resource_filename(alice_Material* material) {
 	return NULL;
 }
 
-const char* alice_get_model_resource_filename(alice_Model* model) {
+const char* alice_get_model_resource_filename(alice_model_t* model) {
 	assert(model);
 
 	for (u32 i = 0; i < rm.table->capacity; i++) {
-		alice_Resource* resource = rm.table->entries[i].value;
+		alice_resource_t* resource = rm.table->entries[i].value;
 
 		if (resource && resource->payload == model) {
 			return resource->file_name;
@@ -375,7 +375,7 @@ const char* alice_get_model_resource_filename(alice_Model* model) {
 	return NULL;
 }
 
-static bool impl_alice_load_binary(alice_Resource* resource, const char* path) {
+static bool impl_alice_load_binary(alice_resource_t* resource, const char* path) {
 	PHYSFS_file* file = PHYSFS_openRead(path);
 	if (!file) {
 		alice_log_error("Failed to load resource %s", path);
@@ -394,7 +394,7 @@ static bool impl_alice_load_binary(alice_Resource* resource, const char* path) {
 
 	const u32 file_name_length = (u32)strlen(path) + 1;
 
-	(*resource) = (alice_Resource){
+	(*resource) = (alice_resource_t){
 		.type = ALICE_RESOURCE_BINARY,
 
 		.payload = buffer,
@@ -414,7 +414,7 @@ static bool impl_alice_load_binary(alice_Resource* resource, const char* path) {
 	return true;
 }
 
-static bool impl_alice_load_string(alice_Resource* resource, const char* path) {
+static bool impl_alice_load_string(alice_resource_t* resource, const char* path) {
 	PHYSFS_file* file = PHYSFS_openRead(path);
 	if (!file) {
 		alice_log_error("Failed to load resource %s", path);
@@ -434,7 +434,7 @@ static bool impl_alice_load_string(alice_Resource* resource, const char* path) {
 
 	const u32 file_name_length = (u32)strlen(path) + 1;
 
-	(*resource) = (alice_Resource){
+	(*resource) = (alice_resource_t){
 		.type = ALICE_RESOURCE_STRING,
 
 		.payload = buffer,
@@ -454,21 +454,21 @@ static bool impl_alice_load_string(alice_Resource* resource, const char* path) {
 	return true;
 }
 
-static bool impl_alice_load_texture(alice_Resource* resource, const char* path, alice_TextureFlags flags, bool new) {
-	alice_Resource* raw = malloc(sizeof(alice_Resource));
+static bool impl_alice_load_texture(alice_resource_t* resource, const char* path, alice_texture_flags_t flags, bool new) {
+	alice_resource_t* raw = malloc(sizeof(alice_resource_t));
 	if (!impl_alice_load_binary(raw, path)) {
 		free(raw);
 		return false;
 	}
 
 	resource->type = ALICE_RESOURCE_TEXTURE;
-	resource->payload_size = sizeof(alice_Texture);
+	resource->payload_size = sizeof(alice_texture_t);
 	resource->modtime = raw->modtime;
 	resource->file_name = malloc(strlen(path) + 1);
 	resource->file_name_hash = raw->file_name_hash;
 
 	if (new) {
-		resource->payload = malloc(sizeof(alice_Texture));
+		resource->payload = malloc(sizeof(alice_texture_t));
 	}
 
 	alice_init_texture(resource->payload, raw, flags);
@@ -480,21 +480,21 @@ static bool impl_alice_load_texture(alice_Resource* resource, const char* path, 
 	return true;
 }
 
-static bool impl_alice_load_shader(alice_Resource* resource, const char* path, bool new) {
-	alice_Resource* raw = malloc(sizeof(alice_Resource));
+static bool impl_alice_load_shader(alice_resource_t* resource, const char* path, bool new) {
+	alice_resource_t* raw = malloc(sizeof(alice_resource_t));
 	if (!impl_alice_load_string(raw, path)) {
 		free(raw);
 		return false;
 	}
 
 	resource->type = ALICE_RESOURCE_SHADER;
-	resource->payload_size = sizeof(alice_Shader);
+	resource->payload_size = sizeof(alice_shader_t);
 	resource->modtime = raw->modtime;
 	resource->file_name = malloc(strlen(path) + 1);
 	resource->file_name_hash = raw->file_name_hash;
 
 	if (new) {
-		resource->payload = malloc(sizeof(alice_Shader));
+		resource->payload = malloc(sizeof(alice_shader_t));
 	}
 
 	alice_init_shader(resource->payload, raw->payload);
@@ -506,15 +506,15 @@ static bool impl_alice_load_shader(alice_Resource* resource, const char* path, b
 	return true;
 }
 
-static alice_Texture* impl_alice_load_texture_from_dtable(alice_DTable* parent_table, const char* name) {
+static alice_texture_t* impl_alice_load_texture_from_dtable(alice_dtable_t* parent_table, const char* name) {
 	assert(parent_table);
 
-	alice_DTable* texture_table = alice_dtable_find_child(parent_table, name);
+	alice_dtable_t* texture_table = alice_dtable_find_child(parent_table, name);
 
 	if (texture_table) {
-		alice_TextureFlags flags = 0;
+		alice_texture_flags_t flags = 0;
 
-		alice_DTable* is_antialiased_table = alice_dtable_find_child(texture_table, "is_antialiased");
+		alice_dtable_t* is_antialiased_table = alice_dtable_find_child(texture_table, "is_antialiased");
 		if (is_antialiased_table && is_antialiased_table->value.type == ALICE_DTABLE_BOOL &&
 				is_antialiased_table->value.as.boolean) {
 			flags |= ALICE_TEXTURE_ANTIALIASED;
@@ -522,7 +522,7 @@ static alice_Texture* impl_alice_load_texture_from_dtable(alice_DTable* parent_t
 			flags |= ALICE_TEXTURE_ALIASED;
 		}
 
-		alice_DTable* path_table = alice_dtable_find_child(texture_table, "path");
+		alice_dtable_t* path_table = alice_dtable_find_child(texture_table, "path");
 		if (path_table && path_table->value.type == ALICE_DTABLE_STRING) {
 			return alice_load_texture(path_table->value.as.string, flags);
 		}
@@ -531,7 +531,7 @@ static alice_Texture* impl_alice_load_texture_from_dtable(alice_DTable* parent_t
 	return alice_null;
 }
 
-static void alice_load_pbr_material(alice_DTable* table, alice_PBRMaterial* material) {
+static void alice_load_pbr_material(alice_dtable_t* table, alice_pbr_material_t* material) {
 	assert(table);
 	assert(material);
 
@@ -541,71 +541,71 @@ static void alice_load_pbr_material(alice_DTable* table, alice_PBRMaterial* mate
 	material->roughness_map = impl_alice_load_texture_from_dtable(table, "roughness_map");
 	material->ambient_occlusion_map = impl_alice_load_texture_from_dtable(table, "ao_map");
 
-	alice_DTable* albedo_table = alice_dtable_find_child(table, "albedo");
+	alice_dtable_t* albedo_table = alice_dtable_find_child(table, "albedo");
 	if (albedo_table && albedo_table->child_count == 3) {
 		float r = 1.0, g = 1.0, b = 1.0;
 
-		alice_DTable* r_table = alice_dtable_find_child(albedo_table, "r");
+		alice_dtable_t* r_table = alice_dtable_find_child(albedo_table, "r");
 		if (r_table && r_table->value.type == ALICE_DTABLE_NUMBER) {
 			r = (float)r_table->value.as.number;
 		}
 
-		alice_DTable* g_table = alice_dtable_find_child(albedo_table, "g");
+		alice_dtable_t* g_table = alice_dtable_find_child(albedo_table, "g");
 		if (g_table && g_table->value.type == ALICE_DTABLE_NUMBER) {
 			g = (float)g_table->value.as.number;
 		}
 
-		alice_DTable* b_table = alice_dtable_find_child(albedo_table, "b");
+		alice_dtable_t* b_table = alice_dtable_find_child(albedo_table, "b");
 		if (b_table && b_table->value.type == ALICE_DTABLE_NUMBER) {
 			b = (float)b_table->value.as.number;
 		}
 
-		material->albedo = alice_color_from_rgb_color((alice_RGBColor) { r, g, b });
+		material->albedo = alice_color_from_rgb_color((alice_rgb_color_t) { r, g, b });
 	}
 
-	alice_DTable* metallic_table = alice_dtable_find_child(table, "metallic");
+	alice_dtable_t* metallic_table = alice_dtable_find_child(table, "metallic");
 	if (metallic_table && metallic_table->value.type == ALICE_DTABLE_NUMBER) {
 		material->metallic = (float)metallic_table->value.as.number;
 	}
 
-	alice_DTable* roughness_table = alice_dtable_find_child(table, "roughness");
+	alice_dtable_t* roughness_table = alice_dtable_find_child(table, "roughness");
 	if (roughness_table && roughness_table->value.type == ALICE_DTABLE_NUMBER) {
 		material->roughness = (float)roughness_table->value.as.number;
 	}
 
-	alice_DTable* emissive_table = alice_dtable_find_child(table, "emissive");
+	alice_dtable_t* emissive_table = alice_dtable_find_child(table, "emissive");
 	if (emissive_table && emissive_table->value.type == ALICE_DTABLE_NUMBER) {
 		material->emissive = (float)emissive_table->value.as.number;
 	}
 }
 
-static alice_Color alice_load_color(alice_DTable* table, const char* name) {
-	alice_DTable* color_table = alice_dtable_find_child(table, name);
+static alice_color_t alice_load_color(alice_dtable_t* table, const char* name) {
+	alice_dtable_t* color_table = alice_dtable_find_child(table, name);
 	if (color_table) {
 		float r = 1.0, g = 1.0, b = 1.0;
 
-		alice_DTable* r_table = alice_dtable_find_child(color_table, "r");
+		alice_dtable_t* r_table = alice_dtable_find_child(color_table, "r");
 		if (r_table && r_table->value.type == ALICE_DTABLE_NUMBER) {
 			r = (float)r_table->value.as.number;
 		}
 
-		alice_DTable* g_table = alice_dtable_find_child(color_table, "g");
+		alice_dtable_t* g_table = alice_dtable_find_child(color_table, "g");
 		if (g_table && g_table->value.type == ALICE_DTABLE_NUMBER) {
 			g = (float)g_table->value.as.number;
 		}
 
-		alice_DTable* b_table = alice_dtable_find_child(color_table, "b");
+		alice_dtable_t* b_table = alice_dtable_find_child(color_table, "b");
 		if (b_table && b_table->value.type == ALICE_DTABLE_NUMBER) {
 			b = (float)b_table->value.as.number;
 		}
 
-		return alice_color_from_rgb_color((alice_RGBColor) { r, g, b });
+		return alice_color_from_rgb_color((alice_rgb_color_t) { r, g, b });
 	}
 
 	return 0xffffff;
 }
 
-static void alice_load_phong_material(alice_DTable* table, alice_PhongMaterial* material) {
+static void alice_load_phong_material(alice_dtable_t* table, alice_phong_material_t* material) {
 	assert(table);
 	assert(material);
 
@@ -615,28 +615,28 @@ static void alice_load_phong_material(alice_DTable* table, alice_PhongMaterial* 
 	material->specular = alice_load_color(table, "specular");
 	material->ambient = alice_load_color(table, "ambient");
 
-	alice_DTable* shininess_table = alice_dtable_find_child(table, "shininess");
+	alice_dtable_t* shininess_table = alice_dtable_find_child(table, "shininess");
 	if (shininess_table && shininess_table->value.type == ALICE_DTABLE_NUMBER) {
 		material->shininess = (float)shininess_table->value.as.number;
 	}
 
-	alice_DTable* emissive_table = alice_dtable_find_child(table, "emissive");
+	alice_dtable_t* emissive_table = alice_dtable_find_child(table, "emissive");
 	if (emissive_table && emissive_table->value.type == ALICE_DTABLE_NUMBER) {
 		material->emissive = (float)emissive_table->value.as.number;
 	}
 }
 
-static bool impl_alice_load_material(alice_Resource* resource, const char* path, bool new) {
-	alice_Resource* raw = malloc(sizeof(alice_Resource));
+static bool impl_alice_load_material(alice_resource_t* resource, const char* path, bool new) {
+	alice_resource_t* raw = malloc(sizeof(alice_resource_t));
 	if (!impl_alice_load_string(raw, path)) {
 		free(raw);
 		return false;
 	}
 
-	alice_DTable* table = alice_read_dtable(raw);
+	alice_dtable_t* table = alice_read_dtable(raw);
 
 	resource->type = ALICE_RESOURCE_MATERIAL;
-	resource->payload_size = sizeof(alice_Material);
+	resource->payload_size = sizeof(alice_material_t);
 	resource->modtime = raw->modtime;
 	resource->file_name = malloc(strlen(path) + 1);
 	resource->file_name_hash = raw->file_name_hash;
@@ -644,11 +644,11 @@ static bool impl_alice_load_material(alice_Resource* resource, const char* path,
 	strcpy(resource->file_name, path);
 
 	if (new) {
-		resource->payload = malloc(sizeof(alice_Material));
+		resource->payload = malloc(sizeof(alice_material_t));
 	}
 
-	alice_Material* material = resource->payload;
-	*material = (alice_Material){
+	alice_material_t* material = resource->payload;
+	*material = (alice_material_t){
 		.shader = alice_null,
 		.type = ALICE_MATERIAL_PBR,
 		.as.pbr = {
@@ -665,7 +665,7 @@ static bool impl_alice_load_material(alice_Resource* resource, const char* path,
 		}
 	};
 
-	alice_DTable* shader_table = alice_dtable_find_child(table, "shader");
+	alice_dtable_t* shader_table = alice_dtable_find_child(table, "shader");
 	if (shader_table && shader_table->value.type == ALICE_DTABLE_STRING) {
 		material->shader = alice_load_shader(shader_table->value.as.string);
 	}
@@ -673,13 +673,13 @@ static bool impl_alice_load_material(alice_Resource* resource, const char* path,
 		alice_log_warning("Material does not have a shader, so objects with this material won't render");
 	}
 
-	alice_DTable* pbr_table = alice_dtable_find_child(table, "pbr_material");
+	alice_dtable_t* pbr_table = alice_dtable_find_child(table, "pbr_material");
 	if (pbr_table) {
 		material->type = ALICE_MATERIAL_PBR;
 		alice_load_pbr_material(pbr_table, &material->as.pbr);
 	}
 
-	alice_DTable* phong_table = alice_dtable_find_child(table, "phong_material");
+	alice_dtable_t* phong_table = alice_dtable_find_child(table, "phong_material");
 	if (phong_table) {
 		material->type = ALICE_MATERIAL_PHONG;
 		alice_load_phong_material(phong_table, &material->as.phong);
@@ -692,7 +692,7 @@ static bool impl_alice_load_material(alice_Resource* resource, const char* path,
 	return true;
 }
 
-static alice_Mesh alice_process_model_mesh(aiNode* node, aiMesh* ai_mesh, const aiScene* scene) {
+static alice_mesh_t alice_process_model_mesh(aiNode* node, aiMesh* ai_mesh, const aiScene* scene) {
 	assert(ai_mesh && scene);
 
 	if (!ai_mesh->mNormals) {
@@ -735,7 +735,7 @@ static alice_Mesh alice_process_model_mesh(aiNode* node, aiMesh* ai_mesh, const 
 	}
 
 
-	alice_VertexBuffer* vb = alice_new_vertex_buffer(
+	alice_vertex_buffer_t* vb = alice_new_vertex_buffer(
 		ALICE_VERTEXBUFFER_DRAW_TRIANGLES | ALICE_VERTEXBUFFER_STATIC_DRAW);
 
 	alice_bind_vertex_buffer_for_edit(vb);
@@ -746,7 +746,7 @@ static alice_Mesh alice_process_model_mesh(aiNode* node, aiMesh* ai_mesh, const 
 	alice_configure_vertex_buffer(vb, 2, 2, 8, 6); /* vec2 uv */
 	alice_bind_vertex_buffer_for_edit(NULL);
 
-	alice_Mesh mesh;
+	alice_mesh_t mesh;
 
 	alice_init_mesh(&mesh, vb);
 
@@ -780,7 +780,7 @@ static alice_Mesh alice_process_model_mesh(aiNode* node, aiMesh* ai_mesh, const 
 	return mesh;
 }
 
-static void alice_process_model_node(alice_Model* model, aiNode* node, const aiScene* scene) {
+static void alice_process_model_node(alice_model_t* model, aiNode* node, const aiScene* scene) {
 	assert(model && node && scene);
 
 	for (u32 i = 0; i < node->mNumMeshes; i++) {
@@ -793,26 +793,26 @@ static void alice_process_model_node(alice_Model* model, aiNode* node, const aiS
 	}
 }
 
-static bool impl_alice_load_model(alice_Resource* resource, const char* path, bool new) {
+static bool impl_alice_load_model(alice_resource_t* resource, const char* path, bool new) {
 	assert(resource);
 
-	alice_Resource* raw = malloc(sizeof(alice_Resource));
+	alice_resource_t* raw = malloc(sizeof(alice_resource_t));
 	if (!impl_alice_load_binary(raw, path)) {
 		free(raw);
 		return false;
 	}
 
 	resource->type = ALICE_RESOURCE_MODEL;
-	resource->payload_size = sizeof(alice_Model);
+	resource->payload_size = sizeof(alice_model_t);
 	resource->modtime = raw->modtime;
 	resource->file_name = malloc(strlen(path) + 1);
 	resource->file_name_hash = raw->file_name_hash;
 
 	if (new) {
-		resource->payload = malloc(sizeof(alice_Model));
+		resource->payload = malloc(sizeof(alice_model_t));
 	}
 
-	alice_Model* model = resource->payload;
+	alice_model_t* model = resource->payload;
 	alice_init_model(model);
 
 	strcpy(resource->file_name, path);
@@ -838,13 +838,13 @@ static bool impl_alice_load_model(alice_Resource* resource, const char* path, bo
 	return true;
 }
 
-alice_Resource* alice_load_binary(const char* path) {
-	alice_Resource* got_resource = alice_resource_table_get(rm.table, alice_hash_string(path));
+alice_resource_t* alice_load_binary(const char* path) {
+	alice_resource_t* got_resource = alice_resource_table_get(rm.table, alice_hash_string(path));
 	if (got_resource) {
 		return got_resource;
 	}
 
-	alice_Resource* resource = malloc(sizeof(alice_Resource));
+	alice_resource_t* resource = malloc(sizeof(alice_resource_t));
 	if (!impl_alice_load_binary(resource, path)) {
 		free(resource);
 		return NULL;
@@ -855,13 +855,13 @@ alice_Resource* alice_load_binary(const char* path) {
 	return resource;
 }
 
-alice_Resource* alice_load_string(const char* path) {
-	alice_Resource* got_resource = alice_resource_table_get(rm.table, alice_hash_string(path));
+alice_resource_t* alice_load_string(const char* path) {
+	alice_resource_t* got_resource = alice_resource_table_get(rm.table, alice_hash_string(path));
 	if (got_resource) {
 		return got_resource;
 	}
 
-	alice_Resource* resource = malloc(sizeof(alice_Resource));
+	alice_resource_t* resource = malloc(sizeof(alice_resource_t));
 	if (!impl_alice_load_string(resource, path)) {
 		free(resource);
 		return NULL;
@@ -872,13 +872,13 @@ alice_Resource* alice_load_string(const char* path) {
 	return resource;
 }
 
-alice_Texture* alice_load_texture(const char* path, alice_TextureFlags flags) {
-	alice_Resource* got_resource = alice_resource_table_get(rm.table, alice_hash_string(path));
+alice_texture_t* alice_load_texture(const char* path, alice_texture_flags_t flags) {
+	alice_resource_t* got_resource = alice_resource_table_get(rm.table, alice_hash_string(path));
 	if (got_resource) {
 		return got_resource->payload;
 	}
 
-	alice_Resource* resource = malloc(sizeof(alice_Resource));
+	alice_resource_t* resource = malloc(sizeof(alice_resource_t));
 	if (!impl_alice_load_texture(resource, path, flags, true)) {
 		free(resource);
 		return NULL;
@@ -889,13 +889,13 @@ alice_Texture* alice_load_texture(const char* path, alice_TextureFlags flags) {
 	return resource->payload;
 }
 
-alice_Shader* alice_load_shader(const char* path) {
-	alice_Resource* got_resource = alice_resource_table_get(rm.table, alice_hash_string(path));
+alice_shader_t* alice_load_shader(const char* path) {
+	alice_resource_t* got_resource = alice_resource_table_get(rm.table, alice_hash_string(path));
 	if (got_resource) {
 		return got_resource->payload;
 	}
 
-	alice_Resource* resource = malloc(sizeof(alice_Resource));
+	alice_resource_t* resource = malloc(sizeof(alice_resource_t));
 	if (!impl_alice_load_shader(resource, path, true)) {
 		free(resource);
 		return NULL;
@@ -906,13 +906,13 @@ alice_Shader* alice_load_shader(const char* path) {
 	return resource->payload;
 }
 
-alice_Material* alice_load_material(const char* path) {
-	alice_Resource* got_resource = alice_resource_table_get(rm.table, alice_hash_string(path));
+alice_material_t* alice_load_material(const char* path) {
+	alice_resource_t* got_resource = alice_resource_table_get(rm.table, alice_hash_string(path));
 	if (got_resource) {
 		return got_resource->payload;
 	}
 
-	alice_Resource* resource = malloc(sizeof(alice_Resource));
+	alice_resource_t* resource = malloc(sizeof(alice_resource_t));
 	if (!impl_alice_load_material(resource, path, true)) {
 		free(resource);
 		return NULL;
@@ -923,13 +923,13 @@ alice_Material* alice_load_material(const char* path) {
 	return resource->payload;
 }
 
-alice_Model* alice_load_model(const char* path) {
-	alice_Resource* got_resource = alice_resource_table_get(rm.table, alice_hash_string(path));
+alice_model_t* alice_load_model(const char* path) {
+	alice_resource_t* got_resource = alice_resource_table_get(rm.table, alice_hash_string(path));
 	if (got_resource) {
 		return got_resource->payload;
 	}
 
-	alice_Resource* resource = malloc(sizeof(alice_Resource));
+	alice_resource_t* resource = malloc(sizeof(alice_resource_t));
 	if (!impl_alice_load_model(resource, path, true)) {
 		free(resource);
 		return NULL;
@@ -940,7 +940,7 @@ alice_Model* alice_load_model(const char* path) {
 	return resource->payload;
 }
 
-void alice_reload_resource(alice_Resource* resource) {
+void alice_reload_resource(alice_resource_t* resource) {
 	assert(resource);
 
 	char name[1024];
@@ -957,7 +957,7 @@ void alice_reload_resource(alice_Resource* resource) {
 		impl_alice_load_string(resource, name);
 		break;
 	case ALICE_RESOURCE_TEXTURE:
-		impl_alice_load_texture(resource, name, ((alice_Texture*)resource->payload)->flags, false);
+		impl_alice_load_texture(resource, name, ((alice_texture_t*)resource->payload)->flags, false);
 		break;
 	case ALICE_RESOURCE_SHADER:
 		impl_alice_load_shader(resource, name, false);
@@ -972,9 +972,9 @@ void alice_reload_resource(alice_Resource* resource) {
 
 void alice_reload_changed_resources() {
 	for (u32 i = 0; i < rm.table->capacity; i++) {
-		alice_ResourceTableEntry* entry = &rm.table->entries[i];
+		alice_resource_table_entry_t* entry = &rm.table->entries[i];
 
-		alice_Resource* r = entry->value;
+		alice_resource_t* r = entry->value;
 		if (r) {
 			PHYSFS_Stat stat;
 			PHYSFS_stat(r->file_name, &stat);
@@ -986,7 +986,7 @@ void alice_reload_changed_resources() {
 	}
 }
 
-alice_ResourceType alice_predict_resource_type(const char* file_extension) {
+alice_resource_type_t alice_predict_resource_type(const char* file_extension) {
 	assert(file_extension);
 
 	if (strcmp(file_extension, "png") == 0 ||
@@ -1024,7 +1024,7 @@ alice_ResourceType alice_predict_resource_type(const char* file_extension) {
 
 	return ALICE_RESOURCE_BINARY;
 }
-void alice_iterate_resource_directory(const char* directory, alice_ResourceIterateFunction function, void* ud) {
+void alice_iterate_resource_directory(const char* directory, alice_resource_iterate_f function, void* ud) {
 	assert(function);
 
 	char** iterator = PHYSFS_enumerateFiles(directory);
@@ -1038,7 +1038,7 @@ void alice_iterate_resource_directory(const char* directory, alice_ResourceItera
 
 		const char* extension = alice_get_file_extension(*i);
 
-		alice_ResourceType type_prediction = alice_predict_resource_type(extension);
+		alice_resource_type_t type_prediction = alice_predict_resource_type(extension);
 
 		PHYSFS_Stat stat;
 		PHYSFS_stat(*i, &stat);
@@ -1050,28 +1050,28 @@ void alice_iterate_resource_directory(const char* directory, alice_ResourceItera
 	PHYSFS_freeList(iterator);
 }
 
-static void impl_alice_save_material_texture(alice_DTable* parent_table,
-		const char* name, alice_Texture* texture) {
+static void impl_alice_save_material_texture(alice_dtable_t* parent_table,
+		const char* name, alice_texture_t* texture) {
 	if (!texture) { return; }
 
 	const char* texture_path = alice_get_texture_resource_filename(texture);
-	alice_DTable texture_table = alice_new_empty_dtable(name);
+	alice_dtable_t texture_table = alice_new_empty_dtable(name);
 
-	alice_DTable path_table = alice_new_string_dtable("path", texture_path);
+	alice_dtable_t path_table = alice_new_string_dtable("path", texture_path);
 	alice_dtable_add_child(&texture_table, path_table);
 
-	alice_DTable is_antialiased_table = alice_new_bool_dtable("is_antialiased",
+	alice_dtable_t is_antialiased_table = alice_new_bool_dtable("is_antialiased",
 			texture->flags & ALICE_TEXTURE_ANTIALIASED);
 	alice_dtable_add_child(&texture_table, is_antialiased_table);
 
 	alice_dtable_add_child(parent_table, texture_table);
 }
 
-static void alice_save_pbr_material(alice_DTable* table, alice_PBRMaterial* material) {
+static void alice_save_pbr_material(alice_dtable_t* table, alice_pbr_material_t* material) {
 	assert(table);
 	assert(material);
 
-	alice_DTable material_table = alice_new_empty_dtable("pbr_material");
+	alice_dtable_t material_table = alice_new_empty_dtable("pbr_material");
 
 	impl_alice_save_material_texture(&material_table, "albedo_map", material->albedo_map);
 	impl_alice_save_material_texture(&material_table, "normal_map", material->normal_map);
@@ -1079,12 +1079,12 @@ static void alice_save_pbr_material(alice_DTable* table, alice_PBRMaterial* mate
 	impl_alice_save_material_texture(&material_table, "metallic_map", material->metallic_map);
 	impl_alice_save_material_texture(&material_table, "ao_map", material->ambient_occlusion_map);
 
-	alice_RGBColor color = alice_rgb_color_from_color(material->albedo);
+	alice_rgb_color_t color = alice_rgb_color_from_color(material->albedo);
 
-	alice_DTable color_table = alice_new_empty_dtable("albedo");
-	alice_DTable r_table = alice_new_number_dtable("r", color.r);
-	alice_DTable g_table = alice_new_number_dtable("g", color.g);
-	alice_DTable b_table = alice_new_number_dtable("b", color.b);
+	alice_dtable_t color_table = alice_new_empty_dtable("albedo");
+	alice_dtable_t r_table = alice_new_number_dtable("r", color.r);
+	alice_dtable_t g_table = alice_new_number_dtable("g", color.g);
+	alice_dtable_t b_table = alice_new_number_dtable("b", color.b);
 
 	alice_dtable_add_child(&color_table, r_table);
 	alice_dtable_add_child(&color_table, g_table);
@@ -1092,9 +1092,9 @@ static void alice_save_pbr_material(alice_DTable* table, alice_PBRMaterial* mate
 
 	alice_dtable_add_child(&material_table, color_table);
 
-	alice_DTable metallic_table = alice_new_number_dtable("metallic", material->metallic);
-	alice_DTable roughness_table = alice_new_number_dtable("roughness", material->roughness);
-	alice_DTable emissive_table = alice_new_number_dtable("emissive", material->emissive);
+	alice_dtable_t metallic_table = alice_new_number_dtable("metallic", material->metallic);
+	alice_dtable_t roughness_table = alice_new_number_dtable("roughness", material->roughness);
+	alice_dtable_t emissive_table = alice_new_number_dtable("emissive", material->emissive);
 
 	alice_dtable_add_child(&material_table, metallic_table);
 	alice_dtable_add_child(&material_table, roughness_table);
@@ -1103,15 +1103,15 @@ static void alice_save_pbr_material(alice_DTable* table, alice_PBRMaterial* mate
 	alice_dtable_add_child(table, material_table);
 }
 
-static void impl_alice_save_color(alice_DTable* table, const char* name, alice_Color color) {
+static void impl_alice_save_color(alice_dtable_t* table, const char* name, alice_color_t color) {
 	assert(table);
 
-	alice_RGBColor rgb = alice_rgb_color_from_color(color);
+	alice_rgb_color_t rgb = alice_rgb_color_from_color(color);
 
-	alice_DTable color_table = alice_new_empty_dtable(name);
-	alice_DTable r_table = alice_new_number_dtable("r", rgb.r);
-	alice_DTable g_table = alice_new_number_dtable("g", rgb.g);
-	alice_DTable b_table = alice_new_number_dtable("b", rgb.b);
+	alice_dtable_t color_table = alice_new_empty_dtable(name);
+	alice_dtable_t r_table = alice_new_number_dtable("r", rgb.r);
+	alice_dtable_t g_table = alice_new_number_dtable("g", rgb.g);
+	alice_dtable_t b_table = alice_new_number_dtable("b", rgb.b);
 
 	alice_dtable_add_child(&color_table, r_table);
 	alice_dtable_add_child(&color_table, g_table);
@@ -1120,11 +1120,11 @@ static void impl_alice_save_color(alice_DTable* table, const char* name, alice_C
 	alice_dtable_add_child(table, color_table);
 }
 
-static void alice_save_phong_matarial(alice_DTable* table, alice_PhongMaterial* material) {
+static void alice_save_phong_matarial(alice_dtable_t* table, alice_phong_material_t* material) {
 	assert(table);
 	assert(material);
 
-	alice_DTable material_table = alice_new_empty_dtable("phong_material");
+	alice_dtable_t material_table = alice_new_empty_dtable("phong_material");
 
 	impl_alice_save_material_texture(&material_table, "diffuse_map", material->diffuse_map);
 
@@ -1132,22 +1132,22 @@ static void alice_save_phong_matarial(alice_DTable* table, alice_PhongMaterial* 
 	impl_alice_save_color(&material_table, "specular", material->specular);
 	impl_alice_save_color(&material_table, "ambient", material->ambient);
 
-	alice_DTable shininess_table = alice_new_number_dtable("shininess", material->shininess);
+	alice_dtable_t shininess_table = alice_new_number_dtable("shininess", material->shininess);
 	alice_dtable_add_child(&material_table, shininess_table);
 
-	alice_DTable emissive_table = alice_new_number_dtable("emissive", material->emissive);
+	alice_dtable_t emissive_table = alice_new_number_dtable("emissive", material->emissive);
 	alice_dtable_add_child(&material_table, emissive_table);
 
 	alice_dtable_add_child(table, material_table);
 }
 
-void alice_save_material(alice_Material* material, const char* path) {
+void alice_save_material(alice_material_t* material, const char* path) {
 	assert(material);
 
-	alice_DTable material_table = alice_new_empty_dtable("material");
+	alice_dtable_t material_table = alice_new_empty_dtable("material");
 
 	const char* shader_path = alice_get_shader_resource_filename(material->shader);
-	alice_DTable shader_table = alice_new_string_dtable("shader", shader_path);
+	alice_dtable_t shader_table = alice_new_string_dtable("shader", shader_path);
 	alice_dtable_add_child(&material_table, shader_table);
 
 	switch (material->type) {
