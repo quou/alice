@@ -79,6 +79,12 @@ void alice_free_render_target(alice_RenderTarget* target) {
 	glDeleteRenderbuffers(1, &target->render_buffer);
 	glDeleteFramebuffers(1, &target->frame_buffer);
 
+	glDeleteTextures(target->color_attachment_count, target->color_attachments);
+
+	if (target->color_attachment_count > 0) {
+		free(target->color_attachments);
+	}
+
 	free(target);
 }
 
