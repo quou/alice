@@ -308,6 +308,22 @@ alice_Scene* alice_new_scene(const char* script_assembly) {
 	return new;
 }
 
+static void alice_free_entity(alice_Scene* scene, alice_Entity* ptr) {
+	assert(ptr);
+
+	if (ptr->script) {
+		alice_delete_script(scene->script_context, ptr->script);
+	}
+
+	if (ptr->child_capacity > 0) {
+		free(ptr->children);
+	}
+
+	if (ptr->name) {
+		free(ptr->name);
+	}
+}
+
 void alice_free_scene(alice_Scene* scene) {
 	assert(scene);
 
@@ -327,8 +343,13 @@ void alice_free_scene(alice_Scene* scene) {
 
 		for (u32 i = 0; i < pool->count; i++) {
 			alice_EntityHandle handle = alice_new_entity_handle(i, pool->type_id);
+			alice_Entity* ptr = alice_entity_pool_get(pool, i);
 
-			alice_destroy_entity(scene, handle);
+			if (pool->destroy) {
+				pool->destroy(scene, handle, ptr);
+			}
+
+			alice_free_entity(scene, ptr);
 		}
 
 		alice_deinit_entity_pool(&scene->pools[i]);
@@ -412,29 +433,15 @@ void alice_destroy_entity(alice_Scene* scene, alice_EntityHandle handle) {
 	alice_EntityPool* pool = alice_get_entity_pool(scene, alice_get_entity_handle_type(handle));
 	alice_Entity* ptr = alice_get_entity_ptr(scene, handle);
 
-	for (u32 i = 0; i < ptr->child_count; i++) {
-		alice_destroy_entity(scene, ptr->children[i]);
+	while (ptr->child_count > 0) {
+		alice_destroy_entity(scene, ptr->children[0]);
 	}
 
 	if (ptr->parent != alice_null_entity_handle) {
 		alice_entity_remove_child(scene, ptr->parent, handle);
 	}
 
-	if (ptr->child_capacity > 0) {
-		free(ptr->children);
-	}
-
-	if (ptr->script) {
-		alice_delete_script(scene->script_context, ptr->script);
-	}
-
-	if (pool->destroy) {
-		pool->destroy(scene, handle, ptr);
-	}
-
-	if (ptr->name) {
-		free(ptr->name);
-	}
+	alice_free_entity(scene, ptr);
 
 	alice_entity_pool_remove(pool, alice_get_entity_handle_id(handle));
 }
