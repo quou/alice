@@ -42,7 +42,7 @@ probably doesn't work.
 Alice handles entities in a way that's fairly unique - It's somewhere halfway
 between a purely data oriented ECS and a traditional inheritance model.
 
-The first part of the puzzle is the `alice_EntityHandle`. This is a 64 bit unsigned
+The first part of the puzzle is the `alice_entity_handle_t`. This is a 64 bit unsigned
 integer, where the first 32 bits represents an index into an entity array for the specific
 entity type, with the last 32 bits being the id of the type of entity. Type IDs are
 generated using a simple hash function on the string name of the type. Entity handles are
@@ -53,42 +53,42 @@ somewhat similarly to single inheritance in object oriented languages - The base
 looks like a little like this (simplified):
 
 ```c
-struct alice_Entity {
+struct alice_entity_t {
 	char* name;
 
 	alice_v3f position;
 	alice_v3f rotation;
 	alice_v3f scale;
 
-	alice_EntityHandle parent;
+	alice_entity_handle_t parent;
 
 	/* Array of children */
-	alice_EntityHandle children[];
+	alice_entity_handle_t children[];
 };
 ```
 
 An "inherited" entity looks a little like this:
 
 ```c
-struct alice_Renderable3D {
-	alice_Entity base;
+struct alice_renderable_3d_t {
+	alice_entity_t base;
 
-	alice_Model* model;
-	alice_Material* materials[];
+	alice_model_t* model;
+	alice_material_t* materials[];
 };
 ```
 
-Because of the way that structs are aligned in memory, a pointer to an `alice_Renderable3D`
-can be cast back to an `alice_Entity` pointer and be operated on - and vise versa, as long
+Because of the way that structs are aligned in memory, a pointer to an `alice_renderable_3d_t`
+can be cast back to an `alice_entity_t` pointer and be operated on - and vise versa, as long
 as enough memory has been allocated for the "inherited" struct. This way, generic functions
-can be created that take in `alice_Entity` pointers, for things such as calculating a
+can be created that take in `alice_entity_t` pointers, for things such as calculating a
 transform matrix for a given entity.
 
 A scene contains an array of "entity pools", one entry for each unique type of entity,
 and within each pool, entities are sub-allocated from a contiguous block.
 This way, by iterating a pool for a specific entity type, logic can be applied to
 all entities of that type - for example the 3D renderer iterates all entities of
-type `alice_Renderable3D`, and draws them to the screen.
+type `alice_renderable_3d_t`, and draws them to the screen.
 
 The only disadvantage that this gives is that entities of different types cannot
 be combined like in a pure ECS - thus, we are stuck with a similar issue that the 
