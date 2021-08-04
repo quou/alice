@@ -56,9 +56,9 @@ looks like a little like this (simplified):
 struct alice_entity_t {
 	char* name;
 
-	alice_v3f position;
-	alice_v3f rotation;
-	alice_v3f scale;
+	alice_v3f_t position;
+	alice_v3f_t rotation;
+	alice_v3f_t scale;
 
 	alice_entity_handle_t parent;
 
