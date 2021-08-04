@@ -43,18 +43,18 @@ typedef struct alice_rigidbody_3d_t {
 	alice_box_collider_t box;
 } alice_rigidbody_3d_t;
 
-typedef struct alice_RigidbodyPair {
+typedef struct alice_rigidbody_pair_t {
 	alice_rigidbody_3d_t* a;
 	alice_rigidbody_3d_t* b;
 	alice_manifold_t manifold;
-} alice_RigidbodyPair;
+} alice_rigidbody_pair_t;
 
 typedef struct alice_physics_engine_t {
-	alice_RigidbodyPair* pairs;
+	alice_rigidbody_pair_t* pairs;
 	u32 pair_count;
 	u32 pair_capacity;
 
-	alice_RigidbodyPair** unique_pairs;
+	alice_rigidbody_pair_t** unique_pairs;
 	u32 unique_pair_count;
 	u32 unique_pair_capacity;
 

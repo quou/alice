@@ -303,6 +303,68 @@ scene {
 			}
 		}
 		rigidbody_3d {
+			name "back wall";
+			position {
+				x 0;
+				y 0;
+				z 5;
+			}
+			rotation {
+				x 0;
+				y 0;
+				z 0;
+			}
+			scale {
+				x 1;
+				y 1;
+				z 1;
+			}
+			mass 0;
+			dynamic_friction 0.3;
+			static_friction 0.3;
+			restitution 0.3;
+			gravity_scale 0;
+			box {
+				dimentions {
+					x 10;
+					y 5;
+					z 0.4;
+				}
+				position {
+					x 0;
+					y 0;
+					z 0;
+				}
+			}
+			children {
+				renderable_3d {
+					name "back wall visual";
+					position {
+						x 0;
+						y 0;
+						z 0;
+					}
+					rotation {
+						x 0;
+						y 0;
+						z 0;
+					}
+					scale {
+						x 10;
+						y 5;
+						z 0.4;
+					}
+					cast_shadows true;
+					model "cube";
+					materials [
+						"default_material";
+						"materials/basicphong.mat";
+					]
+
+				}
+			}
+		}
+		rigidbody_3d {
 			name "wall";
 			position {
 				x -5;

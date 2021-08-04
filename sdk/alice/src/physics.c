@@ -25,8 +25,8 @@ static void alice_calculate_body_aabb(alice_physics_engine_t* engine, alice_rigi
 }
 
 static i32 alice_compare_rigidbody_pair(const void* a, const void* b) {
-	const alice_RigidbodyPair* lhs = a;
-	const alice_RigidbodyPair* rhs = b;
+	const alice_rigidbody_pair_t* lhs = a;
+	const alice_rigidbody_pair_t* rhs = b;
 
 	if (lhs->a < rhs->a) {
 		return true;
@@ -39,7 +39,7 @@ static i32 alice_compare_rigidbody_pair(const void* a, const void* b) {
 	return false;
 }
 
-static void alice_correct_rigidbody_positions(alice_RigidbodyPair* pair) {
+static void alice_correct_rigidbody_positions(alice_rigidbody_pair_t* pair) {
 	assert(pair);
 
 	alice_rigidbody_3d_t* a = pair->a;
@@ -99,12 +99,13 @@ bool alice_aabb_vs_aabb(alice_aabb_t a, alice_aabb_t b, alice_manifold_t* manifo
 				float smallest_overlap = x_overlap;
 				if (y_overlap < smallest_overlap) {
 					smallest_overlap = y_overlap;
-				} else if (z_overlap < smallest_overlap) {
+				}
+				if (z_overlap < smallest_overlap) {
 					smallest_overlap = z_overlap;
 				}
 
 				if (smallest_overlap == x_overlap) {
-					if (n.x < 0) {
+					if (n.x < 0.0f) {
 						manifold->normal = (alice_v3f_t){-1.0f, 0.0f, 0.0f};
 					} else {
 						manifold->normal = (alice_v3f_t){1.0f, 0.0f, 0.0f};
@@ -113,10 +114,8 @@ bool alice_aabb_vs_aabb(alice_aabb_t a, alice_aabb_t b, alice_manifold_t* manifo
 					manifold->penetration = x_overlap;
 
 					return true;
-				}
-
-				if (smallest_overlap == y_overlap) {
-					if (n.y < 0) {
+				} else if (smallest_overlap == y_overlap) {
+					if (n.y < 0.0f) {
 						manifold->normal = (alice_v3f_t){0.0f, -1.0f, 0.0f};
 					} else {
 						manifold->normal = (alice_v3f_t){0.0f, 1.0f, 0.0f};
@@ -125,10 +124,8 @@ bool alice_aabb_vs_aabb(alice_aabb_t a, alice_aabb_t b, alice_manifold_t* manifo
 					manifold->penetration = y_overlap;
 
 					return true;
-				}
-
-				if (smallest_overlap == z_overlap) {
-					if (n.z < 0) {
+				} else {
+					if (n.z < 0.0f) {
 						manifold->normal = (alice_v3f_t){0.0f, 0.0f, -1.0f};
 					} else {
 						manifold->normal = (alice_v3f_t){0.0f, 0.0f, 1.0f};
@@ -138,8 +135,6 @@ bool alice_aabb_vs_aabb(alice_aabb_t a, alice_aabb_t b, alice_manifold_t* manifo
 
 					return true;
 				}
-
-				return true;
 			}
 		}
 	}
@@ -247,7 +242,7 @@ static void alice_tick_physics_engine(alice_physics_engine_t* engine, double tim
 			alice_calculate_body_aabb(engine, a, &a_box);
 			alice_calculate_body_aabb(engine, b, &b_box);
 
-			alice_RigidbodyPair pair;
+			alice_rigidbody_pair_t pair;
 			pair.a = a;
 			pair.b = b;
 
@@ -255,7 +250,7 @@ static void alice_tick_physics_engine(alice_physics_engine_t* engine, double tim
 				if (engine->pair_count >= engine->pair_capacity) {
 					engine->pair_capacity = alice_grow_capacity(engine->pair_capacity);
 					engine->pairs = realloc(engine->pairs,
-						engine->pair_capacity * sizeof(alice_RigidbodyPair));
+						engine->pair_capacity * sizeof(alice_rigidbody_pair_t));
 				}
 
 				engine->pairs[engine->pair_count++] = pair;
@@ -264,24 +259,24 @@ static void alice_tick_physics_engine(alice_physics_engine_t* engine, double tim
 	}
 
 	/* Cull duplicate pairs */
-	qsort(engine->pairs, engine->pair_count, sizeof(alice_RigidbodyPair), alice_compare_rigidbody_pair);
+	qsort(engine->pairs, engine->pair_count, sizeof(alice_rigidbody_pair_t), alice_compare_rigidbody_pair);
 	{
 		u32 i = 0;
 		while (i < engine->pair_count) {
 			if (engine->unique_pair_count >= engine->unique_pair_capacity) {
 				engine->unique_pair_capacity = alice_grow_capacity(engine->unique_pair_capacity);
 				engine->unique_pairs = realloc(engine->unique_pairs,
-						engine->unique_pair_capacity * sizeof(alice_RigidbodyPair*));
+						engine->unique_pair_capacity * sizeof(alice_rigidbody_pair_t*));
 			}
 
-			alice_RigidbodyPair* pair = &engine->pairs[i];
+			alice_rigidbody_pair_t* pair = &engine->pairs[i];
 
 			engine->unique_pairs[engine->unique_pair_count++] = pair;
 
 			i++;
 
 			while (i < engine->pair_count) {
-				alice_RigidbodyPair* potential_dup = &engine->pairs[i];
+				alice_rigidbody_pair_t* potential_dup = &engine->pairs[i];
 				if (pair->a != potential_dup->b || pair->b != potential_dup->a) {
 					break;
 				}
@@ -293,7 +288,7 @@ static void alice_tick_physics_engine(alice_physics_engine_t* engine, double tim
 
 	/* Resolve collisions */
 	for (u32 i = 0; i < engine->unique_pair_count; i++) {
-		alice_RigidbodyPair* pair = engine->unique_pairs[i];
+		alice_rigidbody_pair_t* pair = engine->unique_pairs[i];
 
 		alice_rigidbody_3d_t* a = pair->a;
 		alice_rigidbody_3d_t* b = pair->b;
