@@ -325,12 +325,10 @@ void alice_free_scene(alice_Scene* scene) {
 	for (u32 i = 0; i < scene->pool_count; i++) {
 		alice_EntityPool* pool = &scene->pools[i];
 
-		if (pool->destroy) {
-			for (u32 i = 0; i < pool->count; i++) {
-				alice_EntityHandle handle = alice_new_entity_handle(i, pool->type_id);
+		for (u32 i = 0; i < pool->count; i++) {
+			alice_EntityHandle handle = alice_new_entity_handle(i, pool->type_id);
 
-				alice_destroy_entity(scene, handle);
-			}
+			alice_destroy_entity(scene, handle);
 		}
 
 		alice_deinit_entity_pool(&scene->pools[i]);
@@ -416,6 +414,10 @@ void alice_destroy_entity(alice_Scene* scene, alice_EntityHandle handle) {
 
 	for (u32 i = 0; i < ptr->child_count; i++) {
 		alice_destroy_entity(scene, ptr->children[i]);
+	}
+
+	if (ptr->parent != alice_null_entity_handle) {
+		alice_entity_remove_child(scene, ptr->parent, handle);
 	}
 
 	if (ptr->child_capacity > 0) {
