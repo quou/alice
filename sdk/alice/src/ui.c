@@ -369,6 +369,8 @@ void alice_free_ui_context(alice_UIContext* context) {
 	alice_free_vertex_buffer(context->gizmo_quad);
 	alice_free_text_renderer(context->text_renderer);
 	alice_free_ui_renderer(context->renderer);
+
+	free(context);
 }
 
 void alice_apply_default_ui_config(alice_UIContext* context) {

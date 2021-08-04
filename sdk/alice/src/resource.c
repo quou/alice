@@ -687,6 +687,8 @@ static bool impl_alice_load_material(alice_Resource* resource, const char* path,
 
 	alice_free_dtable(table);
 
+	alice_free_resource(raw);
+
 	return true;
 }
 

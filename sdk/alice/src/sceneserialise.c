@@ -524,7 +524,7 @@ static alice_EntityHandle alice_deserialise_entity(alice_DTable* table, alice_Sc
 		const char* on_free_name = alice_null;
 
 		if (get_instance_size_table && get_instance_size_table->value.type == ALICE_DTABLE_STRING) {
-			get_instance_size_name = alice_copy_string(get_instance_size_table->value.as.string);
+			get_instance_size_name = get_instance_size_table->value.as.string;
 		}
 
 		if (on_init_table && on_init_table->value.type == ALICE_DTABLE_STRING) {

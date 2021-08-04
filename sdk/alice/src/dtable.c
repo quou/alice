@@ -378,6 +378,8 @@ void alice_free_dtable_value_array(alice_DTableValueArray* array) {
 	if (array->capacity > 0) {
 		free(array->values);
 	}
+
+	free(array);
 }
 
 void alice_dtable_value_array_add(alice_DTableValueArray* array, alice_DTableValue value) {
