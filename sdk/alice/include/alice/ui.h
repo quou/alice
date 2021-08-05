@@ -114,6 +114,8 @@ struct alice_ui_window_t {
 	bool being_resized;
 	alice_v2f_t resize_offset;
 
+	alice_v2f_t min_dimentions;
+
 	const char* title;
 	alice_v2f_t position;
 	alice_v2f_t dimentions;

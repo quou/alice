@@ -379,6 +379,8 @@ void alice_apply_default_ui_config(alice_ui_context_t* context) {
 	context->ui_cfg[ALICE_UICFG_PADDING] = 5.0f;
 	context->ui_cfg[ALICE_UICFG_OUTLINE_WIDTH] = 1.0f;
 	context->ui_cfg[ALICE_UICFG_COLUMN_SIZE] = 200.0f;
+	context->ui_cfg[ALICE_UICFG_DEFAULT_WINDOW_MIN_WIDTH] = 200.0f;
+	context->ui_cfg[ALICE_UICFG_DEFAULT_WINDOW_MIN_HEIGHT] = 30.0f;
 
 	context->ui_colors[ALICE_UICOLOR_BACKGROUND] = 0xffffff;
 	context->ui_colors[ALICE_UICOLOR_OUTLINE] = 0x000000;
@@ -877,6 +879,14 @@ void alice_draw_ui(alice_ui_context_t* context) {
 				window->dimentions.x = mouse_pos.x - window->resize_offset.x - window->position.x;
 				window->dimentions.y = mouse_pos.y - window->resize_offset.y - window->position.y;
 
+				if (window->dimentions.x < window->min_dimentions.x) {
+					window->dimentions.x = window->min_dimentions.x;
+				}
+
+				if (window->dimentions.y < window->min_dimentions.y) {
+					window->dimentions.y = window->min_dimentions.y;
+				}
+
 				if (alice_mouse_button_just_released(ALICE_MOUSE_BUTTON_LEFT)) {
 					window->being_resized = false;
 				}
@@ -993,9 +1003,9 @@ alice_ui_window_t* alice_new_ui_window(alice_ui_context_t* context,
 
 	alice_ui_window_t* new = &context->windows[context->window_count++];
 
-	alice_init_ui_window(new, context->window_count);
-
 	new->context = context;
+
+	alice_init_ui_window(new, context->window_count);
 
 	if (create_function) {
 		create_function(context, new);
@@ -1049,6 +1059,7 @@ void alice_free_ui_element(alice_ui_element_t* element) {
 
 void alice_init_ui_window(alice_ui_window_t* window, u32 id) {
 	assert(window);
+	assert(window->context);
 
 	window->id = id;
 
@@ -1067,6 +1078,11 @@ void alice_init_ui_window(alice_ui_window_t* window, u32 id) {
 	window->being_resized = false;
 
 	window->last_element = alice_null;
+
+	window->min_dimentions = (alice_v2f_t) {
+		.x = window->context->ui_cfg[ALICE_UICFG_DEFAULT_WINDOW_MIN_WIDTH],
+		.y = window->context->ui_cfg[ALICE_UICFG_DEFAULT_WINDOW_MIN_HEIGHT]
+	};
 }
 
 void alice_deinit_ui_window(alice_ui_window_t* window) {
