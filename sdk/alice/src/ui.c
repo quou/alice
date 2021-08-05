@@ -697,6 +697,8 @@ void alice_draw_ui(alice_ui_context_t* context) {
 	const float outline_thickness = context->ui_cfg[ALICE_UICFG_OUTLINE_WIDTH];
 	const float column_size = context->ui_cfg[ALICE_UICFG_COLUMN_SIZE];
 
+	const alice_color_t outline_color = context->ui_colors[ALICE_UICOLOR_OUTLINE];
+
 	alice_ui_text_queue_t text_queue;
 	alice_init_text_queue(&text_queue);
 
@@ -804,7 +806,7 @@ void alice_draw_ui(alice_ui_context_t* context) {
 		}
 
 		alice_draw_ui_rect(context->renderer, window_rect, window_background_color);
-		alice_draw_ui_rect(context->renderer, title_outline_rect, context->ui_colors[ALICE_UICOLOR_OUTLINE]);
+		alice_draw_ui_rect(context->renderer, title_outline_rect, outline_color);
 		alice_draw_ui_rect(context->renderer, title_rect, window_background_color);
 
 		if (window->can_close) {
@@ -833,10 +835,55 @@ void alice_draw_ui(alice_ui_context_t* context) {
 				}
 			}
 
-			alice_draw_ui_rect(context->renderer, close_button_outline_rect,
-					context->ui_colors[ALICE_UICOLOR_OUTLINE]);
+			alice_draw_ui_rect(context->renderer, close_button_outline_rect, outline_color);
 			alice_draw_ui_rect(context->renderer, close_button_rect, close_button_color);
 
+		}
+
+		if (window->can_resize) {
+			const alice_ui_rect_t resize_handle_rect = (alice_ui_rect_t) {
+				.x = window->position.x + window->dimentions.x - padding * 5.0f,
+				.y = window->position.y + window->dimentions.y - padding * 5.0f,
+				.w = padding * 4.0f,
+				.h = padding * 4.0f
+			};
+
+			const alice_ui_rect_t resize_handle_outline_rect = (alice_ui_rect_t) {
+				.x = resize_handle_rect.x - outline_thickness,
+				.y = resize_handle_rect.y - outline_thickness,
+				.w = resize_handle_rect.w + outline_thickness * 2.0f,
+				.h = resize_handle_rect.h + outline_thickness * 2.0f
+			};
+
+			alice_color_t resize_handle_color = context->ui_colors[ALICE_UICOLOR_BACKGROUND];
+			if (alice_mouse_over_ui_rect(resize_handle_rect)) {
+				resize_handle_color = context->ui_colors[ALICE_UICOLOR_HOVERED];
+
+				if (alice_mouse_button_just_pressed(ALICE_MOUSE_BUTTON_LEFT)) {
+					window->being_resized = true;
+
+					const alice_v2i_t mouse_pos = alice_get_mouse_position();
+
+					window->resize_offset = (alice_v2f_t){
+						.x = resize_handle_rect.x - mouse_pos.x,
+						.y = resize_handle_rect.y - mouse_pos.y
+					};
+				}
+			}
+
+			if (window->being_resized) {
+				const alice_v2i_t mouse_pos = alice_get_mouse_position();
+
+				window->dimentions.x = mouse_pos.x - window->resize_offset.x - window->position.x;
+				window->dimentions.y = mouse_pos.y - window->resize_offset.y - window->position.y;
+
+				if (alice_mouse_button_just_released(ALICE_MOUSE_BUTTON_LEFT)) {
+					window->being_resized = false;
+				}
+			}
+
+			alice_draw_ui_rect(context->renderer, resize_handle_outline_rect, outline_color);
+			alice_draw_ui_rect(context->renderer, resize_handle_rect, resize_handle_color);
 		}
 
 		alice_v2f_t window_label_position = (alice_v2f_t) {
@@ -1010,11 +1057,14 @@ void alice_init_ui_window(alice_ui_window_t* window, u32 id) {
 	window->elements = alice_null;
 
 	window->visible = true;
+	window->can_close = true;
+	window->can_resize = true;
 	window->interactable = true;
 
 	window->z_index = 0;
 
 	window->being_dragged = false;
+	window->being_resized = false;
 
 	window->last_element = alice_null;
 }

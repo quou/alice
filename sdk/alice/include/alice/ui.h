@@ -100,6 +100,7 @@ struct alice_ui_window_t {
 	u32 element_capacity;
 
 	bool can_close;
+	bool can_resize;
 	bool visible;
 	bool interactable;
 
@@ -109,6 +110,9 @@ struct alice_ui_window_t {
 
 	bool being_dragged;
 	alice_v2f_t drag_offset;
+
+	bool being_resized;
+	alice_v2f_t resize_offset;
 
 	const char* title;
 	alice_v2f_t position;
@@ -130,24 +134,26 @@ ALICE_API alice_ui_toggle_t* alice_add_ui_toggle(alice_ui_window_t* window);
 
 enum {
 	ALICE_UICFG_PADDING = 0,
-	ALICE_UICFG_OUTLINE_WIDTH = 1,
-	ALICE_UICFG_COLUMN_SIZE = 2,
+	ALICE_UICFG_OUTLINE_WIDTH,
+	ALICE_UICFG_COLUMN_SIZE,
+	ALICE_UICFG_DEFAULT_WINDOW_MIN_WIDTH,
+	ALICE_UICFG_DEFAULT_WINDOW_MIN_HEIGHT,
 
-	ALICE_UICFG_COUNT = 3
+	ALICE_UICFG_COUNT
 };
 
 enum {
 	ALICE_UICOLOR_BACKGROUND = 0,
-	ALICE_UICOLOR_OUTLINE = 1,
-	ALICE_UICOLOR_WINDOW_TITLE_BACKGROUND = 2,
-	ALICE_UICOLOR_TEXT = 3,
-	ALICE_UICOLOR_ACTIVE = 4,
-	ALICE_UICOLOR_HOVERED = 5,
-	ALICE_UICOLOR_ACCENT1 = 6,
-	ALICE_UICOLOR_ACCENT2 = 7,
-	ALICE_UICOLOR_INACTIVE = 8,
+	ALICE_UICOLOR_OUTLINE,
+	ALICE_UICOLOR_WINDOW_TITLE_BACKGROUND ,
+	ALICE_UICOLOR_TEXT,
+	ALICE_UICOLOR_ACTIVE,
+	ALICE_UICOLOR_HOVERED,
+	ALICE_UICOLOR_ACCENT1,
+	ALICE_UICOLOR_ACCENT2,
+	ALICE_UICOLOR_INACTIVE,
 
-	ALICE_UICOLOR_COUNT = 9
+	ALICE_UICOLOR_COUNT
 };
 
 enum {
