@@ -9,6 +9,9 @@ Makefile
 *.user
 *.vs
 
+sandbox/scripts.dll
+sandbox/libscripts.so
+
 docs/index.html
 
 *.ilk
