@@ -56,6 +56,9 @@ struct Material {
 
 	bool use_ambient_occlusion_map;
 	sampler2D ambient_occlusion_map;
+
+	bool use_emissive_map;
+	sampler2D emissive_map;
 };
 
 struct PointLight {
@@ -346,7 +349,12 @@ void main() {
 		ao = texture(material.ambient_occlusion_map, fs_in.uv).r;
 	}
 
-	vec3 ambient = vec3(ambient_intensity + material.emissive) * ambient_color * albedo * ao;
+	vec3 emissive = vec3(material.emissive);
+	if (material.use_emissive_map) {
+		emissive *= texture(material.emissive_map, fs_in.uv).rgb;
+	}
+
+	vec3 ambient = (vec3(ambient_intensity) + emissive) * ambient_color * albedo * ao;
 
 	color = vec4(ambient + lighting_result, 1.0);
 }

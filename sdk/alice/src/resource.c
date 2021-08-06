@@ -280,7 +280,8 @@ void alice_init_default_resources() {
 				.normal_map = alice_null,
 				.metallic_map = alice_null,
 				.roughness_map = alice_null,
-				.ambient_occlusion_map = alice_null
+				.ambient_occlusion_map = alice_null,
+				.emissive_map = alice_null
 			}
 		};
 
@@ -540,6 +541,7 @@ static void alice_load_pbr_material(alice_dtable_t* table, alice_pbr_material_t*
 	material->metallic_map = impl_alice_load_texture_from_dtable(table, "metallic_map");
 	material->roughness_map = impl_alice_load_texture_from_dtable(table, "roughness_map");
 	material->ambient_occlusion_map = impl_alice_load_texture_from_dtable(table, "ao_map");
+	material->emissive_map = impl_alice_load_texture_from_dtable(table, "emissive_map");
 
 	alice_dtable_t* albedo_table = alice_dtable_find_child(table, "albedo");
 	if (albedo_table && albedo_table->child_count == 3) {
@@ -661,7 +663,8 @@ static bool impl_alice_load_material(alice_resource_t* resource, const char* pat
 			.normal_map = alice_null,
 			.metallic_map = alice_null,
 			.roughness_map = alice_null,
-			.ambient_occlusion_map = alice_null
+			.ambient_occlusion_map = alice_null,
+			.emissive_map = alice_null
 		}
 	};
 
@@ -1078,6 +1081,7 @@ static void alice_save_pbr_material(alice_dtable_t* table, alice_pbr_material_t*
 	impl_alice_save_material_texture(&material_table, "roughness_map", material->roughness_map);
 	impl_alice_save_material_texture(&material_table, "metallic_map", material->metallic_map);
 	impl_alice_save_material_texture(&material_table, "ao_map", material->ambient_occlusion_map);
+	impl_alice_save_material_texture(&material_table, "emissive_map", material->emissive_map);
 
 	alice_rgb_color_t color = alice_rgb_color_from_color(material->albedo);
 

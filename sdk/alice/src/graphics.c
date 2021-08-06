@@ -1077,6 +1077,14 @@ static void alice_apply_pbr_material(alice_shader_t* shader, alice_pbr_material_
 	} else {
 		alice_shader_set_int(shader, "material.use_ambient_occlusion_map", 0);
 	}
+
+	if (material->emissive_map) {
+		alice_shader_set_int(shader, "material.use_emissive_map", 1);
+		alice_shader_set_int(shader, "material.ambient_occlusion_map", 5);
+		alice_bind_texture(material->emissive_map, 5);
+	} else {
+		alice_shader_set_int(shader, "material.use_emissive_map", 0);
+	}
 }
 
 static void alice_apply_phong_material(alice_shader_t* shader, alice_phong_material_t* material) {

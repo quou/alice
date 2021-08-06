@@ -219,6 +219,7 @@ typedef struct alice_pbr_material_t {
 	alice_texture_t* metallic_map;
 	alice_texture_t* roughness_map;
 	alice_texture_t* ambient_occlusion_map;
+	alice_texture_t* emissive_map;
 } alice_pbr_material_t;
 
 typedef struct alice_phong_material_t {
