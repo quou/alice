@@ -23,6 +23,7 @@ project "alice"
 		"../extern/physfs/src",
 		"../extern/lua/src",
 		"../extern/assimp/include",
+		"../extern/miniaudio/include",
 		"include"
 	}
 
@@ -31,7 +32,8 @@ project "alice"
 		"glfw",
 		"glad",
 		"stb",
-		"physfs"
+		"physfs",
+		"miniaudio"
 	}
 
 	defines {
