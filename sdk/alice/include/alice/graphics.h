@@ -312,7 +312,7 @@ typedef struct alice_scene_renderer_3d_t {
 
 ALICE_API alice_scene_renderer_3d_t* alice_new_scene_renderer_3d(alice_shader_t* postprocess_shader,
 	alice_shader_t* extract_shader, alice_shader_t* blur_shader, alice_shader_t* depth_shader,
-	bool debug, alice_shader_t* debug_shader);
+	bool debug, alice_shader_t* debug_shader, u32 shadowmap_resolution);
 ALICE_API void alice_free_scene_renderer_3d(alice_scene_renderer_3d_t* renderer);
 ALICE_API void alice_render_scene_3d(alice_scene_renderer_3d_t* renderer, u32 width, u32 height,
 	alice_scene_t* scene, alice_render_target_t* render_target);

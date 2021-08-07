@@ -370,6 +370,10 @@ void alice_serialise_scene(alice_scene_t* scene, const char* file_path) {
 		alice_dtable_t use_antialiasing_table = alice_new_bool_dtable("use_antialiasing",
 				scene->renderer->use_antialiasing);
 		alice_dtable_add_child(&settings_table, use_antialiasing_table);
+
+		alice_dtable_t shadowmap_resolution_table =
+			alice_new_number_dtable("shadowmap_resolution", scene->renderer->shadowmap->res);
+		alice_dtable_add_child(&settings_table, shadowmap_resolution_table);
 	}
 
 	if (scene->physics_engine) {
@@ -788,6 +792,7 @@ void alice_deserialise_scene(alice_scene_t* scene, const char* file_path) {
 		alice_shader_t* debug_shader = alice_null;
 		alice_shader_t* depth_shader = alice_null;
 		bool debug = false;
+		u32 shadowmap_resolution = 1024;
 
 		alice_dtable_t* postprocess_shader_table = alice_dtable_find_child(settings_table,
 				"postprocess_shader");
@@ -825,8 +830,14 @@ void alice_deserialise_scene(alice_scene_t* scene, const char* file_path) {
 			debug = debug_table->value.as.boolean;
 		}
 
+		alice_dtable_t* shadowmap_resolution_table =
+			alice_dtable_find_child(settings_table, "shadowmap_resolution");
+		if (shadowmap_resolution_table && shadowmap_resolution_table->value.type == ALICE_DTABLE_NUMBER) {
+			shadowmap_resolution = shadowmap_resolution_table->value.as.number;
+		}
+
 		scene->renderer = alice_new_scene_renderer_3d(postprocess, extract, blur, depth_shader,
-				debug, debug_shader);
+				debug, debug_shader, shadowmap_resolution);
 		scene->renderer->use_antialiasing = true;
 		scene->renderer->use_bloom = true;
 

@@ -205,7 +205,7 @@ float calculate_directional_shadow(DirectionalLight light, vec3 normal, vec3 lig
 
 	vec2 texel_size = 1.0 / textureSize(shadowmap, 0);
 
-	for (int i = 0; i < 4; i++) {
+	for (int i = 0; i < 8; i++) {
 		int index = int(64.0 * random(floor(fs_in.world_pos.xyz * 1000.0), i)) % 64;
 
 		shadow += texture(shadowmap,
@@ -213,7 +213,7 @@ float calculate_directional_shadow(DirectionalLight light, vec3 normal, vec3 lig
 					proj_coords.z - bias)).r;
 	}
 
-	shadow /= 4.0;
+	shadow /= 8.0;
 
 	if (proj_coords.z > 1.0) {
 		shadow = 1.0;

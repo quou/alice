@@ -1336,7 +1336,7 @@ void alice_bind_shadowmap_output(alice_shadowmap_t* shadowmap, u32 unit) {
 
 alice_scene_renderer_3d_t* alice_new_scene_renderer_3d(alice_shader_t* postprocess_shader,
 		alice_shader_t* extract_shader, alice_shader_t* blur_shader, alice_shader_t* depth_shader,
-		bool debug, alice_shader_t* debug_shader) {
+		bool debug, alice_shader_t* debug_shader, u32 shadowmap_resolution) {
 	assert(postprocess_shader);
 	assert(extract_shader);
 	assert(blur_shader);
@@ -1352,7 +1352,7 @@ alice_scene_renderer_3d_t* alice_new_scene_renderer_3d(alice_shader_t* postproce
 	new->postprocess = postprocess_shader;
 	new->extract = extract_shader;
 	new->blur = blur_shader;
-	new->shadowmap = alice_new_shadowmap(1024, depth_shader);
+	new->shadowmap = alice_new_shadowmap(shadowmap_resolution, depth_shader);
 
 	new->use_bloom = false;
 	new->bloom_threshold = 100.0f;

@@ -9,6 +9,7 @@ scene {
 		bloom_threshold 1;
 		bloom_blur_iterations 10;
 		use_antialiasing true;
+		shadowmap_resolution 2048;
 		gravity -10;
 	}
 	entities {
