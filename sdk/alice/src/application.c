@@ -77,6 +77,11 @@ static void mouse_move_callback(GLFWwindow* window, double x, double y) {
 	alice_set_mouse_position((alice_v2i_t){(i32)x, (i32)y});
 }
 
+static void scroll_callback(GLFWwindow* window, double x, double y) {
+	alice_set_scrolled(true);
+	alice_set_scroll_offset((alice_v2f_t){x, y});
+}
+
 alice_application_t app;
 
 alice_application_t* alice_get_application() {
@@ -117,6 +122,7 @@ void alice_init_application(alice_application_config_t cfg) {
 	glfwSetKeyCallback(app.window, key_callback);
 	glfwSetMouseButtonCallback(app.window, mouse_button_callback);
 	glfwSetCursorPosCallback(app.window, mouse_move_callback);
+	glfwSetScrollCallback(app.window, scroll_callback);
 
 	glfwMakeContextCurrent(app.window);
 	glfwSwapInterval(0);

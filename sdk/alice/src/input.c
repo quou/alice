@@ -16,6 +16,9 @@ typedef struct alice_Input {
 	bool pressed_mouse_buttons[ALICE_MOUSE_BUTTON_COUNT];
 	bool released_mouse_buttons[ALICE_MOUSE_BUTTON_COUNT];
 
+	bool scrolled;
+	alice_v2f_t scroll_offset;
+
 	alice_v2i_t mouse_position;
 } alice_Input;
 
@@ -29,6 +32,8 @@ void alice_init_input() {
 	memset(input.held_mouse_buttons, 0, ALICE_MOUSE_BUTTON_COUNT * sizeof(bool));
 	memset(input.pressed_mouse_buttons, 0, ALICE_MOUSE_BUTTON_COUNT * sizeof(bool));
 	memset(input.released_mouse_buttons, 0, ALICE_MOUSE_BUTTON_COUNT * sizeof(bool));
+
+	input.scrolled = false;
 }
 
 void alice_reset_input() {
@@ -37,6 +42,8 @@ void alice_reset_input() {
 
 	memset(input.pressed_mouse_buttons, 0, ALICE_MOUSE_BUTTON_COUNT * sizeof(bool));
 	memset(input.released_mouse_buttons, 0, ALICE_MOUSE_BUTTON_COUNT * sizeof(bool));
+
+	input.scrolled = false;
 }
 
 void alice_set_key(i32 key, i32 action) {
@@ -51,8 +58,16 @@ void alice_set_mouse_button(i32 button, i32 action) {
 	input.released_mouse_buttons[button] = action == GLFW_RELEASE;
 }
 
+void alice_set_scrolled(bool scrolled) {
+	input.scrolled = scrolled;
+}
+
 void alice_set_mouse_position(alice_v2i_t pos) {
 	input.mouse_position = pos;
+}
+
+void alice_set_scroll_offset(alice_v2f_t offset) {
+	input.scroll_offset = offset;
 }
 
 bool alice_key_pressed(i32 key) {
@@ -79,6 +94,14 @@ bool alice_mouse_button_just_released(i32 button) {
 	return input.released_mouse_buttons[button];
 }
 
+bool alice_scrolled() {
+	return input.scrolled;
+}
+
 alice_v2i_t alice_get_mouse_position() {
 	return input.mouse_position;
+}
+
+alice_v2f_t alice_get_scroll_offset() {
+	return input.scroll_offset;
 }
