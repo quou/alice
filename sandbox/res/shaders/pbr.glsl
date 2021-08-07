@@ -267,7 +267,7 @@ vec3 calculate_point_light(PointLight light, vec3 N, vec3 V, vec3 F0) {
 
 	float NDF = distribution_ggx(N, H, roughness);
 	float G = geometry_smith(N, V, L, roughness);
-	vec3 F = fresnel_schlick(clamp(dot(H, V), 0.0, 1.0), F0);
+	vec3 F = fresnel_schlick(clamp(dot(H, V), 1.0, 0.0), F0);
 
 	vec3 numerator	= NDF * G * F;
 	float denominator = 4 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0);
@@ -343,18 +343,20 @@ void main() {
 		lighting_result += calculate_directional_light(directional_lights[i],
 				normal, view_dir, F0);
 	}
+	
+	vec3 emissive = vec3(material.emissive);
+	if (material.use_emissive_map) {
+		emissive *= texture(material.emissive_map, fs_in.uv).rgb;
+	}
+
+	lighting_result += albedo * emissive;
 
 	float ao = 1.0;
 	if (material.use_ambient_occlusion_map) {
 		ao = texture(material.ambient_occlusion_map, fs_in.uv).r;
 	}
 
-	vec3 emissive = vec3(material.emissive);
-	if (material.use_emissive_map) {
-		emissive *= texture(material.emissive_map, fs_in.uv).rgb;
-	}
-
-	vec3 ambient = (vec3(ambient_intensity) + emissive) * ambient_color * albedo * ao;
+	vec3 ambient = ambient_intensity * ambient_color * albedo * ao;
 
 	color = vec4(ambient + lighting_result, 1.0);
 }

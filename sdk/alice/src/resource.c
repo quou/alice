@@ -273,7 +273,7 @@ void alice_init_default_resources() {
 			.as.pbr = {
 				.albedo = 0xffffff,
 				.roughness = 1.0f,
-				.metallic = 1.0f,
+				.metallic = 0.0f,
 				.emissive = 0.0f,
 
 				.albedo_map = alice_null,

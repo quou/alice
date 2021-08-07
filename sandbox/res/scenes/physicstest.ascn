@@ -133,7 +133,7 @@ scene {
 				g 1;
 				b 1;
 			}
-			intensity 10;
+			intensity 1;
 			cast_shadows true;
 		}
 		rigidbody_3d {
@@ -258,8 +258,7 @@ scene {
 					cast_shadows true;
 					model "models/monkey.glb";
 					materials [
-						"default_material";
-						"materials/basicphong.mat";
+						"materials/basic.mat";
 					]
 
 				}
