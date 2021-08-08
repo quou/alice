@@ -579,8 +579,7 @@ static bool alice_draw_ui_element(alice_ui_context_t* context, alice_ui_window_t
 			alice_ui_toggle_t* toggle = (alice_ui_toggle_t*)element;
 
 			const alice_ui_rect_t box_rect = (alice_ui_rect_t){
-				.x = (window->position.x + window->dimentions.x) -
-					(padding + column_size),
+				.x = window->position.x + padding + column_size,
 				.y = element_position.y + padding,
 				.w = padding * 6.0f,
 				.h = element_dimensions.y - (padding * 2.0f)
