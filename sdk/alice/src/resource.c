@@ -1168,3 +1168,4 @@ void alice_save_material(alice_material_t* material, const char* path) {
 
 	alice_deinit_dtable(&material_table);
 }
+

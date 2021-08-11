@@ -322,63 +322,71 @@ void alice_serialise_scene(alice_scene_t* scene, const char* file_path) {
 
 	alice_dtable_t settings_table = alice_new_empty_dtable("settings");
 	if (scene->renderer) {
+		alice_dtable_t renderer_table = alice_new_empty_dtable("renderer_3d");
+
 		if (scene->renderer->postprocess) {
 			alice_dtable_t shader_table = alice_new_string_dtable("postprocess_shader",
 					alice_get_shader_resource_filename(scene->renderer->postprocess));
-			alice_dtable_add_child(&settings_table, shader_table);
+			alice_dtable_add_child(&renderer_table, shader_table);
 		}
 
 		if (scene->renderer->extract) {
 			alice_dtable_t shader_table = alice_new_string_dtable("bright_extract_shader",
 					alice_get_shader_resource_filename(scene->renderer->extract));
-			alice_dtable_add_child(&settings_table, shader_table);
+			alice_dtable_add_child(&renderer_table, shader_table);
 		}
 
 		if (scene->renderer->blur) {
 			alice_dtable_t shader_table = alice_new_string_dtable("blur_shader",
 					alice_get_shader_resource_filename(scene->renderer->blur));
-			alice_dtable_add_child(&settings_table, shader_table);
+			alice_dtable_add_child(&renderer_table, shader_table);
 		}
 
 		if (scene->renderer->shadowmap->shader) {
 			alice_dtable_t shader_table = alice_new_string_dtable("depth_shader",
 					alice_get_shader_resource_filename(scene->renderer->shadowmap->shader));
-			alice_dtable_add_child(&settings_table, shader_table);
+			alice_dtable_add_child(&renderer_table, shader_table);
 		}
 
 		alice_dtable_t debug_table = alice_new_bool_dtable("debug", scene->renderer->debug);
-		alice_dtable_add_child(&settings_table, debug_table);
+		alice_dtable_add_child(&renderer_table, debug_table);
 
 		if (scene->renderer->debug) {
 			alice_dtable_t shader_table = alice_new_string_dtable("line_shader",
 					alice_get_shader_resource_filename(
 						scene->renderer->debug_renderer->line_shader));
-			alice_dtable_add_child(&settings_table, shader_table);
+			alice_dtable_add_child(&renderer_table, shader_table);
 		}
 
 		alice_dtable_t use_bloom_table = alice_new_bool_dtable("use_bloom", scene->renderer->use_bloom);
-		alice_dtable_add_child(&settings_table, use_bloom_table);
+		alice_dtable_add_child(&renderer_table, use_bloom_table);
 
 		alice_dtable_t bloom_threshold_table = alice_new_number_dtable("bloom_threshold",
 				scene->renderer->bloom_threshold);
-		alice_dtable_add_child(&settings_table, bloom_threshold_table);
+		alice_dtable_add_child(&renderer_table, bloom_threshold_table);
 
 		alice_dtable_t bloom_blur_iterations_table = alice_new_number_dtable("bloom_blur_iterations",
 				scene->renderer->bloom_blur_iterations);
-		alice_dtable_add_child(&settings_table, bloom_blur_iterations_table);
+		alice_dtable_add_child(&renderer_table, bloom_blur_iterations_table);
 
 		alice_dtable_t use_antialiasing_table = alice_new_bool_dtable("use_antialiasing",
 				scene->renderer->use_antialiasing);
-		alice_dtable_add_child(&settings_table, use_antialiasing_table);
+		alice_dtable_add_child(&renderer_table, use_antialiasing_table);
 
 		alice_dtable_t shadowmap_resolution_table =
 			alice_new_number_dtable("shadowmap_resolution", scene->renderer->shadowmap->res);
-		alice_dtable_add_child(&settings_table, shadowmap_resolution_table);
+		alice_dtable_add_child(&renderer_table, shadowmap_resolution_table);
+
+		alice_dtable_add_child(&settings_table, renderer_table);
 	}
 
 	if (scene->physics_engine) {
+		alice_dtable_t physics_table = alice_new_empty_dtable("physics");
+
 		alice_dtable_t gravity_table = alice_new_number_dtable("gravity", scene->physics_engine->gravity);
-		alice_dtable_add_child(&settings_table, gravity_table);
+		alice_dtable_add_child(&physics_table, gravity_table);
+
+		alice_dtable_add_child(&settings_table, physics_table);
 	}
 
 	alice_dtable_add_child(&table, settings_table);
@@ -786,91 +794,97 @@ void alice_deserialise_scene(alice_scene_t* scene, const char* file_path) {
 
 	alice_dtable_t* settings_table = alice_dtable_find_child(table, "settings");
 	if (settings_table) {
-		alice_shader_t* postprocess = alice_null;
-		alice_shader_t* blur = alice_null;
-		alice_shader_t* extract = alice_null;
-		alice_shader_t* debug_shader = alice_null;
-		alice_shader_t* depth_shader = alice_null;
-		bool debug = false;
-		u32 shadowmap_resolution = 1024;
+		alice_dtable_t* renderer_3d_table = alice_dtable_find_child(settings_table, "renderer_3d");
+		if (renderer_3d_table) {
+			alice_shader_t* postprocess = alice_null;
+			alice_shader_t* blur = alice_null;
+			alice_shader_t* extract = alice_null;
+			alice_shader_t* debug_shader = alice_null;
+			alice_shader_t* depth_shader = alice_null;
+			bool debug = false;
+			u32 shadowmap_resolution = 1024;
 
-		alice_dtable_t* postprocess_shader_table = alice_dtable_find_child(settings_table,
-				"postprocess_shader");
-		if (postprocess_shader_table && postprocess_shader_table->value.type == ALICE_DTABLE_STRING) {
-			postprocess = alice_load_shader(postprocess_shader_table->value.as.string);
+			alice_dtable_t* postprocess_shader_table = alice_dtable_find_child(renderer_3d_table,
+					"postprocess_shader");
+			if (postprocess_shader_table && postprocess_shader_table->value.type == ALICE_DTABLE_STRING) {
+				postprocess = alice_load_shader(postprocess_shader_table->value.as.string);
+			}
+
+			alice_dtable_t* bright_extract_shader_table = alice_dtable_find_child(renderer_3d_table,
+					"bright_extract_shader");
+			if (bright_extract_shader_table &&
+					bright_extract_shader_table->value.type == ALICE_DTABLE_STRING) {
+				extract = alice_load_shader(bright_extract_shader_table->value.as.string);
+			}
+
+			alice_dtable_t* blur_shader_table = alice_dtable_find_child(renderer_3d_table,
+					"blur_shader");
+			if (blur_shader_table && blur_shader_table->value.type == ALICE_DTABLE_STRING) {
+				blur = alice_load_shader(blur_shader_table->value.as.string);
+			}
+
+			alice_dtable_t* debug_shader_table = alice_dtable_find_child(renderer_3d_table,
+					"line_shader");
+			if (debug_shader_table && debug_shader_table->value.type == ALICE_DTABLE_STRING) {
+				debug_shader = alice_load_shader(debug_shader_table->value.as.string);
+			}
+
+			alice_dtable_t* depth_shader_table = alice_dtable_find_child(renderer_3d_table,
+					"depth_shader");
+			if (depth_shader_table && depth_shader_table->value.type == ALICE_DTABLE_STRING) {
+				depth_shader = alice_load_shader(depth_shader_table->value.as.string);
+			}
+
+			alice_dtable_t* debug_table = alice_dtable_find_child(renderer_3d_table, "debug");
+			if (debug_table && debug_table->value.type == ALICE_DTABLE_BOOL) {
+				debug = debug_table->value.as.boolean;
+			}
+
+			alice_dtable_t* shadowmap_resolution_table =
+				alice_dtable_find_child(renderer_3d_table, "shadowmap_resolution");
+			if (shadowmap_resolution_table && shadowmap_resolution_table->value.type == ALICE_DTABLE_NUMBER) {
+				shadowmap_resolution = (u32)shadowmap_resolution_table->value.as.number;
+			}
+
+			scene->renderer = alice_new_scene_renderer_3d(postprocess, extract, blur, depth_shader,
+					debug, debug_shader, shadowmap_resolution);
+			scene->renderer->use_antialiasing = true;
+			scene->renderer->use_bloom = true;
+
+			alice_dtable_t* use_bloom_table = alice_dtable_find_child(renderer_3d_table,
+					"use_bloom");
+			if (use_bloom_table && use_bloom_table->value.type == ALICE_DTABLE_BOOL) {
+				scene->renderer->use_bloom = use_bloom_table->value.as.boolean;
+			}
+
+			alice_dtable_t* bloom_threshold_table = alice_dtable_find_child(renderer_3d_table, "bloom_threshold");
+			if (bloom_threshold_table && bloom_threshold_table->value.type == ALICE_DTABLE_NUMBER) {
+				scene->renderer->bloom_threshold = (float)bloom_threshold_table->value.as.number;
+			}
+
+			alice_dtable_t* bloom_blur_iterations_table = alice_dtable_find_child(renderer_3d_table,
+					"bloom_blur_iterations");
+			if (bloom_blur_iterations_table &&
+					bloom_blur_iterations_table->value.type == ALICE_DTABLE_NUMBER) {
+				scene->renderer->bloom_blur_iterations =
+					(u32)bloom_blur_iterations_table->value.as.number;
+			}
+
+			alice_dtable_t* use_antialiasing_table = alice_dtable_find_child(renderer_3d_table,
+					"use_antialiasing");
+			if (use_antialiasing_table && use_antialiasing_table->value.type == ALICE_DTABLE_BOOL) {
+				scene->renderer->use_antialiasing = use_antialiasing_table->value.as.boolean;
+			}
 		}
 
-		alice_dtable_t* bright_extract_shader_table = alice_dtable_find_child(settings_table,
-				"bright_extract_shader");
-		if (bright_extract_shader_table &&
-				bright_extract_shader_table->value.type == ALICE_DTABLE_STRING) {
-			extract = alice_load_shader(bright_extract_shader_table->value.as.string);
-		}
+		alice_dtable_t* physics_table = alice_dtable_find_child(settings_table, "physics");
+		if (physics_table) {
+			scene->physics_engine = alice_new_physics_engine(scene);
 
-		alice_dtable_t* blur_shader_table = alice_dtable_find_child(settings_table,
-				"blur_shader");
-		if (blur_shader_table && blur_shader_table->value.type == ALICE_DTABLE_STRING) {
-			blur = alice_load_shader(blur_shader_table->value.as.string);
-		}
-
-		alice_dtable_t* debug_shader_table = alice_dtable_find_child(settings_table,
-				"line_shader");
-		if (debug_shader_table && debug_shader_table->value.type == ALICE_DTABLE_STRING) {
-			debug_shader = alice_load_shader(debug_shader_table->value.as.string);
-		}
-
-		alice_dtable_t* depth_shader_table = alice_dtable_find_child(settings_table,
-				"depth_shader");
-		if (depth_shader_table && depth_shader_table->value.type == ALICE_DTABLE_STRING) {
-			depth_shader = alice_load_shader(depth_shader_table->value.as.string);
-		}
-
-		alice_dtable_t* debug_table = alice_dtable_find_child(settings_table, "debug");
-		if (debug_table && debug_table->value.type == ALICE_DTABLE_BOOL) {
-			debug = debug_table->value.as.boolean;
-		}
-
-		alice_dtable_t* shadowmap_resolution_table =
-			alice_dtable_find_child(settings_table, "shadowmap_resolution");
-		if (shadowmap_resolution_table && shadowmap_resolution_table->value.type == ALICE_DTABLE_NUMBER) {
-			shadowmap_resolution = shadowmap_resolution_table->value.as.number;
-		}
-
-		scene->renderer = alice_new_scene_renderer_3d(postprocess, extract, blur, depth_shader,
-				debug, debug_shader, shadowmap_resolution);
-		scene->renderer->use_antialiasing = true;
-		scene->renderer->use_bloom = true;
-
-		alice_dtable_t* use_bloom_table = alice_dtable_find_child(settings_table,
-				"use_bloom");
-		if (use_bloom_table && use_bloom_table->value.type == ALICE_DTABLE_BOOL) {
-			scene->renderer->use_bloom = use_bloom_table->value.as.boolean;
-		}
-
-		alice_dtable_t* bloom_threshold_table = alice_dtable_find_child(settings_table, "bloom_threshold");
-		if (bloom_threshold_table && bloom_threshold_table->value.type == ALICE_DTABLE_NUMBER) {
-			scene->renderer->bloom_threshold = (float)bloom_threshold_table->value.as.number;
-		}
-
-		alice_dtable_t* bloom_blur_iterations_table = alice_dtable_find_child(settings_table,
-				"bloom_blur_iterations");
-		if (bloom_blur_iterations_table &&
-				bloom_blur_iterations_table->value.type == ALICE_DTABLE_NUMBER) {
-			scene->renderer->bloom_blur_iterations =
-				(u32)bloom_blur_iterations_table->value.as.number;
-		}
-
-		alice_dtable_t* use_antialiasing_table = alice_dtable_find_child(settings_table,
-				"use_antialiasing");
-		if (use_antialiasing_table && use_antialiasing_table->value.type == ALICE_DTABLE_BOOL) {
-			scene->renderer->use_antialiasing = use_antialiasing_table->value.as.boolean;
-		}
-
-		scene->physics_engine = alice_new_physics_engine(scene);
-
-		alice_dtable_t* gravity_table = alice_dtable_find_child(settings_table, "gravity");
-		if (gravity_table && gravity_table->value.type == ALICE_DTABLE_NUMBER) {
-			scene->physics_engine->gravity = (float)gravity_table->value.as.number;
+			alice_dtable_t* gravity_table = alice_dtable_find_child(physics_table, "gravity");
+			if (gravity_table && gravity_table->value.type == ALICE_DTABLE_NUMBER) {
+				scene->physics_engine->gravity = (float)gravity_table->value.as.number;
+			}
 		}
 	}
 

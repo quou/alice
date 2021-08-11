@@ -1,10 +1,6 @@
 material {
 	shader "/shaders/pbr.glsl";
 	pbr_material {
-		albedo_map {
-			path "textures/orange.png";
-			is_antialiased true;
-		}
 		albedo {
 			r 1;
 			g 1;

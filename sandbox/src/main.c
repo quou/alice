@@ -92,15 +92,17 @@ static void on_scene_settings_window_create(alice_ui_context_t* context, alice_u
 
 	sandbox->show_gui_toggle = show_gui_toggle;
 
-	alice_ui_toggle_t* use_bloom_toggle = alice_add_ui_toggle(window);
-	use_bloom_toggle->base.on_click = on_use_bloom_toggle;
-	use_bloom_toggle->label = "Bloom";
-	use_bloom_toggle->value = scene->renderer->use_bloom;
+	if (scene->renderer) {
+		alice_ui_toggle_t* use_bloom_toggle = alice_add_ui_toggle(window);
+		use_bloom_toggle->base.on_click = on_use_bloom_toggle;
+		use_bloom_toggle->label = "Bloom";
+		use_bloom_toggle->value = scene->renderer->use_bloom;
 
-	alice_ui_toggle_t* use_antialiasing_toggle = alice_add_ui_toggle(window);
-	use_antialiasing_toggle->base.on_click = on_use_antialiasing_toggle;
-	use_antialiasing_toggle->label = "Antialiasing";
-	use_antialiasing_toggle->value = scene->renderer->use_antialiasing;
+		alice_ui_toggle_t* use_antialiasing_toggle = alice_add_ui_toggle(window);
+		use_antialiasing_toggle->base.on_click = on_use_antialiasing_toggle;
+		use_antialiasing_toggle->label = "Antialiasing";
+		use_antialiasing_toggle->value = scene->renderer->use_antialiasing;
+	}
 
 	alice_ui_toggle_t* physics_toggle = alice_add_ui_toggle(window);
 	physics_toggle->base.on_click = on_physics_toggle;
@@ -158,8 +160,13 @@ void main() {
 	alice_deserialise_scene(scene, "scenes/physicstest.ascn");
 	alice_serialise_scene(scene, "scenes/physicstest.ascn");
 
-	scene->renderer->ambient_intensity = 0.2f;
-	scene->renderer->ambient_color = 0xadb0ea;
+	if (scene->renderer) {
+		scene->renderer->ambient_intensity = 0.2f;
+		scene->renderer->ambient_color = 0xadb0ea;
+	}
+
+	alice_load_texture("textures/frog.png", ALICE_TEXTURE_ANTIALIASED);
+	//alice_unload_resource("textures/frog.png");
 
 /*	{
 		alice_entity_handle_t monkey_handle = alice_new_entity(scene, alice_rigidbody_3d_t);
@@ -351,11 +358,13 @@ void main() {
 			alice_update_scripts(scene->script_context, app->timestep);
 		}
 
-		if (sandbox.update_physics) {
+		if (sandbox.update_physics && scene->physics_engine) {
 			alice_update_physics_engine(scene->physics_engine, app->timestep);
 		}
 
-		alice_render_scene_3d(scene->renderer, app->width, app->height, scene, alice_null);
+		if (scene->renderer) {
+			alice_render_scene_3d(scene->renderer, app->width, app->height, scene, alice_null);
+		}
 
 		if (sandbox.show_gui) {
 			alice_set_text_renderer_dimentions(text_renderer, (alice_v2f_t){app->width, app->height});
