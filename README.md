@@ -17,6 +17,7 @@ doesn't have.
 ## Current Features
  - Entity management
  - 3D rendering
+ - 2D rendering
  - Resource management
  - Custom text serialisation format
  - Scene serialisation
