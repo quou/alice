@@ -2,7 +2,7 @@
 
 #version 430 core
 
-layout (location = 0) in vec3 position;
+layout (location = 0) in vec2 position;
 layout (location = 1) in vec2 uv;
 layout (location = 2) in vec4 source_rect;
 layout (location = 3) in vec2 texture_size;
@@ -31,7 +31,7 @@ void main() {
 
 	vs_out.texture_index = texture_index;
 
-	gl_Position = camera * vec4(position, 1.0);
+	gl_Position = camera * vec4(position, 0.0, 1.0);
 }
 
 #end VERTEX
@@ -47,7 +47,6 @@ in VS_OUT {
 
 out vec4 color;
 
-uniform vec3 color_mod = vec3(1.0, 1.0, 1.0);
 uniform sampler2D textures[32];
 
 void main() {
@@ -89,7 +88,8 @@ void main() {
 		case 31: texture_color = texture(textures[31], fs_in.uv); break;
 	}
 
-	color = vec4(color_mod, 1.0) * texture_color;
+	color = texture_color;
+	//color = vec4(1.0);
 }
 
 #end FRAGMENT

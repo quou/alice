@@ -642,11 +642,11 @@ void alice_init_texture_from_memory_uncompressed(alice_texture_t* texture, unsig
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, alias_mode);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, alias_mode);
 
-	u32 format = GL_SRGB;
+	u32 format = GL_RGB;
 	u32 internal_format = GL_RGB;
 	if (texture->component_count == 4) {
 		internal_format = GL_RGBA;
-		format = GL_SRGB_ALPHA;
+		format = GL_RGBA;
 	}
 	else if (texture->component_count == 1) {
 		internal_format = GL_RED;
@@ -1777,11 +1777,28 @@ alice_scene_renderer_2d_t* alice_new_scene_renderer_2d(alice_shader_t* sprite_sh
 
 	new->sprite_shader = sprite_shader;
 
+	alice_vertex_buffer_t* buffer = alice_new_vertex_buffer(
+			ALICE_VERTEXBUFFER_DRAW_TRIANGLES | ALICE_VERTEXBUFFER_DYNAMIC_DRAW);
+
+	alice_bind_vertex_buffer_for_edit(buffer);
+	alice_push_vertices(buffer, alice_null, (10 * 4) * 10000);
+	alice_push_indices(buffer, alice_null, 6 * 10000);
+	alice_configure_vertex_buffer(buffer, 0, 2, 11, 0); /* vec2 position */
+	alice_configure_vertex_buffer(buffer, 1, 2, 11, 2); /* vec2 uv */
+	alice_configure_vertex_buffer(buffer, 2, 4, 11, 4); /* vec4 source_rect */
+	alice_configure_vertex_buffer(buffer, 3, 2, 11, 8); /* vec2 texture_size */
+	alice_configure_vertex_buffer(buffer, 4, 1, 11, 10); /* float texture_size */
+	alice_bind_vertex_buffer_for_edit(alice_null);
+
+	new->quad = buffer;
+
 	return new;
 }
 
 void alice_free_scene_renderer_2d(alice_scene_renderer_2d_t* renderer) {
 	assert(renderer);
+
+	alice_free_vertex_buffer(renderer->quad);
 
 	free(renderer);
 }
@@ -1806,13 +1823,80 @@ void alice_render_scene_2d(alice_scene_renderer_2d_t* renderer, u32 width, u32 h
 		alice_bind_render_target(render_target, width, height);
 	}
 
+	u32 quad_count = 0;
+	u32 texture_count = 0;
+
+	alice_texture_t* used_textures[32];
+
+	alice_bind_vertex_buffer_for_edit(renderer->quad);
+
 	for (alice_entity_iter(scene, iter, alice_sprite_2d_t)) {
 		alice_sprite_2d_t* sprite = iter.current_ptr;
 
 		alice_v3f_t position = alice_get_sprite_2d_world_position(scene, (alice_entity_t*)sprite);
+		alice_v3f_t scale = sprite->base.scale;
 
-		alice_log("hi");
+		alice_v4f_t s = sprite->source_rect;
+
+		i32 texture_index = -1;
+		for (u32 i = 0; i < texture_count; i++) {
+			if (used_textures[i] == sprite->image) {
+				texture_index = i;
+			}
+		}
+
+		if (texture_index == -1) {
+			used_textures[texture_count] = sprite->image;
+			texture_index = texture_count;
+
+			alice_bind_texture(sprite->image, texture_count);
+
+			texture_count++;
+
+			if (texture_count >= 32) {
+				alice_log_warning("Only 32 textures are allowed to render.");
+				continue;
+			}
+		}
+
+		float verts[] = {
+			position.x,		position.y,		0.0f, 1.0f, s.x, s.y, s.z, s.w, sprite->image->width, sprite->image->height, (float)texture_index,
+			position.x + scale.x,	position.y,		1.0f, 1.0f, s.x, s.y, s.z, s.w, sprite->image->width, sprite->image->height, (float)texture_index,
+			position.x + scale.x,	position.y + scale.y,	1.0f, 0.0f, s.x, s.y, s.z, s.w, sprite->image->width, sprite->image->height, (float)texture_index,
+			position.x,		position.y + scale.y,	0.0f, 0.0f, s.x, s.y, s.z, s.w, sprite->image->width, sprite->image->height, (float)texture_index,
+		};
+
+		const u32 index_offset = quad_count * 4;
+
+		u32 indices[] = {
+			index_offset + 3, index_offset + 2, index_offset + 1,
+			index_offset + 3, index_offset + 1, index_offset + 0
+		};
+
+		alice_update_vertices(renderer->quad, verts, quad_count * 11 * 4, 11 * 4);
+		alice_update_indices(renderer->quad, indices, quad_count * 6, 6);
+
+		quad_count++;
 	}
+
+	alice_bind_vertex_buffer_for_edit(alice_null);
+	alice_bind_shader(renderer->sprite_shader);
+
+	for (u32 i = 0; i < texture_count; i++) {
+		char name[128];
+		sprintf(name, "textures[%d]", i);
+
+		alice_shader_set_int(renderer->sprite_shader, name, i);
+	}
+
+	alice_shader_set_m4f(renderer->sprite_shader, "camera", alice_get_camera_2d_matrix(scene, camera));
+
+	alice_bind_vertex_buffer_for_draw(renderer->quad);
+	alice_draw_vertex_buffer_custom_count(renderer->quad, quad_count * 6);
+	alice_bind_vertex_buffer_for_draw(alice_null);
+
+	alice_bind_texture(alice_null, 0);
+	alice_bind_shader(alice_null);
 
 	if (render_target) {
 		alice_unbind_render_target(render_target);

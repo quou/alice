@@ -367,6 +367,23 @@ static void alice_serialise_entity(alice_dtable_t* table, alice_scene_t* scene, 
 
 			alice_dtable_add_child(&entity_table, image_table);
 
+			alice_dtable_t source_rect_table = alice_new_empty_dtable("source_rect");
+			{
+				alice_dtable_t x_table = alice_new_number_dtable("x", sprite->source_rect.x);
+				alice_dtable_add_child(&source_rect_table, x_table);
+
+				alice_dtable_t y_table = alice_new_number_dtable("y", sprite->source_rect.y);
+				alice_dtable_add_child(&source_rect_table, y_table);
+
+				alice_dtable_t w_table = alice_new_number_dtable("w", sprite->source_rect.z);
+				alice_dtable_add_child(&source_rect_table, w_table);
+
+				alice_dtable_t h_table = alice_new_number_dtable("h", sprite->source_rect.w);
+				alice_dtable_add_child(&source_rect_table, h_table);
+
+				alice_dtable_add_child(&entity_table, source_rect_table);
+			}
+
 			break;
 		}
 	}
@@ -927,6 +944,29 @@ static alice_entity_handle_t alice_deserialise_entity(alice_dtable_t* table, ali
 				}
 
 				sprite->image = alice_load_texture(image_path, flags);
+			}
+
+			alice_dtable_t* source_rect_table = alice_dtable_find_child(table, "source_rect");
+			if (source_rect_table) {
+				alice_dtable_t* x_table = alice_dtable_find_child(source_rect_table, "x");
+				if (x_table && x_table->value.type == ALICE_DTABLE_NUMBER) {
+					sprite->source_rect.x = x_table->value.as.number;
+				}
+
+				alice_dtable_t* y_table = alice_dtable_find_child(source_rect_table, "y");
+				if (y_table && y_table->value.type == ALICE_DTABLE_NUMBER) {
+					sprite->source_rect.y = y_table->value.as.number;
+				}
+
+				alice_dtable_t* w_table = alice_dtable_find_child(source_rect_table, "w");
+				if (w_table && w_table->value.type == ALICE_DTABLE_NUMBER) {
+					sprite->source_rect.z = w_table->value.as.number;
+				}
+
+				alice_dtable_t* h_table = alice_dtable_find_child(source_rect_table, "h");
+				if (h_table && h_table->value.type == ALICE_DTABLE_NUMBER) {
+					sprite->source_rect.w = h_table->value.as.number;
+				}
 			}
 		}
 		default:

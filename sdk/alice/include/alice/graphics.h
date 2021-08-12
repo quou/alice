@@ -337,12 +337,15 @@ typedef struct alice_sprite_2d_t {
 	alice_entity_t base;
 
 	alice_texture_t* image;
+	alice_v4f_t source_rect;
 } alice_sprite_2d_t;
 
 ALICE_API alice_v3f_t alice_get_sprite_2d_world_position(alice_scene_t* scene, alice_entity_t* entity);
 
 typedef struct alice_scene_renderer_2d_t {
 	alice_shader_t* sprite_shader;
+
+	alice_vertex_buffer_t* quad;
 } alice_scene_renderer_2d_t;
 
 ALICE_API alice_scene_renderer_2d_t* alice_new_scene_renderer_2d(alice_shader_t* sprite_shader);

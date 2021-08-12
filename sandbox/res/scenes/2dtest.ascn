@@ -34,8 +34,8 @@ scene {
 		}
 		sprite_2d {
 			position {
-				x 0;
-				y 0;
+				x 100;
+				y 25;
 				z 0;
 			}
 			rotation {
@@ -51,6 +51,39 @@ scene {
 			image {
 				path "textures/frog.png";
 				is_antialiased false;
+			}
+			source_rect {
+				x 0;
+				y 0;
+				w 154;
+				h 150;
+			}
+		}
+		sprite_2d {
+			position {
+				x 200;
+				y 25;
+				z 0;
+			}
+			rotation {
+				x 0;
+				y 0;
+				z 0;
+			}
+			scale {
+				x 100;
+				y 100;
+				z 1;
+			}
+			image {
+				path "textures/wood.png";
+				is_antialiased false;
+			}
+			source_rect {
+				x 0;
+				y 0;
+				w 154;
+				h 150;
 			}
 		}
 	}
