@@ -17,17 +17,17 @@ out VS_OUT {
 
 void main() {
 	float width_pixel = 1.0 / texture_size.x;
-    float height_pixel = 1.0 / texture_size.y;
+	float height_pixel = 1.0 / texture_size.y;
 
-    float start_x = source_rect.x;
-    float start_y = source_rect.y;
-    float width = source_rect.z;
-    float height = source_rect.w;
+	float start_x = source_rect.x;
+	float start_y = source_rect.y;
+	float width = source_rect.z;
+	float height = source_rect.w;
 
 	vs_out.uv = vec2(
-        width_pixel * start_x + width * width_pixel * uv.x,
-        height_pixel * start_y + height * height_pixel * uv.y
-    );
+        	width_pixel * start_x + width * width_pixel * uv.x,
+        	height_pixel * start_y + height * height_pixel * uv.y
+	);
 
 	vs_out.texture_index = texture_index;
 
