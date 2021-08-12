@@ -38,6 +38,8 @@ typedef struct alice_rigidbody_3d_t {
 	alice_v3f_t velocity;
 	alice_v3f_t force;
 
+	alice_v3u_t constraints;
+
 	float gravity_scale;
 
 	alice_box_collider_t box;

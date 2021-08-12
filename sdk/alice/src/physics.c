@@ -222,11 +222,13 @@ static void alice_tick_physics_engine(alice_physics_engine_t* engine, double tim
 			.z = body->velocity.z + ((body->inverse_mass * body->force.z) * (float)timestep),
 		};
 
-		body->base.position = (alice_v3f_t){
-			.x = body->base.position.x + body->velocity.x * (float)timestep,
-			.y = body->base.position.y + body->velocity.y * (float)timestep,
-			.z = body->base.position.z + body->velocity.z * (float)timestep,
-		};
+		body->velocity.x = body->constraints.x ? 0.0f : body->velocity.x;
+		body->velocity.y = body->constraints.y ? 0.0f : body->velocity.y;
+		body->velocity.z = body->constraints.z ? 0.0f : body->velocity.z;
+
+		body->base.position.x += body->velocity.x * (float)timestep;
+		body->base.position.y += body->velocity.y * (float)timestep;
+		body->base.position.z += body->velocity.z * (float)timestep;
 	}
 
 	/* Check collisions */
@@ -445,4 +447,6 @@ void alice_on_rigidbody_3d_create(alice_scene_t* scene, alice_entity_handle_t ha
 			.z = 2.0f
 		}
 	};
+
+	rigidbody->constraints = (alice_v3u_t) { false, false, false };
 }

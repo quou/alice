@@ -300,6 +300,22 @@ static void alice_serialise_entity(alice_dtable_t* table, alice_scene_t* scene, 
 
 			alice_dtable_add_child(&entity_table, box_table);
 
+			{
+				alice_dtable_t constraints_table = alice_new_empty_dtable("constraints");
+
+				alice_dtable_t x_table = alice_new_bool_dtable("x", rigidbody->constraints.x);
+				alice_dtable_add_child(&constraints_table, x_table);
+
+				alice_dtable_t y_table = alice_new_bool_dtable("y", rigidbody->constraints.y);
+				alice_dtable_add_child(&constraints_table, y_table);
+
+				alice_dtable_t z_table = alice_new_bool_dtable("z", rigidbody->constraints.z);
+				alice_dtable_add_child(&constraints_table, z_table);
+
+				alice_dtable_add_child(&entity_table, constraints_table);
+			}
+
+
 			break;
 		}
 	}
@@ -765,6 +781,24 @@ static alice_entity_handle_t alice_deserialise_entity(alice_dtable_t* table, ali
 					if (z_table && z_table->value.type == ALICE_DTABLE_NUMBER) {
 						rigidbody->box.position.z = (float)z_table->value.as.number;
 					}
+				}
+			}
+
+			alice_dtable_t* constraints_table = alice_dtable_find_child(table, "constraints");
+			if (constraints_table) {
+				alice_dtable_t* x_table = alice_dtable_find_child(constraints_table, "x");
+				if (x_table && x_table->value.type == ALICE_DTABLE_BOOL) {
+					rigidbody->constraints.x = x_table->value.as.boolean;
+				}
+
+				alice_dtable_t* y_table = alice_dtable_find_child(constraints_table, "y");
+				if (y_table && y_table->value.type == ALICE_DTABLE_BOOL) {
+					rigidbody->constraints.y = y_table->value.as.boolean;
+				}
+
+				alice_dtable_t* z_table = alice_dtable_find_child(constraints_table, "z");
+				if (z_table && z_table->value.type == ALICE_DTABLE_BOOL) {
+					rigidbody->constraints.z = z_table->value.as.boolean;
 				}
 			}
 
