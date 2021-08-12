@@ -404,7 +404,7 @@ void alice_update_physics_engine(alice_physics_engine_t* engine, double timestep
 		engine->accumulator -= (float)dt;
 	}
 
-	const float alpha = engine->accumulator / (float)dt;
+	const float alpha = engine->accumulator / dt;
 
 	for (alice_entity_iter(engine->scene, iter, alice_rigidbody_3d_t)) {
 		alice_rigidbody_3d_t* rigidbody = iter.current_ptr;

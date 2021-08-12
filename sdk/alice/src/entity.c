@@ -295,10 +295,12 @@ alice_scene_t* alice_new_scene(const char* script_assembly) {
 
 	alice_register_entity_type(new, alice_entity_t);
 	alice_register_entity_type(new, alice_camera_3d_t);
+	alice_register_entity_type(new, alice_camera_2d_t);
 	alice_register_entity_type(new, alice_renderable_3d_t);
 	alice_register_entity_type(new, alice_point_light_t);
 	alice_register_entity_type(new, alice_directional_light_t);
 	alice_register_entity_type(new, alice_rigidbody_3d_t);
+	alice_register_entity_type(new, alice_sprite_2d_t);
 
 	alice_set_entity_create_function(new, alice_renderable_3d_t, alice_on_renderable_3d_create);
 	alice_set_entity_destroy_function(new, alice_renderable_3d_t, alice_on_renderable_3d_destroy);
@@ -332,6 +334,10 @@ void alice_free_scene(alice_scene_t* scene) {
 
 	if (scene->renderer) {
 		alice_free_scene_renderer_3d(scene->renderer);
+	}
+
+	if (scene->renderer_2d) {
+		alice_free_scene_renderer_2d(scene->renderer_2d);
 	}
 
 	if (scene->physics_engine) {

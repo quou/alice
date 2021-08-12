@@ -964,17 +964,14 @@ void alice_disable_depth() {
 alice_camera_3d_t* alice_get_scene_camera(alice_scene_t* scene) {
 	assert(scene);
 
-	alice_camera_3d_t* camera = alice_null;
-
 	for (alice_entity_iter(scene, iter, alice_camera_3d_t)) {
 		alice_camera_3d_t* entity = iter.current_ptr;
 		if (entity->active) {
-			camera = entity;
-			break;
+			return (alice_camera_3d_t*)entity;
 		}
 	}
 
-	return camera;
+	return alice_null;
 }
 
 alice_m4f_t alice_get_camera_3d_view(alice_scene_t* scene, alice_camera_3d_t* camera) {
@@ -1027,6 +1024,31 @@ alice_m4f_t alice_get_camera_3d_matrix(alice_scene_t* scene, alice_camera_3d_t* 
 	alice_m4f_t view = alice_get_camera_3d_view(scene, camera);
 
 	return alice_m4f_multiply(projection, view);
+}
+
+ALICE_API alice_camera_2d_t* alice_get_scene_camera_2d(alice_scene_t* scene) {
+	assert(scene);
+
+	for (alice_entity_iter(scene, iter, alice_camera_2d_t)) {
+		alice_camera_2d_t* entity = iter.current_ptr;
+		if (entity->active) {
+			return (alice_camera_2d_t*)entity;
+		}
+	}
+
+	return alice_null;
+}
+
+ALICE_API alice_m4f_t alice_get_camera_2d_matrix(alice_scene_t* scene, alice_camera_2d_t* camera) {
+	assert(scene);
+	assert(camera);
+
+	alice_m4f_t translation = alice_m4f_translate(alice_m4f_identity(), camera->base.position);
+
+	alice_m4f_t projection = alice_m4f_ortho(0.0f, camera->dimentions.x,
+			camera->dimentions.y, 0.0f, -1.0f, 1.0f);
+
+	return alice_m4f_multiply(translation, projection);
 }
 
 static void alice_apply_pbr_material(alice_shader_t* shader, alice_pbr_material_t* material) {
@@ -1721,6 +1743,76 @@ renderable_iter_continue:
 	alice_bind_vertex_buffer_for_draw(alice_null);
 
 	alice_bind_shader(alice_null);
+
+	if (render_target) {
+		alice_unbind_render_target(render_target);
+	}
+}
+
+alice_v3f_t alice_get_sprite_2d_world_position(alice_scene_t* scene, alice_entity_t* entity) {
+	assert(scene);
+	assert(entity);
+
+	alice_v3f_t result = entity->position;
+
+	if (entity->parent != alice_null_entity_handle) {
+		alice_entity_t* parent_ptr = alice_get_entity_ptr(scene, entity->parent);
+
+		alice_v3f_t parent_position = alice_get_sprite_2d_world_position(scene, parent_ptr);
+
+		result = (alice_v3f_t) {
+			result.x + parent_position.x,
+			result.y + parent_position.y,
+			result.z + parent_position.z,
+		};
+	}
+
+	return result;
+}
+
+alice_scene_renderer_2d_t* alice_new_scene_renderer_2d(alice_shader_t* sprite_shader) {
+	assert(sprite_shader);
+
+	alice_scene_renderer_2d_t* new = malloc(sizeof(alice_scene_renderer_2d_t));
+
+	new->sprite_shader = sprite_shader;
+
+	return new;
+}
+
+void alice_free_scene_renderer_2d(alice_scene_renderer_2d_t* renderer) {
+	assert(renderer);
+
+	free(renderer);
+}
+
+void alice_render_scene_2d(alice_scene_renderer_2d_t* renderer, u32 width, u32 height,
+		alice_scene_t* scene, alice_render_target_t* render_target) {
+	assert(renderer);
+	assert(scene);
+
+	alice_camera_2d_t* camera = alice_get_scene_camera_2d(scene);
+
+	if (!camera) {
+		alice_log_warning("Attempting to render 2D scene without an active 2D camera");
+	}
+
+	if (!camera->stretch) {
+		camera->dimentions = (alice_v2f_t) { (float)width, (float)height };
+	}
+
+	if (render_target) {
+		alice_resize_render_target(render_target, width, height);
+		alice_bind_render_target(render_target, width, height);
+	}
+
+	for (alice_entity_iter(scene, iter, alice_sprite_2d_t)) {
+		alice_sprite_2d_t* sprite = iter.current_ptr;
+
+		alice_v3f_t position = alice_get_sprite_2d_world_position(scene, (alice_entity_t*)sprite);
+
+		alice_log("hi");
+	}
 
 	if (render_target) {
 		alice_unbind_render_target(render_target);

@@ -157,18 +157,15 @@ void main() {
 
 	sandbox.scene = scene;
 
-	alice_deserialise_scene(scene, "scenes/physicstest.ascn");
-	alice_serialise_scene(scene, "scenes/physicstest.ascn");
+	alice_deserialise_scene(scene, "scenes/2dtest.ascn");
+	alice_serialise_scene(scene, "scenes/2dtest.ascn");
 
 	if (scene->renderer) {
 		scene->renderer->ambient_intensity = 0.2f;
 		scene->renderer->ambient_color = 0xadb0ea;
 	}
 
-	alice_load_texture("textures/frog.png", ALICE_TEXTURE_ANTIALIASED);
-	//alice_unload_resource("textures/frog.png");
-
-/*	{
+	/*	{
 		alice_entity_handle_t monkey_handle = alice_new_entity(scene, alice_rigidbody_3d_t);
 		alice_rigidbody_3d_t* monkey = alice_get_entity_ptr(scene, monkey_handle);
 		monkey->base.position.y = 10.0f;
@@ -364,6 +361,10 @@ void main() {
 
 		if (scene->renderer) {
 			alice_render_scene_3d(scene->renderer, app->width, app->height, scene, alice_null);
+		}
+
+		if (scene->renderer_2d) {
+			alice_render_scene_2d(scene->renderer_2d, app->width, app->height, scene, alice_null);
 		}
 
 		if (sandbox.show_gui) {

@@ -182,11 +182,24 @@ typedef struct alice_camera_3d_t {
 	bool active;
 } alice_camera_3d_t;
 
-ALICE_API alice_camera_3d_t* alice_get_scene_camera(alice_scene_t* scene);
+ALICE_API alice_camera_3d_t* alice_get_scene_camera_3d(alice_scene_t* scene);
 ALICE_API alice_m4f_t alice_get_camera_3d_matrix(alice_scene_t* scene, alice_camera_3d_t* camera);
 ALICE_API alice_m4f_t alice_get_camera_3d_view(alice_scene_t* scene, alice_camera_3d_t* camera);
 ALICE_API alice_m4f_t alice_get_camera_3d_view_no_direction(alice_scene_t* scene, alice_camera_3d_t* camera);
 ALICE_API alice_m4f_t alice_get_camera_3d_projection(alice_camera_3d_t* camera);
+
+typedef struct alice_camera_2d_t {
+	alice_entity_t base;
+
+	alice_v2f_t dimentions;
+
+	bool stretch;
+
+	bool active;
+} alice_camera_2d_t;
+
+ALICE_API alice_camera_2d_t* alice_get_scene_camera_2d(alice_scene_t* scene);
+ALICE_API alice_m4f_t alice_get_camera_2d_matrix(alice_scene_t* scene, alice_camera_2d_t* camera);
 
 typedef struct alice_point_light_t {
 	alice_entity_t base;
@@ -319,3 +332,20 @@ ALICE_API void alice_render_scene_3d(alice_scene_renderer_3d_t* renderer, u32 wi
 
 ALICE_API alice_aabb_t alice_transform_aabb(alice_aabb_t aabb, alice_m4f_t m);
 ALICE_API alice_aabb_t alice_compute_scene_aabb(alice_scene_t* scene);
+
+typedef struct alice_sprite_2d_t {
+	alice_entity_t base;
+
+	alice_texture_t* image;
+} alice_sprite_2d_t;
+
+ALICE_API alice_v3f_t alice_get_sprite_2d_world_position(alice_scene_t* scene, alice_entity_t* entity);
+
+typedef struct alice_scene_renderer_2d_t {
+	alice_shader_t* sprite_shader;
+} alice_scene_renderer_2d_t;
+
+ALICE_API alice_scene_renderer_2d_t* alice_new_scene_renderer_2d(alice_shader_t* sprite_shader);
+ALICE_API void alice_free_scene_renderer_2d(alice_scene_renderer_2d_t* renderer);
+ALICE_API void alice_render_scene_2d(alice_scene_renderer_2d_t* renderer, u32 width, u32 height,
+		alice_scene_t* scene, alice_render_target_t* render_target);

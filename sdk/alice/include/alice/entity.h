@@ -8,6 +8,7 @@ typedef struct alice_scene_t alice_scene_t;
 typedef struct alice_script_t alice_script_t;
 typedef struct alice_script_context_t alice_script_context_t;
 typedef struct alice_scene_renderer_3d_t alice_scene_renderer_3d_t;
+typedef struct alice_scene_renderer_2d_t alice_scene_renderer_2d_t;
 typedef struct alice_physics_engine_t alice_physics_engine_t;
 
 typedef u64 alice_entity_handle_t;
@@ -76,6 +77,7 @@ struct alice_scene_t {
 	alice_script_context_t* script_context;
 
 	alice_scene_renderer_3d_t* renderer;
+	alice_scene_renderer_2d_t* renderer_2d;
 	alice_physics_engine_t* physics_engine;
 };
 

@@ -14,7 +14,9 @@ typedef enum alice_serialisable_type_t {
 	ALICE_ST_POINTLIGHT,
 	ALICE_ST_DIRECTIONALLIGHT,
 	ALICE_ST_CAMERA3D,
-	ALICE_ST_RIGIDBODY3D
+	ALICE_ST_CAMERA2D,
+	ALICE_ST_RIGIDBODY3D,
+	ALICE_ST_SPRITE2D
 } alice_serialisable_type_t;
 
 static alice_serialisable_type_t alice_determine_entity_type(alice_entity_handle_t handle) {
@@ -26,10 +28,14 @@ static alice_serialisable_type_t alice_determine_entity_type(alice_entity_handle
 		return ALICE_ST_POINTLIGHT;
 	} else if (type_id == alice_get_type_info(alice_camera_3d_t).id) {
 		return ALICE_ST_CAMERA3D;
+	} else if (type_id == alice_get_type_info(alice_camera_2d_t).id) {
+		return ALICE_ST_CAMERA2D;
 	} else if (type_id == alice_get_type_info(alice_directional_light_t).id) {
 		return ALICE_ST_DIRECTIONALLIGHT;
 	} else if (type_id == alice_get_type_info(alice_rigidbody_3d_t).id) {
 		return ALICE_ST_RIGIDBODY3D;
+	} else if (type_id == alice_get_type_info(alice_sprite_2d_t).id) {
+		return ALICE_ST_SPRITE2D;
 	}
 
 	return ALICE_ST_ENTITY;
@@ -53,11 +59,17 @@ static void alice_serialise_entity(alice_dtable_t* table, alice_scene_t* scene, 
 		case ALICE_ST_CAMERA3D:
 			type_name = "camera_3d";
 			break;
+		case ALICE_ST_CAMERA2D:
+			type_name = "camera_2d";
+			break;
 		case ALICE_ST_DIRECTIONALLIGHT:
 			type_name = "directional_light";
 			break;
 		case ALICE_ST_RIGIDBODY3D:
 			type_name = "rigidbody_3d";
+			break;
+		case ALICE_ST_SPRITE2D:
+			type_name = "sprite_2d";
 			break;
 	}
 
@@ -244,6 +256,28 @@ static void alice_serialise_entity(alice_dtable_t* table, alice_scene_t* scene, 
 			alice_dtable_add_child(&entity_table, active_table);
 			break;
 		}
+		case ALICE_ST_CAMERA2D: {
+			alice_camera_2d_t* camera = (alice_camera_2d_t*)entity;
+
+			alice_dtable_t dimentions_table = alice_new_empty_dtable("dimentions");
+			{
+				alice_dtable_t x_table = alice_new_number_dtable("x", camera->dimentions.x);
+				alice_dtable_add_child(&dimentions_table, x_table);
+
+				alice_dtable_t y_table = alice_new_number_dtable("y", camera->dimentions.y);
+				alice_dtable_add_child(&dimentions_table, y_table);
+
+				alice_dtable_add_child(&entity_table, dimentions_table);
+			}
+
+			alice_dtable_t stretch_table = alice_new_bool_dtable("stretch", camera->stretch);
+			alice_dtable_add_child(&entity_table, stretch_table);
+
+			alice_dtable_t active_table = alice_new_bool_dtable("active", camera->active);
+			alice_dtable_add_child(&entity_table, active_table);
+
+			break;
+		}
 		case ALICE_ST_RIGIDBODY3D: {
 			alice_rigidbody_3d_t* rigidbody = (alice_rigidbody_3d_t*)entity;
 
@@ -315,6 +349,23 @@ static void alice_serialise_entity(alice_dtable_t* table, alice_scene_t* scene, 
 				alice_dtable_add_child(&entity_table, constraints_table);
 			}
 
+			break;
+		}
+		case ALICE_ST_SPRITE2D: {
+			alice_sprite_2d_t* sprite = (alice_sprite_2d_t*)entity;
+
+			alice_dtable_t image_table = alice_new_empty_dtable("image");
+
+			const char* image_path = alice_get_texture_resource_filename(sprite->image);
+
+			alice_dtable_t path_table = alice_new_string_dtable("path", image_path);
+			alice_dtable_add_child(&image_table, path_table);
+
+			alice_dtable_t is_antialiased_table = alice_new_bool_dtable("is_antialiased",
+					sprite->image->flags & ALICE_TEXTURE_ANTIALIASED);
+			alice_dtable_add_child(&image_table, is_antialiased_table);
+
+			alice_dtable_add_child(&entity_table, image_table);
 
 			break;
 		}
@@ -405,6 +456,19 @@ void alice_serialise_scene(alice_scene_t* scene, const char* file_path) {
 		alice_dtable_add_child(&settings_table, physics_table);
 	}
 
+	if (scene->renderer_2d) {
+		alice_dtable_t renderer_table = alice_new_empty_dtable("renderer_2d");
+
+		const char* sprite_shader_path =
+			alice_get_shader_resource_filename(scene->renderer_2d->sprite_shader);
+
+		alice_dtable_t sprite_shader_path_table =
+			alice_new_string_dtable("sprite_shader", sprite_shader_path);
+		alice_dtable_add_child(&renderer_table, sprite_shader_path_table);
+
+		alice_dtable_add_child(&settings_table, renderer_table);
+	}
+
 	alice_dtable_add_child(&table, settings_table);
 
 	alice_dtable_t entities_table = alice_new_empty_dtable("entities");
@@ -435,12 +499,16 @@ static alice_serialisable_type_t alice_determine_dtable_type(alice_dtable_t* tab
 		return ALICE_ST_RENDERABLE3D;
 	} else if (strcmp(table->name, "camera_3d") == 0) {
 		return ALICE_ST_CAMERA3D;
+	} else if (strcmp(table->name, "camera_2d") == 0) {
+		return ALICE_ST_CAMERA2D;
 	} else if (strcmp(table->name, "point_light") == 0) {
 		return ALICE_ST_POINTLIGHT;
 	} else if (strcmp(table->name, "directional_light") == 0) {
 		return ALICE_ST_DIRECTIONALLIGHT;
 	} else if (strcmp(table->name, "rigidbody_3d") == 0) {
 		return ALICE_ST_RIGIDBODY3D;
+	} else if (strcmp(table->name, "sprite_2d") == 0) {
+		return ALICE_ST_SPRITE2D;
 	}
 
 	return ALICE_ST_ENTITY;
@@ -461,6 +529,9 @@ static alice_entity_handle_t alice_deserialise_entity(alice_dtable_t* table, ali
 		case ALICE_ST_CAMERA3D:
 			create_type = alice_get_type_info(alice_camera_3d_t);
 			break;
+		case ALICE_ST_CAMERA2D:
+			create_type = alice_get_type_info(alice_camera_2d_t);
+			break;
 		case ALICE_ST_POINTLIGHT:
 			create_type = alice_get_type_info(alice_point_light_t);
 			break;
@@ -469,6 +540,9 @@ static alice_entity_handle_t alice_deserialise_entity(alice_dtable_t* table, ali
 			break;
 		case ALICE_ST_RIGIDBODY3D:
 			create_type = alice_get_type_info(alice_rigidbody_3d_t);
+			break;
+		case ALICE_ST_SPRITE2D:
+			create_type = alice_get_type_info(alice_sprite_2d_t);
 			break;
 		default:
 			break;
@@ -643,6 +717,32 @@ static alice_entity_handle_t alice_deserialise_entity(alice_dtable_t* table, ali
 
 			break;
 		}
+		case ALICE_ST_CAMERA2D: {
+			alice_camera_2d_t* camera = (alice_camera_2d_t*)entity;
+
+			alice_dtable_t* dimentions_table = alice_dtable_find_child(table, "dimentions");
+			if (dimentions_table) {
+				alice_dtable_t* x_table = alice_dtable_find_child(dimentions_table, "x");
+				if (x_table && x_table->value.type == ALICE_DTABLE_NUMBER) {
+					camera->dimentions.x = (float)x_table->value.as.number;
+				}
+
+				alice_dtable_t* y_table = alice_dtable_find_child(dimentions_table, "y");
+				if (y_table && y_table->value.type == ALICE_DTABLE_NUMBER) {
+					camera->dimentions.y = (float)y_table->value.as.number;
+				}
+			}
+
+			alice_dtable_t* stretch_table = alice_dtable_find_child(table, "stretch");
+			if (stretch_table && stretch_table->value.type == ALICE_DTABLE_BOOL) {
+				camera->stretch = stretch_table->value.as.boolean;
+			}
+
+			alice_dtable_t* active_table = alice_dtable_find_child(table, "active");
+			if (active_table && active_table->value.type == ALICE_DTABLE_BOOL) {
+				camera->active = active_table->value.as.boolean;
+			}
+		}
 		case ALICE_ST_POINTLIGHT: {
 			alice_point_light_t* light = (alice_point_light_t*)entity;
 
@@ -804,6 +904,31 @@ static alice_entity_handle_t alice_deserialise_entity(alice_dtable_t* table, ali
 
 			break;
 		}
+		case ALICE_ST_SPRITE2D: {
+			alice_sprite_2d_t* sprite = (alice_sprite_2d_t*)entity;
+
+			alice_dtable_t* image_table = alice_dtable_find_child(table, "image");
+			if (image_table) {
+				const char* image_path = alice_null;
+				alice_texture_flags_t flags = 0;
+
+				alice_dtable_t* path_table = alice_dtable_find_child(image_table, "path");
+				if (path_table && path_table->value.type == ALICE_DTABLE_STRING) {
+					image_path = path_table->value.as.string;
+				}
+
+				alice_dtable_t* is_antialiased_table =
+					alice_dtable_find_child(image_table, "is_antialiased_table");
+				if (is_antialiased_table &&
+						is_antialiased_table->value.type == ALICE_DTABLE_BOOL) {
+					flags |= ALICE_TEXTURE_ANTIALIASED;
+				} else {
+					flags |= ALICE_TEXTURE_ALIASED;
+				}
+
+				sprite->image = alice_load_texture(image_path, flags);
+			}
+		}
 		default:
 			break;
 	}
@@ -919,6 +1044,20 @@ void alice_deserialise_scene(alice_scene_t* scene, const char* file_path) {
 			if (gravity_table && gravity_table->value.type == ALICE_DTABLE_NUMBER) {
 				scene->physics_engine->gravity = (float)gravity_table->value.as.number;
 			}
+		}
+
+		alice_dtable_t* renderer_2d_table = alice_dtable_find_child(settings_table, "renderer_2d");
+		if (renderer_2d_table) {
+			alice_shader_t* sprite_shader = alice_null;
+
+			alice_dtable_t* sprite_shader_path_table =
+				alice_dtable_find_child(renderer_2d_table, "sprite_shader");
+			if (sprite_shader_path_table &&
+					sprite_shader_path_table->value.type == ALICE_DTABLE_STRING) {
+				sprite_shader = alice_load_shader(sprite_shader_path_table->value.as.string);
+			}
+
+			scene->renderer_2d = alice_new_scene_renderer_2d(sprite_shader);
 		}
 	}
 

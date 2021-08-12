@@ -1,0 +1,57 @@
+scene {
+	settings {
+		physics {
+			gravity -10;
+		}
+		renderer_2d {
+			sprite_shader "shaders/sprite.glsl";
+		}
+	}
+	entities {
+		camera_2d {
+			name "camera";
+			position {
+				x 0;
+				y 0;
+				z 0;
+			}
+			rotation {
+				x 0;
+				y 0;
+				z 0;
+			}
+			scale {
+				x 1;
+				y 1;
+				z 1;
+			}
+			dimentions {
+				x 640;
+				y 480;
+			}
+			stretch true;
+			active true;
+		}
+		sprite_2d {
+			position {
+				x 0;
+				y 0;
+				z 0;
+			}
+			rotation {
+				x 0;
+				y 0;
+				z 0;
+			}
+			scale {
+				x 100;
+				y 100;
+				z 1;
+			}
+			image {
+				path "textures/frog.png";
+				is_antialiased false;
+			}
+		}
+	}
+}
