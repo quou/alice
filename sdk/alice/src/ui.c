@@ -40,17 +40,18 @@ void alice_init_microui_renderer(alice_shader_t* shader) {
 	renderer.atlas = alice_new_texture_from_memory_uncompressed(
 				atlas_texture, sizeof(atlas_texture), 
 				ATLAS_WIDTH, ATLAS_HEIGHT, 1,
-				ALICE_TEXTURE_ALIASED);
+				ALICE_TEXTURE_ANTIALIASED);
 
 	alice_vertex_buffer_t* buffer = alice_new_vertex_buffer(
 			ALICE_VERTEXBUFFER_DRAW_TRIANGLES | ALICE_VERTEXBUFFER_DYNAMIC_DRAW);
 
 	alice_bind_vertex_buffer_for_edit(buffer);
-	alice_push_vertices(buffer, alice_null, (8 * 4) * 10000);
+	alice_push_vertices(buffer, alice_null, (9 * 4) * 10000);
 	alice_push_indices(buffer, alice_null, 6 * 10000);
-	alice_configure_vertex_buffer(buffer, 0, 2, 8, 0); /* vec2 position */
-	alice_configure_vertex_buffer(buffer, 1, 2, 8, 2); /* vec2 uv */
-	alice_configure_vertex_buffer(buffer, 2, 4, 8, 4); /* vec4 color */
+	alice_configure_vertex_buffer(buffer, 0, 2, 9, 0); /* vec2 position */
+	alice_configure_vertex_buffer(buffer, 1, 2, 9, 2); /* vec2 uv */
+	alice_configure_vertex_buffer(buffer, 2, 4, 9, 4); /* vec4 color */
+	alice_configure_vertex_buffer(buffer, 3, 1, 9, 8); /* float use_texture */
 	alice_bind_vertex_buffer_for_edit(alice_null);
 
 	renderer.vb = buffer;
@@ -61,7 +62,7 @@ void alice_deinit_microui_renderer() {
 	alice_free_texture(renderer.atlas);
 }
 
-static void alice_microui_renderer_push_quad(mu_Rect dst, mu_Rect src, mu_Color color) {
+static void alice_microui_renderer_push_quad(mu_Rect dst, mu_Rect src, mu_Color color, bool is_texture) {
 	alice_bind_vertex_buffer_for_edit(renderer.vb);
 
 	const float tx = src.x / (float)ATLAS_WIDTH;
@@ -75,10 +76,10 @@ static void alice_microui_renderer_push_quad(mu_Rect dst, mu_Rect src, mu_Color 
 	col.b = (float)color.b / 255.0f;
 
 	float verts[] = {
-		dst.x, 		dst.y,		tx, 		ty, col.r, col.g, col.b, (float)color.a / 255.0f,
-		dst.x + dst.w, 	dst.y,		tx + tw, 	ty, col.r, col.g, col.b, (float)color.a / 255.0f,
-		dst.x + dst.w, 	dst.y + dst.h,	tx + tw, 	ty + th, col.r, col.g, col.b, (float)color.a / 255.0f,
-		dst.x, 		dst.y + dst.h,	tx,		ty + th, col.r, col.g, col.b, (float)color.a / 255.0f
+		dst.x, 		dst.y,		tx, 		ty, col.r, col.g, col.b, (float)color.a / 255.0f, (float)is_texture,
+		dst.x + dst.w, 	dst.y,		tx + tw, 	ty, col.r, col.g, col.b, (float)color.a / 255.0f, (float)is_texture,
+		dst.x + dst.w, 	dst.y + dst.h,	tx + tw, 	ty + th, col.r, col.g, col.b, (float)color.a / 255.0f, (float)is_texture,
+		dst.x, 		dst.y + dst.h,	tx,		ty + th, col.r, col.g, col.b, (float)color.a / 255.0f, (float)is_texture
 	};
 
 	const u32 index_offset = renderer.quad_count * 4;
@@ -88,7 +89,7 @@ static void alice_microui_renderer_push_quad(mu_Rect dst, mu_Rect src, mu_Color 
 		index_offset + 3, index_offset + 1, index_offset + 0
 	};
 
-	alice_update_vertices(renderer.vb, verts, renderer.quad_count * 8 * 4, 8 * 4);
+	alice_update_vertices(renderer.vb, verts, renderer.quad_count * 9 * 4, 9 * 4);
 	alice_update_indices(renderer.vb, indices, renderer.quad_count * 6, 6);
 
 	alice_bind_vertex_buffer_for_edit(alice_null);
@@ -158,20 +159,20 @@ static void alice_render_microui_text(const char* text, mu_Vec2 pos, mu_Color co
 		mu_Rect src = atlas[ATLAS_FONT + chr];
 		dst.w = src.w;
 		dst.h = src.h;
-		alice_microui_renderer_push_quad(dst, src, color);
+		alice_microui_renderer_push_quad(dst, src, color, true);
 		dst.x += dst.w;
 	}
 }
 
 static void alice_render_microui_rect(mu_Rect rect, mu_Color color) {
-	alice_microui_renderer_push_quad(rect, atlas[ATLAS_WHITE], color);
+	alice_microui_renderer_push_quad(rect, atlas[ATLAS_WHITE], color, false);
 }
 
 static void alice_render_microui_icon(i32 id, mu_Rect rect, mu_Color color) {
 	mu_Rect src = atlas[id];
 	i32 x = rect.x + (rect.w - src.w) / 2;
 	i32 y = rect.y + (rect.h - src.h) / 2;
-	alice_microui_renderer_push_quad(mu_rect(x, y, src.w, src.h), src, color);
+	alice_microui_renderer_push_quad(mu_rect(x, y, src.w, src.h), src, color, true);
 }
 
 i32 alice_microui_text_width(mu_Font font, const char* text, i32 len) {
