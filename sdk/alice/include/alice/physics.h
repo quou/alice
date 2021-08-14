@@ -25,8 +25,6 @@ typedef struct alice_box_collider_t {
 typedef struct alice_rigidbody_3d_t {
 	alice_entity_t base;
 
-	alice_v3f_t old_position;
-
 	float mass;
 	float inverse_mass;
 
