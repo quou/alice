@@ -157,8 +157,8 @@ void main() {
 
 	sandbox.scene = scene;
 
-	alice_deserialise_scene(scene, "scenes/2dtest.ascn");
-	alice_serialise_scene(scene, "scenes/2dtest.ascn");
+	alice_deserialise_scene(scene, "scenes/physicstest.ascn");
+	alice_serialise_scene(scene, "scenes/physicstest.ascn");
 
 	if (scene->renderer) {
 		scene->renderer->ambient_intensity = 0.2f;

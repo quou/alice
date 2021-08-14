@@ -47,11 +47,11 @@ vec4 get_antialiased_color() {
 	float FXAA_REDUCE_MIN = 1.0/128.0;
 	float FXAA_REDUCE_MUL = 1.0/80.0;
 
-	float luma_TL = dot(luma, texture2D(input_color, fs_in.uv + (vec2(-1.0, -1.0) * texel_size)).rgb);
-	float luma_TR = dot(luma, texture2D(input_color, fs_in.uv + (vec2(1.0, -1.0) * texel_size)).rgb);
-	float luma_BL = dot(luma, texture2D(input_color, fs_in.uv + (vec2(-1.0, 1.0) * texel_size)).rgb);
-	float luma_BR = dot(luma, texture2D(input_color, fs_in.uv + (vec2(1.0, 1.0) * texel_size)).rgb);
-	float luma_M  = dot(luma, texture2D(input_color, fs_in.uv).rgb);
+	float luma_TL = dot(luma, texture(input_color, fs_in.uv + (vec2(-1.0, -1.0) * texel_size)).rgb);
+	float luma_TR = dot(luma, texture(input_color, fs_in.uv + (vec2(1.0, -1.0) * texel_size)).rgb);
+	float luma_BL = dot(luma, texture(input_color, fs_in.uv + (vec2(-1.0, 1.0) * texel_size)).rgb);
+	float luma_BR = dot(luma, texture(input_color, fs_in.uv + (vec2(1.0, 1.0) * texel_size)).rgb);
+	float luma_M  = dot(luma, texture(input_color, fs_in.uv).rgb);
 
 	vec2 dir;
 	dir.x = -((luma_TL + luma_TR) - (luma_BL + luma_BR));
@@ -65,12 +65,12 @@ vec4 get_antialiased_color() {
 		max(vec2(-FXAA_SPAN_MAX), dir * inverse_dir_adjustment)) * texel_size;
 
 	vec3 result1 = (1.0 / 2.0) * (
-		texture2D(input_color, fs_in.uv + (dir * vec2(1.0 / 3.0 - 0.5))).rgb +
-		texture2D(input_color, fs_in.uv + (dir * vec2(2.0 / 3.0 - 0.5))).rgb);
+		texture(input_color, fs_in.uv + (dir * vec2(1.0 / 3.0 - 0.5))).rgb +
+		texture(input_color, fs_in.uv + (dir * vec2(2.0 / 3.0 - 0.5))).rgb);
 
 	vec3 result2 = result1 * (1.0 / 2.0 ) + (1.0 / 4.0) * (
-		texture2D(input_color, fs_in.uv + (dir * vec2(0.0 / 3.0 - 0.5))).rgb +
-		texture2D(input_color, fs_in.uv + (dir * vec2(3.0 / 3.0 - 0.5))).rgb);
+		texture(input_color, fs_in.uv + (dir * vec2(0.0 / 3.0 - 0.5))).rgb +
+		texture(input_color, fs_in.uv + (dir * vec2(3.0 / 3.0 - 0.5))).rgb);
 
 	float luma_min = min(luma_M, min(min(luma_TL, luma_TR), min(luma_BL, luma_BR)));
 	float luma_max = max(luma_M, max(max(luma_TL, luma_TR), max(luma_BL, luma_BR)));

@@ -315,7 +315,7 @@ void main() {
 	roughness = material.roughness;
 
 	if (material.use_albedo_map) {
-		albedo = material.albedo * pow(texture2D(material.albedo_map, fs_in.uv).rgb, vec3(gamma));
+		albedo = material.albedo * pow(texture(material.albedo_map, fs_in.uv).rgb, vec3(gamma));
 	}
 
 	if (material.use_normal_map) {
@@ -323,11 +323,11 @@ void main() {
 	}
 
 	if (material.use_roughness_map) {
-		roughness = material.roughness * texture2D(material.roughness_map, fs_in.uv).r;
+		roughness = material.roughness * texture(material.roughness_map, fs_in.uv).r;
 	}
 
 	if (material.use_metallic_map) {
-		metallic = material.metallic * texture2D(material.metallic_map, fs_in.uv).r;
+		metallic = material.metallic * texture(material.metallic_map, fs_in.uv).r;
 	}
 
 	vec3 F0 = vec3(0.04);
