@@ -225,16 +225,11 @@ void main() {
 		alice_update_microui(ui);
 
 		mu_begin(ui);
-		if (mu_begin_window(ui, "Test Window", mu_rect(10, 10, 200, 300))) {
-			if (mu_button(ui, "Test Button")) {
-				alice_log("hi");
+		if (mu_begin_window(ui, "Scene Settings", mu_rect(10, 10, 250, 300))) {
+			if (scene->renderer) {
+				mu_checkbox(ui, "Antialiasing", (i32*)&scene->renderer->use_antialiasing);
+				mu_checkbox(ui, "Bloom", (i32*)&scene->renderer->use_bloom);
 			}
-
-			mu_layout_row(ui, 2, (int[]) { 60, -1 }, 0);
-
-			static char buf[128];
-			mu_label(ui, "Test Input: ");
-			mu_textbox(ui, buf, sizeof(buf));
 
 			mu_end_window(ui);
 		}
