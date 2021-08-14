@@ -961,7 +961,7 @@ void alice_disable_depth() {
 	glDisable(GL_DEPTH_TEST);
 }
 
-alice_camera_3d_t* alice_get_scene_camera(alice_scene_t* scene) {
+alice_camera_3d_t* alice_get_scene_camera_3d(alice_scene_t* scene) {
 	assert(scene);
 
 	for (alice_entity_iter(scene, iter, alice_camera_3d_t)) {
@@ -1026,7 +1026,7 @@ alice_m4f_t alice_get_camera_3d_matrix(alice_scene_t* scene, alice_camera_3d_t* 
 	return alice_m4f_multiply(projection, view);
 }
 
-ALICE_API alice_camera_2d_t* alice_get_scene_camera_2d(alice_scene_t* scene) {
+ALICE_API alice_camera_2d_t* alice_get_scene_camera_3d_2d(alice_scene_t* scene) {
 	assert(scene);
 
 	for (alice_entity_iter(scene, iter, alice_camera_2d_t)) {
@@ -1074,7 +1074,7 @@ static void alice_apply_pbr_material(alice_shader_t* shader, alice_pbr_material_
 		alice_bind_texture(material->normal_map, 1);
 	} else {
 		alice_shader_set_int(shader, "material.use_normal_map", 0);
-	}
+	}	
 
 	if (material->metallic_map) {
 		alice_shader_set_int(shader, "material.use_metallic_map", 1);
@@ -1532,7 +1532,7 @@ void alice_render_scene_3d(alice_scene_renderer_3d_t* renderer, u32 width, u32 h
 	assert(renderer);
 	assert(scene);
 
-	alice_camera_3d_t* camera = alice_get_scene_camera(scene);
+	alice_camera_3d_t* camera = alice_get_scene_camera_3d(scene);
 	if (!camera) {
 		alice_log_warning("Attempting 3D scene render with no active 3D camera");
 		return;
@@ -1605,7 +1605,8 @@ void alice_render_scene_3d(alice_scene_renderer_3d_t* renderer, u32 width, u32 h
 			alice_m4f_t model = alice_m4f_multiply(transform_matrix, mesh->transform);
 
 			alice_shader_set_m4f(shader, "transform", model);
-			alice_shader_set_v3f(shader, "camera_position", alice_get_entity_world_position(scene, (alice_entity_t*)camera));
+			alice_shader_set_v3f(shader, "camera_position",
+					alice_get_entity_world_position(scene, (alice_entity_t*)camera));
 			alice_shader_set_float(shader, "gamma", camera->gamma);
 			alice_shader_set_m4f(shader, "camera", camera_matrix);
 
@@ -1808,7 +1809,7 @@ void alice_render_scene_2d(alice_scene_renderer_2d_t* renderer, u32 width, u32 h
 	assert(renderer);
 	assert(scene);
 
-	alice_camera_2d_t* camera = alice_get_scene_camera_2d(scene);
+	alice_camera_2d_t* camera = alice_get_scene_camera_3d_2d(scene);
 
 	if (!camera) {
 		alice_log_warning("Attempting to render 2D scene without an active 2D camera");

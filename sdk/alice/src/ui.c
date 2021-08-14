@@ -956,7 +956,7 @@ void alice_draw_scene_gizmos(alice_ui_context_t* context, alice_scene_t* scene) 
 
 	glCullFace(GL_FRONT);
 
-	alice_camera_3d_t* camera = alice_get_scene_camera(scene);
+	alice_camera_3d_t* camera = alice_get_scene_camera_3d(scene);
 	if (!camera) { return; }
 
 	alice_m4f_t view = alice_get_camera_3d_view(scene, camera);
