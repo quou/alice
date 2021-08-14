@@ -186,6 +186,9 @@ void main() {
 
 	mu_Context* ui = malloc(sizeof(mu_Context));
 	mu_init(ui);
+
+	ui->style->colors[MU_COLOR_WINDOWBG] = mu_color(50, 50, 50, 200);
+
 	ui->text_width = alice_microui_text_width;
 	ui->text_height = alice_microui_text_height;
 	alice_init_microui_renderer(alice_load_shader("shaders/ui.glsl"));
@@ -227,8 +230,20 @@ void main() {
 		mu_begin(ui);
 		if (mu_begin_window(ui, "Scene Settings", mu_rect(10, 10, 250, 300))) {
 			if (scene->renderer) {
-				mu_checkbox(ui, "Antialiasing", (i32*)&scene->renderer->use_antialiasing);
+				mu_layout_row(ui, 1, (int[]) { 200 }, 0);
+
+				mu_checkbox(ui, "Anti-aliasing", (i32*)&scene->renderer->use_antialiasing);
 				mu_checkbox(ui, "Bloom", (i32*)&scene->renderer->use_bloom);
+
+				mu_label(ui, "Text 1");
+				mu_label(ui, "Text 2");
+				mu_label(ui, "Text 3");
+				mu_label(ui, "Text 4");
+				mu_label(ui, "Text 5");
+				mu_label(ui, "Text 6");
+				mu_label(ui, "Text 8");
+				mu_label(ui, "Text 9");
+				mu_label(ui, "Text 10");
 			}
 
 			mu_end_window(ui);

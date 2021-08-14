@@ -177,7 +177,6 @@ static void alice_render_microui_icon(i32 id, mu_Rect rect, mu_Color color) {
 
 i32 alice_microui_text_width(mu_Font font, const char* text, i32 len) {
 	i32 result = 0;
-	if (len == -1) { result == strlen(text); }
 
 	for (const char* c = text; *c && len--; c++) {
 		if ((*c & 0xc0) == 0x80) { continue; }
