@@ -1,5 +1,8 @@
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
+
+#include <microui.h>
 
 #include <alice/application.h>
 #include <alice/entity.h>
@@ -13,124 +16,8 @@
 #include <alice/debugrenderer.h>
 
 typedef struct sandbox_t {
-	bool show_gui;
-	bool update_physics;
-	bool update_scripts;
-
-	alice_ui_toggle_t* show_gui_toggle;
-
-	alice_ui_window_t* scene_settings_window;
-
 	alice_scene_t* scene;
 } sandbox_t;
-
-static void on_button_hover(alice_ui_context_t* context, alice_ui_element_t* button) {
-	alice_log("hover");
-}
-
-static void on_button_click(alice_ui_context_t* context, alice_ui_element_t* button) {
-	alice_log("click");
-}
-
-static void on_use_bloom_toggle(alice_ui_context_t* context, alice_ui_element_t* element) {
-	alice_ui_toggle_t* toggle = (alice_ui_toggle_t*)element;
-
-	sandbox_t* sandbox = context->user_pointer;
-
-	sandbox->scene->renderer->use_bloom = toggle->value;
-}
-
-static void on_use_antialiasing_toggle(alice_ui_context_t* context, alice_ui_element_t* element) {
-	alice_ui_toggle_t* toggle = (alice_ui_toggle_t*)element;
-
-	sandbox_t* sandbox = context->user_pointer;
-
-	sandbox->scene->renderer->use_antialiasing = toggle->value;
-}
-
-static void on_show_gui_toggle(alice_ui_context_t* context, alice_ui_element_t* element) {
-	alice_ui_toggle_t* toggle = (alice_ui_toggle_t*)element;
-
-	sandbox_t* sandbox = context->user_pointer;
-
-	sandbox->show_gui = toggle->value;
-}
-
-static void on_physics_toggle(alice_ui_context_t* context, alice_ui_element_t* element) {
-	alice_ui_toggle_t* toggle = (alice_ui_toggle_t*)element;
-
-	sandbox_t* sandbox = context->user_pointer;
-
-	sandbox->update_physics = toggle->value;
-}
-
-static void on_scripts_toggle(alice_ui_context_t* context, alice_ui_element_t* element) {
-	alice_ui_toggle_t* toggle = (alice_ui_toggle_t*)element;
-
-	sandbox_t* sandbox = context->user_pointer;
-
-	sandbox->update_scripts = toggle->value;
-}
-
-static void on_scene_settings_window_create(alice_ui_context_t* context, alice_ui_window_t* window) {
-	window->title = "Scene Settings";
-	window->position = (alice_v2f_t){ 100.0f, 30.0f };
-	window->dimentions = (alice_v2f_t) { 350.0f, 600.0f };
-	window->visible = false;
-	window->can_close = true;
-
-	sandbox_t* sandbox = context->user_pointer;
-
-	sandbox->scene_settings_window = window;
-
-	alice_scene_t* scene = sandbox->scene;
-
-	alice_ui_toggle_t* show_gui_toggle = alice_add_ui_toggle(window);
-	show_gui_toggle->base.on_click = on_show_gui_toggle;
-	show_gui_toggle->label = "Show GUI";
-	show_gui_toggle->value = sandbox->show_gui;
-
-	sandbox->show_gui_toggle = show_gui_toggle;
-
-	if (scene->renderer) {
-		alice_ui_toggle_t* use_bloom_toggle = alice_add_ui_toggle(window);
-		use_bloom_toggle->base.on_click = on_use_bloom_toggle;
-		use_bloom_toggle->label = "Bloom";
-		use_bloom_toggle->value = scene->renderer->use_bloom;
-
-		alice_ui_toggle_t* use_antialiasing_toggle = alice_add_ui_toggle(window);
-		use_antialiasing_toggle->base.on_click = on_use_antialiasing_toggle;
-		use_antialiasing_toggle->label = "Antialiasing";
-		use_antialiasing_toggle->value = scene->renderer->use_antialiasing;
-	}
-
-	alice_ui_toggle_t* physics_toggle = alice_add_ui_toggle(window);
-	physics_toggle->base.on_click = on_physics_toggle;
-	physics_toggle->label = "Physics";
-	physics_toggle->value = sandbox->update_physics;
-
-	alice_ui_toggle_t* scripts_toggle = alice_add_ui_toggle(window);
-	scripts_toggle->base.on_click = on_scripts_toggle;
-	scripts_toggle->label = "Scripts";
-	scripts_toggle->value = sandbox->update_scripts;
-}
-
-static void on_scene_settings_click(alice_ui_context_t* context, alice_ui_element_t* element) {
-	sandbox_t* sandbox = context->user_pointer;
-
-	sandbox->scene_settings_window->visible = true;
-}
-
-static void on_toolbox_create(alice_ui_context_t* context, alice_ui_window_t* window) {
-	window->title = "Toolbox";
-	window->position = (alice_v2f_t) { 0.0f, 3.0f, };
-	window->dimentions = (alice_v2f_t) { 350.0f, 200.0f };
-	window->can_close = false;
-
-	alice_ui_button_t* scene_settings_button = alice_add_ui_button(window);
-	scene_settings_button->base.on_click = on_scene_settings_click;
-	scene_settings_button->text = "Scene Settings";
-}
 
 void main() {
 	sandbox_t sandbox;
@@ -296,35 +183,16 @@ void main() {
 	alice_serialise_scene(scene, "scenes/physicstest.ascn");
 */
 
+
+	mu_Context* ui = malloc(sizeof(mu_Context));
+	mu_init(ui);
+	ui->text_width = alice_microui_text_width;
+	ui->text_height = alice_microui_text_height;
+	alice_init_microui_renderer(alice_load_shader("shaders/ui.glsl"));
+
 	alice_init_scripts(scene->script_context);
 
-	alice_ui_context_t* ui = alice_new_ui_context(
-			alice_load_shader("shaders/uirect.glsl"),
-			alice_load_shader("shaders/gizmo.glsl"),
-			alice_load_shader("shaders/text.glsl"),
-			alice_load_binary("fonts/opensans.ttf"),
-			18.0f);
-
-	ui->user_pointer = &sandbox;
-
-	ui->gizmo_textures[ALICE_GIZMOTEXTURE_POINT_LIGHT] =
-		alice_load_texture("textures/icons/light.png", ALICE_TEXTURE_ALIASED);
-	ui->gizmo_textures[ALICE_GIZMOTEXTURE_DIRECTIONAL_LIGHT] =
-		alice_load_texture("textures/icons/sun.png", ALICE_TEXTURE_ALIASED);
-
-	alice_new_ui_window(ui, on_scene_settings_window_create);
-	alice_new_ui_window(ui, on_toolbox_create);
-
-	alice_text_renderer_t* text_renderer = alice_new_text_renderer(alice_load_binary("fonts/opensans.ttf"),
-			32.0f, alice_load_shader("shaders/text.glsl"));
-
-	char fps_buffer[256] = "";
-	double time_until_fps_write = 1.0;
-
 	bool fullscreen = false;
-	sandbox.update_physics = true;
-	sandbox.show_gui = false;
-	sandbox.update_scripts = true;
 
 	while (alice_is_application_running()) {
 		alice_reload_changed_resources();
@@ -335,27 +203,14 @@ void main() {
 
 		alice_application_t* app = alice_get_application();
 
-		time_until_fps_write -= app->timestep;
-		if (time_until_fps_write <= 0.0) {
-			time_until_fps_write = 1.0;
-			sprintf(fps_buffer, "fps: %g", 1.0 / app->timestep);
-		}
-
 		if (alice_key_just_pressed(ALICE_KEY_F11)) {
 			fullscreen = !fullscreen;
 			alice_set_application_fullscreen(0, fullscreen);
 		}
 
-		if (alice_key_just_pressed(ALICE_KEY_F1)) {
-			sandbox.show_gui = !sandbox.show_gui;
-			sandbox.show_gui_toggle->value = sandbox.show_gui;
-		}
+		alice_update_scripts(scene->script_context, app->timestep);
 
-		if (sandbox.update_scripts) {
-			alice_update_scripts(scene->script_context, app->timestep);
-		}
-
-		if (sandbox.update_physics && scene->physics_engine) {
+		if (scene->physics_engine) {
 			alice_update_physics_engine(scene->physics_engine, app->timestep);
 		}
 
@@ -367,19 +222,31 @@ void main() {
 			alice_render_scene_2d(scene->renderer_2d, app->width, app->height, scene, alice_null);
 		}
 
-		if (sandbox.show_gui) {
-			alice_set_text_renderer_dimentions(text_renderer, (alice_v2f_t){app->width, app->height});
-			alice_render_text(text_renderer, (alice_v2f_t){0, 0}, fps_buffer);
+		alice_update_microui(ui);
 
-			alice_draw_scene_gizmos(ui, scene);
-			alice_draw_ui(ui);
+		mu_begin(ui);
+		if (mu_begin_window(ui, "Test Window", mu_rect(10, 10, 200, 300))) {
+			if (mu_button(ui, "Test Button")) {
+				alice_log("hi");
+			}
+
+			mu_layout_row(ui, 2, (int[]) { 60, -1 }, 0);
+
+			static char buf[128];
+			mu_label(ui, "Test Input: ");
+			mu_textbox(ui, buf, sizeof(buf));
+
+			mu_end_window(ui);
 		}
+		mu_end(ui);
+
+		alice_render_microui(ui, app->width, app->height);
 
 		alice_update_application();
 	}
 
-	alice_free_ui_context(ui);
-	alice_free_text_renderer(text_renderer);
+	free(ui);
+	alice_deinit_microui_renderer();
 
 	alice_free_scene(scene);
 

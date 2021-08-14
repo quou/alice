@@ -24,6 +24,7 @@ project "alice"
 		"../extern/lua/src",
 		"../extern/assimp/include",
 		"../extern/miniaudio/include",
+		"../extern/microui/include",
 		"include"
 	}
 
@@ -33,7 +34,8 @@ project "alice"
 		"glad",
 		"stb",
 		"physfs",
-		"miniaudio"
+		"miniaudio",
+		"microui"
 	}
 
 	defines {

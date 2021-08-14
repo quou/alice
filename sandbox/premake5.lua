@@ -18,6 +18,7 @@ project "sandbox"
 
 	includedirs {
 		"../sdk/extern/glad/include",
+		"../sdk/extern/microui/include",
 		"../sdk/alice/include"
 	}
 
@@ -27,7 +28,8 @@ project "sandbox"
 
 	links {
 		"alice",
-		"glad"
+		"glad",
+		"microui"
 	}
 
 	filter "configurations:debug"

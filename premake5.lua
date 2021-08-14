@@ -13,6 +13,7 @@ include "sdk/extern/physfs"
 include "sdk/extern/stb"
 include "sdk/extern/assimp"
 include "sdk/extern/miniaudio"
+include "sdk/extern/microui"
 
 group "projects"
 include "sandbox"

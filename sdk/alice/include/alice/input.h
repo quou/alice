@@ -155,9 +155,13 @@ ALICE_API void alice_reset_input();
 
 ALICE_API void alice_set_key(i32 key, i32 action);
 ALICE_API void alice_set_mouse_button(i32 button, i32 action);
+ALICE_API void alice_set_mouse_moved(bool moved);
 ALICE_API void alice_set_mouse_position(alice_v2i_t position);
 ALICE_API void alice_set_scrolled(bool scrolled);
 ALICE_API void alice_set_scroll_offset(alice_v2f_t offset);
+
+ALICE_API const char* alice_get_text_input();
+ALICE_API void alice_add_input_character(char character);
 
 ALICE_API bool alice_key_pressed(i32 key);
 ALICE_API bool alice_key_just_pressed(i32 key);
@@ -168,6 +172,7 @@ ALICE_API bool alice_mouse_button_just_pressed(i32 button);
 ALICE_API bool alice_mouse_button_just_released(i32 button);
 
 ALICE_API bool alice_scrolled();
+ALICE_API bool alice_mouse_moved();
 
 ALICE_API alice_v2i_t alice_get_mouse_position();
 ALICE_API alice_v2f_t alice_get_scroll_offset();
