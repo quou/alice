@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include <physfs.h>
+#include <stb_truetype.h>
 
 #include "alice/resource.h"
 #include "alice/dtable.h"
@@ -156,7 +157,8 @@ void alice_free_resource(alice_resource_t* resource) {
 	if (resource->type == ALICE_RESOURCE_SHADER ||
 		resource->type == ALICE_RESOURCE_TEXTURE ||
 		resource->type == ALICE_RESOURCE_MATERIAL ||
-		resource->type == ALICE_RESOURCE_MODEL) {
+		resource->type == ALICE_RESOURCE_MODEL ||
+		resource->type == ALICE_RESOURCE_FONT) {
 		free(resource->payload);
 	}
 	free(resource->file_name);
@@ -167,6 +169,9 @@ void alice_free_resource(alice_resource_t* resource) {
 void alice_free_resource_payload(alice_resource_t* resource) {
 	if (resource->type == ALICE_RESOURCE_TEXTURE) {
 		alice_deinit_texture(resource->payload);
+	}
+	else if (resource->type == ALICE_RESOURCE_FONT) {
+		alice_free_texture(((alice_font_t*)resource->payload)->bitmap);
 	}
 	else if (resource->type == ALICE_RESOURCE_SHADER) {
 		alice_deinit_shader(resource->payload);
@@ -501,6 +506,53 @@ static bool impl_alice_load_shader(alice_resource_t* resource, const char* path,
 	alice_init_shader(resource->payload, raw->payload);
 
 	strcpy(resource->file_name, path);
+
+	alice_free_resource(raw);
+
+	return true;
+}
+
+static bool impl_alice_load_font(alice_resource_t* resource, const char* path, float size, bool new) {
+	alice_resource_t* raw = malloc(sizeof(alice_resource_t));
+	if (!impl_alice_load_binary(raw, path)) {
+		free(raw);
+		return false;
+	}
+
+	resource->type = ALICE_RESOURCE_FONT;
+	resource->payload_size = sizeof(alice_font_t);
+	resource->modtime = raw->modtime;
+	resource->file_name = malloc(strlen(path) + 1);
+	resource->file_name_hash = raw->file_name_hash;
+
+	if (new) {
+		resource->payload = malloc(sizeof(alice_font_t));
+	}
+
+	strcpy(resource->file_name, path);
+	
+	alice_font_t* font = resource->payload;
+
+	font->size = size;
+
+	const u32 bitmap_size = 512;
+
+	u8* ttf_bitmap = malloc(bitmap_size * bitmap_size);
+
+	stbtt_pack_context ctx;
+	stbtt_PackBegin(&ctx, ttf_bitmap, bitmap_size, bitmap_size, 0, 1, alice_null);
+
+	if (size < 24.0f) {
+		stbtt_PackSetOversampling(&ctx, 2, 2);
+	} else if (size < 18.0f) {
+		stbtt_PackSetOversampling(&ctx, 4, 4);
+	}
+
+	stbtt_PackFontRange(&ctx, raw->payload, 0, size, 32, 96, (stbtt_packedchar*)font->char_data);
+	stbtt_PackEnd(&ctx);
+
+	font->bitmap = alice_new_texture_from_memory_uncompressed(ttf_bitmap, bitmap_size * bitmap_size,
+			bitmap_size, bitmap_size, 1, ALICE_TEXTURE_ANTIALIASED);
 
 	alice_free_resource(raw);
 
@@ -909,6 +961,23 @@ alice_shader_t* alice_load_shader(const char* path) {
 	return resource->payload;
 }
 
+alice_font_t* alice_load_font(const char* path, float size) {
+	alice_resource_t* got_resource = alice_resource_table_get(rm.table, alice_hash_string(path));
+	if (got_resource) {
+		return got_resource->payload;
+	}
+
+	alice_resource_t* resource = malloc(sizeof(alice_resource_t));
+	if (!impl_alice_load_font(resource, path, size, true)) {
+		free(resource);
+		return NULL;
+	}
+
+	alice_resource_manager_add(resource);
+
+	return resource->payload;
+}
+
 alice_material_t* alice_load_material(const char* path) {
 	alice_resource_t* got_resource = alice_resource_table_get(rm.table, alice_hash_string(path));
 	if (got_resource) {
@@ -964,6 +1033,9 @@ void alice_reload_resource(alice_resource_t* resource) {
 		break;
 	case ALICE_RESOURCE_SHADER:
 		impl_alice_load_shader(resource, name, false);
+		break;
+	case ALICE_RESOURCE_FONT:
+		impl_alice_load_font(resource, name, ((alice_font_t*)resource->payload)->size, false);
 		break;
 	case ALICE_RESOURCE_MATERIAL:
 		impl_alice_load_material(resource, name, false);

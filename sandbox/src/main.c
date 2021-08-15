@@ -191,7 +191,8 @@ void main() {
 
 	ui->text_width = alice_microui_text_width;
 	ui->text_height = alice_microui_text_height;
-	alice_init_microui_renderer(alice_load_shader("shaders/ui.glsl"));
+	alice_init_microui_renderer(alice_load_shader("shaders/ui.glsl"),
+			alice_load_font("fonts/opensans.ttf", 18.0f));
 
 	alice_init_scripts(scene->script_context);
 
@@ -238,6 +239,10 @@ void main() {
 				mu_layout_row(ui, 2, (int[]) { -100, -1 }, 0);
 				mu_label(ui, "Bloom threshold");
 				mu_slider_ex(ui, &scene->renderer->bloom_threshold, 0.0f, 16.0f, 0.01f, "%g", 0);
+
+				static char buf[256];
+				mu_label(ui, "Test");
+				mu_textbox(ui, buf, 256);
 			}
 
 			mu_end_window(ui);

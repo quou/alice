@@ -10,6 +10,7 @@
 #include "alice/ui.h"
 #include "alice/application.h"
 #include "alice/input.h"
+#include "alice/graphics.h"
 
 typedef struct alice_opengl_state_backup_t {
 	bool blend;
@@ -27,13 +28,15 @@ typedef struct alice_ui_renderer_t {
 	alice_shader_t* shader;
 	alice_texture_t* atlas;
 
+	alice_font_t* font;
+
 	alice_m4f_t camera;
 	u32 width, height;
 } alice_ui_renderer_t;
 
 static alice_ui_renderer_t renderer;
 
-void alice_init_microui_renderer(alice_shader_t* shader) {
+void alice_init_microui_renderer(alice_shader_t* shader, alice_font_t* font) {
 	renderer.shader = shader;
 	renderer.quad_count = 0;
 
@@ -45,13 +48,19 @@ void alice_init_microui_renderer(alice_shader_t* shader) {
 	alice_vertex_buffer_t* buffer = alice_new_vertex_buffer(
 			ALICE_VERTEXBUFFER_DRAW_TRIANGLES | ALICE_VERTEXBUFFER_DYNAMIC_DRAW);
 
+	renderer.font = font;
+
 	alice_bind_vertex_buffer_for_edit(buffer);
 	alice_push_vertices(buffer, alice_null, (9 * 4) * 10000);
 	alice_push_indices(buffer, alice_null, 6 * 10000);
 	alice_configure_vertex_buffer(buffer, 0, 2, 9, 0); /* vec2 position */
 	alice_configure_vertex_buffer(buffer, 1, 2, 9, 2); /* vec2 uv */
 	alice_configure_vertex_buffer(buffer, 2, 4, 9, 4); /* vec4 color */
-	alice_configure_vertex_buffer(buffer, 3, 1, 9, 8); /* float use_texture */
+	/* Layout 3 specifies a mode for the rendering.
+	 * 	0 = rectangle
+	 * 	1 = icon (using atlas)
+	 * 	2 = text (using supplied font) */
+	alice_configure_vertex_buffer(buffer, 3, 1, 9, 8); /* float mode */
 	alice_bind_vertex_buffer_for_edit(alice_null);
 
 	renderer.vb = buffer;
@@ -62,13 +71,20 @@ void alice_deinit_microui_renderer() {
 	alice_free_texture(renderer.atlas);
 }
 
-static void alice_microui_renderer_push_quad(mu_Rect dst, mu_Rect src, mu_Color color, bool is_texture) {
+static void alice_microui_renderer_push_quad(alice_rect_t dst, alice_rect_t src, mu_Color color, u32 mode) {
 	alice_bind_vertex_buffer_for_edit(renderer.vb);
 
-	const float tx = src.x / (float)ATLAS_WIDTH;
-	const float ty = src.y / (float)ATLAS_HEIGHT;
-	const float tw = src.w / (float)ATLAS_WIDTH;
-	const float th = src.h / (float)ATLAS_HEIGHT;
+	float tx = src.x;
+	float ty = src.y;
+	float tw = src.w;
+	float th = src.h;
+
+	if (mode == 1) {
+		tx /= (float)ATLAS_WIDTH;
+		ty /= (float)ATLAS_HEIGHT;
+		tw /= (float)ATLAS_WIDTH;
+		th /= (float)ATLAS_HEIGHT;
+	}
 
 	alice_rgb_color_t col;
 	col.r = (float)color.r / 255.0f;
@@ -76,10 +92,10 @@ static void alice_microui_renderer_push_quad(mu_Rect dst, mu_Rect src, mu_Color 
 	col.b = (float)color.b / 255.0f;
 
 	float verts[] = {
-		dst.x, 		dst.y,		tx, 		ty, col.r, col.g, col.b, (float)color.a / 255.0f, (float)is_texture,
-		dst.x + dst.w, 	dst.y,		tx + tw, 	ty, col.r, col.g, col.b, (float)color.a / 255.0f, (float)is_texture,
-		dst.x + dst.w, 	dst.y + dst.h,	tx + tw, 	ty + th, col.r, col.g, col.b, (float)color.a / 255.0f, (float)is_texture,
-		dst.x, 		dst.y + dst.h,	tx,		ty + th, col.r, col.g, col.b, (float)color.a / 255.0f, (float)is_texture
+		dst.x, 		dst.y,		tx, 		ty, 	col.r, col.g, col.b, (float)color.a / 255.0f, (float)mode,
+		dst.x + dst.w, 	dst.y,		tx + tw, 	ty, 	col.r, col.g, col.b, (float)color.a / 255.0f, (float)mode,
+		dst.x + dst.w, 	dst.y + dst.h,	tx + tw, 	ty + th, col.r, col.g, col.b, (float)color.a / 255.0f, (float)mode,
+		dst.x, 		dst.y + dst.h,	tx,		ty + th, col.r, col.g, col.b, (float)color.a / 255.0f, (float)mode
 	};
 
 	const u32 index_offset = renderer.quad_count * 4;
@@ -103,6 +119,9 @@ static void alice_flush_microui_renderer() {
 
 	alice_bind_texture(renderer.atlas, 0);
 	alice_shader_set_int(renderer.shader, "atlas", 0);
+
+	alice_bind_texture(renderer.font->bitmap, 1);
+	alice_shader_set_int(renderer.shader, "font", 1);
 
 	alice_shader_set_m4f(renderer.shader, "camera", renderer.camera);
 
@@ -153,42 +172,83 @@ static void alice_set_microui_renderer_clip(mu_Rect rect) {
 
 static void alice_render_microui_text(const char* text, mu_Vec2 pos, mu_Color color) {
 	mu_Rect dst = { pos.x, pos.y, 0, 0 };
+
+	float xpos = pos.x, ypos = pos.y + 12;
+
 	for (const char* c = text; *c; c++) {
-		if ((*c & 0xc0) == 0x80) { continue; }
-		i32 chr = mu_min((u8)*c, 127);
-		mu_Rect src = atlas[ATLAS_FONT + chr];
-		dst.w = src.w;
-		dst.h = src.h;
-		alice_microui_renderer_push_quad(dst, src, color, true);
-		dst.x += dst.w;
+		stbtt_aligned_quad quad;
+		stbtt_GetPackedQuad((stbtt_packedchar*)renderer.font->char_data,
+				renderer.font->bitmap->width, renderer.font->bitmap->height,
+				*c - 32, &xpos, &ypos, &quad, 0);
+
+		alice_rect_t src = { 
+			quad.s0, quad.t0,
+			quad.s1 - quad.s0, quad.t1 - quad.t0
+		};
+
+		alice_rect_t dst = {
+			quad.x0, quad.y0,
+			quad.x1 - quad.x0, quad.y1 - quad.y0
+		};
+
+		alice_microui_renderer_push_quad(dst, src, color, 2);
 	}
 }
 
 static void alice_render_microui_rect(mu_Rect rect, mu_Color color) {
-	alice_microui_renderer_push_quad(rect, atlas[ATLAS_WHITE], color, false);
+	alice_rect_t dst = {
+		rect.x, rect.y, rect.w, rect.h
+	};
+
+	mu_Rect mu_src = atlas[ATLAS_WHITE];
+
+	alice_rect_t src = {
+		mu_src.x, mu_src.y, mu_src.w, mu_src.h
+	};
+
+	alice_microui_renderer_push_quad(dst, src, color, 0);
 }
 
 static void alice_render_microui_icon(i32 id, mu_Rect rect, mu_Color color) {
-	mu_Rect src = atlas[id];
+	mu_Rect mu_src = atlas[id];
+
+	alice_rect_t src = {
+		mu_src.x, mu_src.y, mu_src.w, mu_src.h
+	};
+
 	i32 x = rect.x + (rect.w - src.w) / 2;
 	i32 y = rect.y + (rect.h - src.h) / 2;
-	alice_microui_renderer_push_quad(mu_rect(x, y, src.w, src.h), src, color, true);
+
+	alice_microui_renderer_push_quad((alice_rect_t) {x, y, src.w, src.h}, src, color, 1);
 }
 
 i32 alice_microui_text_width(mu_Font font, const char* text, i32 len) {
-	i32 result = 0;
+	float result = 0.0f;
 
+	float xpos = 0.0f, ypos = 0.0f;
 	for (const char* c = text; *c && len--; c++) {
-		if ((*c & 0xc0) == 0x80) { continue; }
-		i32 chr = mu_min((u8)*c, 127);
-		result += atlas[ATLAS_FONT + chr].w;
+		stbtt_aligned_quad quad;
+		stbtt_GetPackedQuad((stbtt_packedchar*)renderer.font->char_data,
+				renderer.font->bitmap->width, renderer.font->bitmap->height,
+				*c - 32, &xpos, &ypos, &quad, 0);
+
+		result += quad.x1 - quad.x0;
+
+		const char* next = c + 1;
+		if (*next != '\0') {
+			stbtt_aligned_quad next_quad;
+			stbtt_GetPackedQuad((stbtt_packedchar*)renderer.font->char_data,
+					renderer.font->bitmap->width, renderer.font->bitmap->height,
+					*c - 32, &xpos, &ypos, &next_quad, 0);
+			result += next_quad.x0 - quad.x1;
+		}
 	}
 
-	return result;
+	return (i32)result;
 }
 
 i32 alice_microui_text_height(mu_Font font) {
-	return 18;
+	return (i32)renderer.font->size;
 }
 
 void alice_update_microui(mu_Context* context) {

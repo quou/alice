@@ -9,6 +9,19 @@ typedef struct alice_shader_t alice_shader_t;
 typedef struct alice_material_t alice_material_t;
 typedef struct alice_model_t alice_model_t;
 
+typedef struct alice_font_character_info_t {
+	unsigned short x0, y0, x1, y1;
+	float xoff, yoff, xadvance;
+	float xoff2, yoff2;
+} alice_font_character_info_t;
+
+typedef struct alice_font_t {
+	alice_font_character_info_t char_data[96];
+	float size;
+
+	alice_texture_t* bitmap;
+} alice_font_t;
+
 typedef enum alice_resource_type_t {
 	ALICE_RESOURCE_STRING,
 	ALICE_RESOURCE_BINARY,
@@ -17,7 +30,8 @@ typedef enum alice_resource_type_t {
 	ALICE_RESOURCE_ASSEMBLY,
 	ALICE_RESOURCE_SCRIPT,
 	ALICE_RESOURCE_MODEL,
-	ALICE_RESOURCE_MATERIAL
+	ALICE_RESOURCE_MATERIAL,
+	ALICE_RESOURCE_FONT
 } alice_resource_type_t;
 
 typedef struct alice_resource_t {
@@ -59,6 +73,7 @@ ALICE_API alice_texture_t* alice_load_texture(const char* path, alice_texture_fl
 ALICE_API alice_shader_t* alice_load_shader(const char* path);
 ALICE_API alice_material_t* alice_load_material(const char* path);
 ALICE_API alice_model_t* alice_load_model(const char* path);
+ALICE_API alice_font_t* alice_load_font(const char* path, float size);
 
 ALICE_API void alice_save_material(alice_material_t* material, const char* path);
 
