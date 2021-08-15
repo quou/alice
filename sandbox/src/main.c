@@ -230,20 +230,14 @@ void main() {
 		mu_begin(ui);
 		if (mu_begin_window(ui, "Scene Settings", mu_rect(10, 10, 250, 300))) {
 			if (scene->renderer) {
-				mu_layout_row(ui, 1, (int[]) { 200 }, 0);
+				mu_layout_row(ui, 1, (int[]) { -1 }, 0);
 
 				mu_checkbox(ui, "Anti-aliasing", (i32*)&scene->renderer->use_antialiasing);
 				mu_checkbox(ui, "Bloom", (i32*)&scene->renderer->use_bloom);
 
-				mu_label(ui, "Text 1");
-				mu_label(ui, "Text 2");
-				mu_label(ui, "Text 3");
-				mu_label(ui, "Text 4");
-				mu_label(ui, "Text 5");
-				mu_label(ui, "Text 6");
-				mu_label(ui, "Text 8");
-				mu_label(ui, "Text 9");
-				mu_label(ui, "Text 10");
+				mu_layout_row(ui, 2, (int[]) { -100, -1 }, 0);
+				mu_label(ui, "Bloom threshold");
+				mu_slider_ex(ui, &scene->renderer->bloom_threshold, 0.0f, 16.0f, 0.01f, "%g", 0);
 			}
 
 			mu_end_window(ui);

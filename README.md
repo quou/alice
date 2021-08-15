@@ -23,9 +23,9 @@ doesn't have.
  - Scene serialisation
  - Scripting
  - Physics
+ - GUI
 
 ## Roadmap
- - GUI
  - Level editor
  - Audio
  - Custom shading language
