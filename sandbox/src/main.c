@@ -240,6 +240,13 @@ void main() {
 				mu_label(ui, "Bloom threshold");
 				mu_slider_ex(ui, &scene->renderer->bloom_threshold, 0.0f, 16.0f, 0.01f, "%g", 0);
 
+				static float blur_iterations = 10.0f;
+				mu_label(ui, "Bloom blur iterations");
+				if (mu_slider_ex(ui, &blur_iterations,
+							2.0f, 100.0f, 2.0f, "%g", 0) == MU_RES_CHANGE) {
+					scene->renderer->bloom_blur_iterations = blur_iterations;
+				}
+
 				static char buf[256];
 				mu_label(ui, "Test");
 				mu_textbox(ui, buf, 256);
