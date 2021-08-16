@@ -221,14 +221,25 @@ void main() {
 		alice_update_microui(ui);
 
 		mu_begin(ui);
-		if (mu_begin_window(ui, "Scene Settings", mu_rect(10, 10, 250, 300))) {
+		if (mu_begin_window(ui, "Scene", mu_rect(10, 10, 400, 300))) {
 			if (scene->renderer) {
 				mu_layout_row(ui, 1, (int[]) { -1 }, 0);
+
+				static char fps_buf[256] = "1000";
+				static double time_until_next_fps_print = 1.0;
+
+				time_until_next_fps_print -= app->timestep;
+				if (time_until_next_fps_print <= 0.0) {
+					time_until_next_fps_print = 1.0;
+					sprintf(fps_buf, "FPS: %g", 1.0f / app->timestep);
+				}
+
+				mu_label(ui, fps_buf);
 
 				mu_checkbox(ui, "Anti-aliasing", (i32*)&scene->renderer->use_antialiasing);
 				mu_checkbox(ui, "Bloom", (i32*)&scene->renderer->use_bloom);
 
-				mu_layout_row(ui, 2, (int[]) { -100, -1 }, 0);
+				mu_layout_row(ui, 2, (int[]) { -200, -1 }, 0);
 				mu_label(ui, "Bloom threshold");
 				mu_slider_ex(ui, &scene->renderer->bloom_threshold, 0.0f, 16.0f, 0.01f, "%g", 0);
 
@@ -243,7 +254,6 @@ void main() {
 				mu_label(ui, "Scene filename");
 				mu_textbox(ui, scene_filename_buffer, 256);
 
-				mu_layout_row(ui, 2, (int[]) { -100, -1 }, 0);
 				if (mu_button(ui, "Save")) {
 					alice_serialise_scene(scene, scene_filename_buffer);
 				}

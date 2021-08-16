@@ -12,10 +12,10 @@ scene {
 			use_antialiasing true;
 			shadowmap_resolution 2048;
 			ambient_intensity 0.2;
-			b 0.917647;
+			b 1;
 			ambient_color {
-				r 0.678431;
-				g 0.690196;
+				r 0.67451;
+				g 0.686275;
 			}
 		}
 		physics {
