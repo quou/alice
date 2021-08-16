@@ -15,13 +15,7 @@
 #include <alice/physics.h>
 #include <alice/debugrenderer.h>
 
-typedef struct sandbox_t {
-	alice_scene_t* scene;
-} sandbox_t;
-
 void main() {
-	sandbox_t sandbox;
-
 	alice_init_resource_manager("res");
 	alice_init_application((alice_application_config_t){
 				.name = "sandbox",
@@ -42,10 +36,10 @@ void main() {
 
 	alice_scene_t* scene = alice_new_scene(script_lib_name);
 
-	sandbox.scene = scene;
-
 	alice_deserialise_scene(scene, "scenes/physicstest.ascn");
 	alice_serialise_scene(scene, "scenes/physicstest.ascn");
+
+	alice_init_scripts(scene->script_context);
 
 	if (scene->renderer) {
 		scene->renderer->ambient_intensity = 0.2f;
@@ -194,8 +188,6 @@ void main() {
 	alice_init_microui_renderer(alice_load_shader("shaders/ui.glsl"),
 			alice_load_font("fonts/opensans.ttf", 18.0f));
 
-	alice_init_scripts(scene->script_context);
-
 	bool fullscreen = false;
 
 	while (alice_is_application_running()) {
@@ -247,9 +239,21 @@ void main() {
 					scene->renderer->bloom_blur_iterations = blur_iterations;
 				}
 
-				static char buf[256];
-				mu_label(ui, "Test");
-				mu_textbox(ui, buf, 256);
+				static char scene_filename_buffer[256] = "scenes/physicstest.ascn";
+				mu_label(ui, "Scene filename");
+				mu_textbox(ui, scene_filename_buffer, 256);
+
+				if (mu_button(ui, "Save")) {
+					alice_serialise_scene(scene, scene_filename_buffer);
+				}
+
+				if (mu_button(ui, "Load")) {
+					alice_free_scene(scene);
+					scene = alice_new_scene(script_lib_name);	
+					alice_deserialise_scene(scene, scene_filename_buffer);
+
+					alice_init_scripts(scene->script_context);
+				}
 			}
 
 			mu_end_window(ui);

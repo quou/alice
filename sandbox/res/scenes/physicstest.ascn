@@ -6,7 +6,7 @@ scene {
 			blur_shader "shaders/blur.glsl";
 			depth_shader "shaders/depth.glsl";
 			debug false;
-			use_bloom true;
+			use_bloom false;
 			bloom_threshold 1;
 			bloom_blur_iterations 10;
 			use_antialiasing true;
@@ -143,9 +143,9 @@ scene {
 		rigidbody_3d {
 			name "cube";
 			position {
-				x 0;
-				y 10;
-				z 0;
+				x -3.81;
+				y 1.18145;
+				z -1.51807;
 			}
 			rotation {
 				x 0;
@@ -210,9 +210,9 @@ scene {
 		rigidbody_3d {
 			name "monkey";
 			position {
-				x 2;
-				y 5;
-				z 0;
+				x -0.250936;
+				y 1.18145;
+				z 0.0532315;
 			}
 			rotation {
 				x 0;
