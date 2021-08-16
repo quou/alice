@@ -191,6 +191,8 @@ void main() {
 	bool fullscreen = false;
 
 	while (alice_is_application_running()) {
+		alice_compute_scene_transforms(scene);
+
 		alice_reload_changed_resources();
 
 		alice_update_events();
@@ -226,15 +228,18 @@ void main() {
 				mu_layout_row(ui, 1, (int[]) { -1 }, 0);
 
 				static char fps_buf[256] = "1000";
+				static char frame_time_buf[256] = "0.001";
 				static double time_until_next_fps_print = 1.0;
 
 				time_until_next_fps_print -= app->timestep;
 				if (time_until_next_fps_print <= 0.0) {
 					time_until_next_fps_print = 1.0;
 					sprintf(fps_buf, "FPS: %g", 1.0f / app->timestep);
+					sprintf(frame_time_buf, "Frame Time %g", app->timestep);
 				}
 
 				mu_label(ui, fps_buf);
+				mu_label(ui, frame_time_buf);
 
 				mu_checkbox(ui, "Anti-aliasing", (i32*)&scene->renderer->use_antialiasing);
 				mu_checkbox(ui, "Bloom", (i32*)&scene->renderer->use_bloom);

@@ -20,6 +20,8 @@ typedef struct alice_entity_t {
 	alice_v3f_t rotation;
 	alice_v3f_t scale;
 
+	alice_m4f_t transform;
+
 	alice_script_t* script;
 
 	alice_entity_handle_t parent;
@@ -28,7 +30,8 @@ typedef struct alice_entity_t {
 	u32 child_capacity;
 } alice_entity_t;
 
-ALICE_API alice_m4f_t alice_get_entity_transform(alice_scene_t* scne, alice_entity_t* entity);
+ALICE_API alice_m4f_t alice_get_entity_transform(alice_scene_t* scene, alice_entity_t* entity);
+ALICE_API void alice_compute_scene_transforms(alice_scene_t* scene);
 ALICE_API void alice_entity_parent_to(alice_scene_t* scene, alice_entity_handle_t entity, alice_entity_handle_t parent);
 ALICE_API void alice_entity_add_child(alice_scene_t* scene, alice_entity_handle_t entity, alice_entity_handle_t child);
 ALICE_API void alice_entity_remove_child(alice_scene_t* scene, alice_entity_handle_t entity, alice_entity_handle_t child);

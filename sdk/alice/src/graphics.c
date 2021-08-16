@@ -1334,7 +1334,7 @@ void alice_draw_shadowmap(alice_shadowmap_t* shadowmap, alice_scene_t* scene, al
 			continue;
 		}
 
-		alice_m4f_t transform_matrix = alice_get_entity_transform(scene, (alice_entity_t*)renderable);
+		alice_m4f_t transform_matrix = renderable->base.transform;
 
 		for (u32 i = 0; i < model->mesh_count; i++) {
 			alice_mesh_t* mesh = &model->meshes[i];
@@ -1495,7 +1495,7 @@ alice_aabb_t alice_compute_scene_aabb(alice_scene_t* scene) {
 	for (alice_entity_iter(scene, iter, alice_renderable_3d_t)) {
 		alice_renderable_3d_t* renderable = iter.current_ptr;
 
-		alice_m4f_t transform_matrix = alice_get_entity_transform(scene, (alice_entity_t*)renderable);
+		alice_m4f_t transform_matrix = renderable->base.transform;
 
 		alice_model_t* model = renderable->model;
 		if (!model) {
@@ -1557,7 +1557,7 @@ void alice_render_scene_3d(alice_scene_renderer_3d_t* renderer, u32 width, u32 h
 	for (alice_entity_iter(scene, iter, alice_renderable_3d_t)) {
 		alice_renderable_3d_t* renderable = iter.current_ptr;
 
-		alice_m4f_t transform_matrix = alice_get_entity_transform(scene, (alice_entity_t*)renderable);
+		alice_m4f_t transform_matrix = renderable->base.transform;
 
 		alice_model_t* model = renderable->model;
 		if (!model) {
@@ -1627,7 +1627,7 @@ renderable_iter_continue:
 		for (alice_entity_iter(scene, iter, alice_renderable_3d_t)) {
 			alice_renderable_3d_t* renderable = iter.current_ptr;
 
-			alice_m4f_t transform_matrix = alice_get_entity_transform(scene, (alice_entity_t*)renderable);
+			alice_m4f_t transform_matrix = renderable->base.transform;
 
 			alice_model_t* model = renderable->model;
 			if (!model) {

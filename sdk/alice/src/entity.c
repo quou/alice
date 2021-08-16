@@ -29,6 +29,50 @@ alice_m4f_t alice_get_entity_transform(alice_scene_t* scene, alice_entity_t* ent
 	return matrix;
 }
 
+static alice_m4f_t alice_compute_entity_transform(alice_scene_t* scene, alice_m4f_t parent,
+		alice_entity_t* entity) {
+	assert(scene);
+
+	alice_m4f_t matrix = alice_m4f_identity();
+
+	matrix = alice_m4f_translate(matrix, entity->position);
+
+	matrix = alice_m4f_rotate(matrix, entity->rotation.z, (alice_v3f_t){0.0f, 0.0f, 1.0f});
+	matrix = alice_m4f_rotate(matrix, entity->rotation.y, (alice_v3f_t){0.0f, 1.0f, 0.0f});
+	matrix = alice_m4f_rotate(matrix, entity->rotation.x, (alice_v3f_t){1.0f, 0.0f, 0.0f});
+
+	matrix = alice_m4f_scale(matrix, entity->scale);
+
+	matrix = alice_m4f_multiply(parent, matrix);
+
+	for (u32 i = 0; i < entity->child_count; i++) {
+		alice_entity_t* child_ptr = alice_get_entity_ptr(scene, entity->children[i]);
+		
+		alice_compute_entity_transform(scene, matrix, child_ptr);
+	}
+
+	entity->transform = matrix;
+
+	return matrix;
+}
+
+void alice_compute_scene_transforms(alice_scene_t* scene) {
+	assert(scene);
+
+	for (u32 i = 0; i < scene->pool_count; i++) {
+		alice_entity_pool_t* pool = &scene->pools[i];
+		for (u32 ii = 0; ii < pool->count; ii++) {
+			alice_entity_handle_t handle = alice_new_entity_handle(ii, pool->type_id);
+
+			alice_entity_t* ptr = alice_entity_pool_get(pool, ii);
+
+			if (ptr->parent == alice_null_entity_handle) {
+				alice_compute_entity_transform(scene, alice_m4f_identity(), ptr);
+			}
+		}
+	}
+}
+
 void alice_entity_parent_to(alice_scene_t* scene, alice_entity_handle_t entity, alice_entity_handle_t parent) {
 	assert(scene);
 
@@ -154,12 +198,10 @@ alice_v3f_t alice_get_entity_world_position(alice_scene_t* scene, alice_entity_t
 	assert(scene);
 	assert(entity);
 
-	alice_m4f_t matrix = alice_get_entity_transform(scene, entity);
-
 	return (alice_v3f_t) {
-		matrix.elements[3][0],
-		matrix.elements[3][1],
-		matrix.elements[3][2]
+		entity->transform.elements[3][0],
+		entity->transform.elements[3][1],
+		entity->transform.elements[3][2]
 	};
 }
 
