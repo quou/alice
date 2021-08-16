@@ -243,13 +243,14 @@ void main() {
 				mu_label(ui, "Scene filename");
 				mu_textbox(ui, scene_filename_buffer, 256);
 
+				mu_layout_row(ui, 2, (int[]) { -100, -1 }, 0);
 				if (mu_button(ui, "Save")) {
 					alice_serialise_scene(scene, scene_filename_buffer);
 				}
 
 				if (mu_button(ui, "Load")) {
 					alice_free_scene(scene);
-					scene = alice_new_scene(script_lib_name);	
+					scene = alice_new_scene(script_lib_name);
 					alice_deserialise_scene(scene, scene_filename_buffer);
 
 					alice_init_scripts(scene->script_context);

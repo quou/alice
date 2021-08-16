@@ -461,6 +461,26 @@ void alice_serialise_scene(alice_scene_t* scene, const char* file_path) {
 			alice_new_number_dtable("shadowmap_resolution", scene->renderer->shadowmap->res);
 		alice_dtable_add_child(&renderer_table, shadowmap_resolution_table);
 
+		alice_dtable_t ambient_intensity_table =
+			alice_new_number_dtable("ambient_intensity", scene->renderer->ambient_intensity);
+		alice_dtable_add_child(&renderer_table, ambient_intensity_table);
+
+		alice_dtable_t ambient_color_table = alice_new_empty_dtable("ambient_color");
+		{
+			alice_rgb_color_t rgb = alice_rgb_color_from_color(scene->renderer->ambient_color);
+
+			alice_dtable_t r_table = alice_new_number_dtable("r", rgb.r);
+			alice_dtable_add_child(&ambient_color_table, r_table);
+	
+			alice_dtable_t g_table = alice_new_number_dtable("g", rgb.g);
+			alice_dtable_add_child(&ambient_color_table, g_table);
+
+			alice_dtable_t b_table = alice_new_number_dtable("b", rgb.b);
+			alice_dtable_add_child(&renderer_table, b_table);
+
+			alice_dtable_add_child(&renderer_table, ambient_color_table);
+		}
+
 		alice_dtable_add_child(&settings_table, renderer_table);
 	}
 
@@ -1073,6 +1093,36 @@ void alice_deserialise_scene(alice_scene_t* scene, const char* file_path) {
 					"use_antialiasing");
 			if (use_antialiasing_table && use_antialiasing_table->value.type == ALICE_DTABLE_BOOL) {
 				scene->renderer->use_antialiasing = use_antialiasing_table->value.as.boolean;
+			}
+
+			alice_dtable_t* ambient_intensity_table = alice_dtable_find_child(renderer_3d_table,
+					"ambient_intensity");
+			if (ambient_intensity_table &&
+					ambient_intensity_table->value.type == ALICE_DTABLE_NUMBER) {
+				scene->renderer->ambient_intensity = ambient_intensity_table->value.as.number;
+			}
+
+			alice_dtable_t* color_table = alice_dtable_find_child(renderer_3d_table, "ambient_color");
+			if (color_table) {
+				float r = 1.0f, g = 1.0f, b = 1.0f;
+
+				alice_dtable_t* r_table = alice_dtable_find_child(color_table, "r");
+				if (r_table && r_table->value.type == ALICE_DTABLE_NUMBER) {
+					r = r_table->value.as.number;
+				}
+
+				alice_dtable_t* g_table = alice_dtable_find_child(color_table, "g");
+				if (g_table && g_table->value.type == ALICE_DTABLE_NUMBER) {
+					g = g_table->value.as.number;
+				}
+
+				alice_dtable_t* b_table = alice_dtable_find_child(color_table, "b");
+				if (b_table && b_table->value.type == ALICE_DTABLE_NUMBER) {
+					b = b_table->value.as.number;
+				}
+
+				scene->renderer->ambient_color =
+					alice_color_from_rgb_color((alice_rgb_color_t){r, g, b});
 			}
 		}
 

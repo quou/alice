@@ -11,6 +11,12 @@ scene {
 			bloom_blur_iterations 10;
 			use_antialiasing true;
 			shadowmap_resolution 2048;
+			ambient_intensity 0.2;
+			b 1;
+			ambient_color {
+				r 0.67451;
+				g 0.686275;
+			}
 		}
 		physics {
 			gravity -10;
