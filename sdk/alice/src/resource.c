@@ -555,6 +555,8 @@ static bool impl_alice_load_font(alice_resource_t* resource, const char* path, f
 			bitmap_size, bitmap_size, 1, ALICE_TEXTURE_ANTIALIASED);
 
 	alice_free_resource(raw);
+	
+	free(ttf_bitmap);
 
 	return true;
 }

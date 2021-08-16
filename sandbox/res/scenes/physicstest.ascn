@@ -12,10 +12,10 @@ scene {
 			use_antialiasing true;
 			shadowmap_resolution 2048;
 			ambient_intensity 0.2;
-			b 1;
+			b 0.917647;
 			ambient_color {
-				r 0.67451;
-				g 0.686275;
+				r 0.678431;
+				g 0.690196;
 			}
 		}
 		physics {
@@ -217,7 +217,7 @@ scene {
 			name "monkey";
 			position {
 				x -0.250936;
-				y 1.18145;
+				y 5.59198;
 				z 0.0532315;
 			}
 			rotation {
