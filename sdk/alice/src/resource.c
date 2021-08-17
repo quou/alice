@@ -203,6 +203,21 @@ void alice_init_resource_manager(const char* working_dir) {
 
 	PHYSFS_init(NULL);
 	PHYSFS_mount(working_dir, "/", 1);
+
+	int r = PHYSFS_getLastErrorCode();
+	if (r != PHYSFS_ERR_OK) {
+		alice_log_error("Error mounting resource package `%s': %s",
+				working_dir, PHYSFS_getErrorByCode(r));
+
+		if (r == PHYSFS_ERR_UNSUPPORTED) {
+			const PHYSFS_ArchiveInfo** i;
+			for (i = PHYSFS_supportedArchiveTypes(); *i != alice_null; i++) {
+				alice_log("Supported archive: [%s], which is [%s].",
+						(*i)->extension, (*i)->description);
+			}
+		}
+	}
+
 	PHYSFS_setWriteDir(working_dir);
 
 	rm.table = alice_new_resource_table();
