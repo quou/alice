@@ -11,6 +11,12 @@ scene {
 			bloom_blur_iterations 10;
 			use_antialiasing true;
 			shadowmap_resolution 2048;
+			ambient_intensity 0;
+			b 0;
+			ambient_color {
+				r 0;
+				g 0;
+			}
 		}
 		physics {
 			gravity -10;
@@ -126,6 +132,11 @@ scene {
 					z 0;
 				}
 			}
+			constraints {
+				x false;
+				y false;
+				z false;
+			}
 			children {
 				renderable_3d {
 					name "small box visual";
@@ -186,6 +197,11 @@ scene {
 					y 0;
 					z 0;
 				}
+			}
+			constraints {
+				x false;
+				y false;
+				z false;
 			}
 			children {
 				renderable_3d {
@@ -253,6 +269,11 @@ scene {
 					z 0;
 				}
 			}
+			constraints {
+				x false;
+				y false;
+				z false;
+			}
 			children {
 				camera_3d {
 					name "camera";
@@ -314,6 +335,11 @@ scene {
 					z 0;
 				}
 			}
+			constraints {
+				x false;
+				y false;
+				z false;
+			}
 			children {
 				renderable_3d {
 					position {
@@ -373,6 +399,11 @@ scene {
 					y 0;
 					z 0;
 				}
+			}
+			constraints {
+				x false;
+				y false;
+				z false;
 			}
 			children {
 				renderable_3d {

@@ -166,6 +166,37 @@ bool alice_sphere_vs_aabb(alice_aabb_t aabb, alice_v3f_t sphere_position, float 
 	return dist_squared > 0.0f;
 }
 
+bool alice_ray_vs_aabb(alice_aabb_t a, alice_v3f_t origin, alice_v3f_t direction, float* t) {
+	alice_v3f_t inv_dir = (alice_v3f_t) {
+		.x = 1.0f / direction.x,
+		.y = 1.0f / direction.y,
+		.z = 1.0f / direction.z
+	};
+
+	float t1 = (a.min.x - origin.x) * inv_dir.x;
+	float t2 = (a.max.x - origin.x) * inv_dir.x;
+	float t3 = (a.min.y - origin.y) * inv_dir.y;
+	float t4 = (a.max.y - origin.y) * inv_dir.y;
+	float t5 = (a.min.z - origin.z) * inv_dir.z;
+	float t6 = (a.max.z - origin.z) * inv_dir.z;
+
+	float tmin = alice_max(alice_max(alice_min(t1, t2), alice_min(t3, t4)), alice_min(t5, t6));
+	float tmax = alice_min(alice_min(alice_max(t1, t2), alice_max(t3, t4)), alice_max(t5, t6));
+
+	if (tmax < 0) {
+		*t = tmax;
+		return false;
+	}
+
+	if (tmin > tmax) {
+		*t = tmax;
+		return false;
+	}
+
+	*t = tmin;
+	return true;
+}
+
 alice_physics_engine_t* alice_new_physics_engine(alice_scene_t* scene) {
 	alice_physics_engine_t* new = malloc(sizeof(alice_physics_engine_t));
 

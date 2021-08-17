@@ -5,7 +5,8 @@ scene {
 			bright_extract_shader "shaders/bright_extract.glsl";
 			blur_shader "shaders/blur.glsl";
 			depth_shader "shaders/depth.glsl";
-			debug false;
+			debug true;
+			line_shader "shaders/line.glsl";
 			use_bloom false;
 			bloom_threshold 1;
 			bloom_blur_iterations 10;

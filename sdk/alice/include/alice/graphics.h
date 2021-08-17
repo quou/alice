@@ -333,6 +333,15 @@ ALICE_API void alice_render_scene_3d(alice_scene_renderer_3d_t* renderer, u32 wi
 ALICE_API alice_aabb_t alice_transform_aabb(alice_aabb_t aabb, alice_m4f_t m);
 ALICE_API alice_aabb_t alice_compute_scene_aabb(alice_scene_t* scene);
 
+typedef struct alice_3d_pick_context_t {
+	alice_shader_t* shader;
+	alice_render_target_t* target;	
+} alice_3d_pick_context_t;
+
+ALICE_API alice_3d_pick_context_t* alice_new_3d_pick_context(alice_shader_t* shader);
+ALICE_API void alice_free_3d_pick_context(alice_3d_pick_context_t* context);
+ALICE_API alice_entity_handle_t alice_3d_pick(alice_3d_pick_context_t* context, alice_scene_t* scene);
+
 typedef struct alice_sprite_2d_t {
 	alice_entity_t base;
 

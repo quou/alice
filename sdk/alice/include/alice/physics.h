@@ -16,6 +16,7 @@ typedef struct alice_manifold_t {
 
 ALICE_API bool alice_aabb_vs_aabb(alice_aabb_t a, alice_aabb_t b, alice_manifold_t* manifold);
 ALICE_API bool alice_sphere_vs_aabb(alice_aabb_t a, alice_v3f_t sphere_position, float sphere_radius);
+ALICE_API bool alice_ray_vs_aabb(alice_aabb_t a, alice_v3f_t origin, alice_v3f_t direction, float* t);
 
 typedef struct alice_box_collider_t {
 	alice_v3f_t position;

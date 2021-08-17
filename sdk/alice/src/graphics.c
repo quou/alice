@@ -9,6 +9,7 @@
 
 #include "alice/graphics.h"
 #include "alice/debugrenderer.h"
+#include "alice/input.h"
 
 alice_color_t alice_color_from_rgb_color(alice_rgb_color_t rgb) {
 	i8 r = (i8)(rgb.r * 255.0);
@@ -1748,6 +1749,107 @@ renderable_iter_continue:
 	if (render_target) {
 		alice_unbind_render_target(render_target);
 	}
+}
+
+alice_3d_pick_context_t* alice_new_3d_pick_context(alice_shader_t* shader) {
+	assert(shader);
+
+	alice_3d_pick_context_t* new = malloc(sizeof(alice_3d_pick_context_t));
+
+	new->shader = shader;
+	new->target = alice_new_render_target(128, 128, 1);
+
+	return new;
+}
+
+void alice_free_3d_pick_context(alice_3d_pick_context_t* context) {
+	assert(context);
+
+	alice_free_render_target(context->target);
+
+	free(context);
+}
+
+alice_entity_handle_t alice_3d_pick(alice_3d_pick_context_t* context, alice_scene_t* scene) {
+	assert(context);
+	assert(scene);
+
+	alice_camera_3d_t* camera = alice_get_scene_camera_3d(scene);
+	if (!camera) {
+		alice_log_warning("Attempting 3D scene render with no active 3D camera");
+		return alice_null_entity_handle;
+	}
+
+	alice_enable_depth();
+
+	alice_resize_render_target(context->target, camera->dimentions.x, camera->dimentions.y);
+	alice_bind_render_target(context->target, camera->dimentions.x, camera->dimentions.y);
+
+	alice_m4f_t camera_matrix = alice_get_camera_3d_matrix(scene, camera);
+
+	alice_shader_t* shader = context->shader;
+	alice_bind_shader(shader);
+	alice_shader_set_m4f(shader, "camera", camera_matrix);
+
+	for (alice_entity_iter(scene, iter, alice_renderable_3d_t)) {
+		alice_renderable_3d_t* renderable = iter.current_ptr;
+
+		alice_m4f_t transform_matrix = renderable->base.transform;
+
+		alice_model_t* model = renderable->model;
+		if (!model) {
+			continue;
+		}
+
+		alice_entity_handle_t entity_id = alice_get_entity_handle_id(iter.current) + 1;
+
+		for (u32 i = 0; i < model->mesh_count; i++) {
+			alice_mesh_t* mesh = &model->meshes[i];
+			alice_vertex_buffer_t* vb = mesh->vb;
+
+			alice_m4f_t mesh_transform = alice_m4f_multiply(transform_matrix, mesh->transform);
+
+			alice_m4f_t model = alice_m4f_multiply(transform_matrix, mesh->transform);
+
+			i32 r = (entity_id & 0x000000FF) >> 0;
+			i32 g = (entity_id & 0x0000FF00) >> 8;
+			i32 b = (entity_id & 0x00FF0000) >> 16;
+
+			alice_shader_set_m4f(shader, "transform", model);
+			alice_shader_set_v3f(shader, "object", (alice_v3f_t){
+					(float)r / 255.0f, (float)g / 255.0f, (float)b / 255.0f});
+
+			alice_bind_vertex_buffer_for_draw(vb);
+			alice_draw_vertex_buffer(vb);
+		}
+	}
+
+	alice_disable_depth();
+
+	alice_v2i_t mouse_pos = alice_get_mouse_position();
+
+	glReadBuffer(GL_COLOR_ATTACHMENT0);
+
+	u8 data[3];
+	glReadPixels(mouse_pos.x, camera->dimentions.y - mouse_pos.y, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, &data);
+
+	u32 picked_id = 
+		data[0] + 
+		data[1] * 256 +
+		data[2] * 256 * 256;
+
+	alice_entity_handle_t picked_entity = alice_null_entity_handle;
+
+	if (picked_id != 0) {
+		picked_entity = alice_new_entity_handle(picked_id - 1,
+				alice_get_type_info(alice_renderable_3d_t).id);
+	}
+
+	glReadBuffer(GL_NONE);
+
+	alice_unbind_render_target(context->target);
+
+	return picked_entity;
 }
 
 alice_v3f_t alice_get_sprite_2d_world_position(alice_scene_t* scene, alice_entity_t* entity) {

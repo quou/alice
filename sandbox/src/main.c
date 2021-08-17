@@ -34,10 +34,12 @@ void main() {
 	const char* script_lib_name = "./libscripts.so";
 #endif
 
+	char scene_filename_buffer[256] = "scenes/physicstest.ascn";
+	
 	alice_scene_t* scene = alice_new_scene(script_lib_name);
 
-	alice_deserialise_scene(scene, "scenes/physicstest.ascn");
-	alice_serialise_scene(scene, "scenes/physicstest.ascn");
+	alice_deserialise_scene(scene, scene_filename_buffer);
+	alice_serialise_scene(scene, scene_filename_buffer);
 
 	alice_init_scripts(scene->script_context);
 
@@ -177,6 +179,7 @@ void main() {
 	alice_serialise_scene(scene, "scenes/physicstest.ascn");
 */
 
+	alice_3d_pick_context_t* pick_context = alice_new_3d_pick_context(alice_load_shader("shaders/pick.glsl"));
 
 	mu_Context* ui = malloc(sizeof(mu_Context));
 	mu_init(ui);
@@ -191,8 +194,6 @@ void main() {
 	bool fullscreen = false;
 
 	while (alice_is_application_running()) {
-		alice_compute_scene_transforms(scene);
-
 		alice_reload_changed_resources();
 
 		alice_update_events();
@@ -212,8 +213,20 @@ void main() {
 			alice_update_physics_engine(scene->physics_engine, app->timestep);
 		}
 
+		alice_compute_scene_transforms(scene);
+
 		if (scene->renderer) {
 			alice_render_scene_3d(scene->renderer, app->width, app->height, scene, alice_null);
+		}
+
+		if (alice_mouse_button_just_released(ALICE_MOUSE_BUTTON_LEFT)) {
+			alice_entity_handle_t selected_entity = alice_3d_pick(pick_context, scene);
+			if (selected_entity != alice_null_entity_handle) {
+				alice_entity_t* entity = alice_get_entity_ptr(scene, selected_entity);
+				if (entity->name) {
+					alice_log("%s", entity->name);
+				}
+			}
 		}
 
 		if (scene->renderer_2d) {
@@ -255,7 +268,6 @@ void main() {
 					scene->renderer->bloom_blur_iterations = blur_iterations;
 				}
 
-				static char scene_filename_buffer[256] = "scenes/physicstest.ascn";
 				mu_label(ui, "Scene filename");
 				mu_textbox(ui, scene_filename_buffer, 256);
 
@@ -280,6 +292,8 @@ void main() {
 
 		alice_update_application();
 	}
+
+	alice_free_3d_pick_context(pick_context);
 
 	free(ui);
 	alice_deinit_microui_renderer();
