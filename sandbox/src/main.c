@@ -180,6 +180,7 @@ void main() {
 */
 
 	alice_3d_pick_context_t* pick_context = alice_new_3d_pick_context(alice_load_shader("shaders/pick.glsl"));
+	alice_entity_handle_t selected_entity = alice_null_entity_handle;
 
 	mu_Context* ui = malloc(sizeof(mu_Context));
 	mu_init(ui);
@@ -220,13 +221,7 @@ void main() {
 		}
 
 		if (alice_mouse_button_just_released(ALICE_MOUSE_BUTTON_LEFT)) {
-			alice_entity_handle_t selected_entity = alice_3d_pick(pick_context, scene);
-			if (selected_entity != alice_null_entity_handle) {
-				alice_entity_t* entity = alice_get_entity_ptr(scene, selected_entity);
-				if (entity->name) {
-					alice_log("%s", entity->name);
-				}
-			}
+			selected_entity = alice_3d_pick(pick_context, scene);
 		}
 
 		if (scene->renderer_2d) {
@@ -236,6 +231,23 @@ void main() {
 		alice_update_microui(ui);
 
 		mu_begin(ui);
+		if (mu_begin_window(ui, "Entity", mu_rect(10, 320, 400, 300))) {
+			if (selected_entity != alice_null_entity_handle) {
+				alice_entity_t* ptr = alice_get_entity_ptr(scene, selected_entity);
+
+				mu_layout_row(ui, 2, (int[]) { -200, -1 }, 0);
+
+				mu_label(ui, "Name");
+				if (ptr->name) {
+					mu_label(ui, ptr->name);
+				} else {
+					mu_label(ui, "unnamed entity");
+				}
+			}
+
+			mu_end_window(ui);
+		}
+
 		if (mu_begin_window(ui, "Scene", mu_rect(10, 10, 400, 300))) {
 			if (scene->renderer) {
 				mu_layout_row(ui, 1, (int[]) { -1 }, 0);
