@@ -937,7 +937,9 @@ static int header(mu_Context *ctx, const char *label, int istreenode, int opt) {
   mu_update_control(ctx, id, r, 0);
 
   /* handle click */
-  active ^= (ctx->mouse_pressed == MU_MOUSE_LEFT && ctx->focus == id);
+  if (!(opt & MU_OPT_LEAF)) {
+    active ^= (ctx->mouse_pressed == MU_MOUSE_LEFT && ctx->focus == id);
+  }
 
   /* update pool ref */
   if (idx >= 0) {
@@ -949,13 +951,17 @@ static int header(mu_Context *ctx, const char *label, int istreenode, int opt) {
 
   /* draw */
   if (istreenode) {
-    if (ctx->hover == id) { ctx->draw_frame(ctx, r, MU_COLOR_BUTTONHOVER); }
+    if (ctx->hover == id || opt & MU_OPT_SELECTED) {
+      ctx->draw_frame(ctx, r, MU_COLOR_BUTTONHOVER);
+    }
   } else {
     mu_draw_control_frame(ctx, id, r, MU_COLOR_BUTTON, 0);
   }
-  mu_draw_icon(
-    ctx, expanded ? MU_ICON_EXPANDED : MU_ICON_COLLAPSED,
-    mu_rect(r.x, r.y, r.h, r.h), ctx->style->colors[MU_COLOR_TEXT]);
+  if (!(opt & MU_OPT_LEAF)) {
+    mu_draw_icon(
+      ctx, expanded ? MU_ICON_EXPANDED : MU_ICON_COLLAPSED,
+      mu_rect(r.x, r.y, r.h, r.h), ctx->style->colors[MU_COLOR_TEXT]);
+  }
   r.x += r.h - ctx->style->padding;
   r.w -= r.h - ctx->style->padding;
   mu_draw_control_text(ctx, label, r, MU_COLOR_TEXT, 0);

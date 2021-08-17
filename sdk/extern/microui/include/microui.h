@@ -72,7 +72,7 @@ enum {
 enum {
   MU_RES_ACTIVE       = (1 << 0),
   MU_RES_SUBMIT       = (1 << 1),
-  MU_RES_CHANGE       = (1 << 2)
+  MU_RES_CHANGE       = (1 << 2),
 };
 
 enum {
@@ -88,7 +88,9 @@ enum {
   MU_OPT_AUTOSIZE     = (1 << 9),
   MU_OPT_POPUP        = (1 << 10),
   MU_OPT_CLOSED       = (1 << 11),
-  MU_OPT_EXPANDED     = (1 << 12)
+  MU_OPT_EXPANDED     = (1 << 12),
+  MU_OPT_LEAF         = (1 << 13),
+  MU_OPT_SELECTED     = (1 << 14)
 };
 
 enum {

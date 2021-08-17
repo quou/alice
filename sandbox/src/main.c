@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,6 +15,44 @@
 #include <alice/scripting.h>
 #include <alice/physics.h>
 #include <alice/debugrenderer.h>
+
+static void draw_entity_hierarchy(mu_Context* ui, alice_scene_t* scene, alice_entity_handle_t entity) {
+	assert(ui);
+	assert(scene);
+
+	alice_entity_t* ptr = alice_get_entity_ptr(scene, entity);
+
+	const char* name = "entity";
+	if (ptr->name) { name = ptr->name; }
+
+	int opts = 0;
+	if (ptr->child_count == 0) {
+		opts |= MU_OPT_LEAF;
+	}
+
+	if (mu_begin_treenode_ex(ui, name, opts)) {
+		for (u32 i = 0; i < ptr->child_count; i++) {
+			draw_entity_hierarchy(ui, scene, ptr->children[i]);
+		}	
+
+		mu_end_treenode(ui);
+	}
+}
+
+static void draw_scene_hierarchy(mu_Context* ui, alice_scene_t* scene) {
+	assert(ui);
+	assert(scene);
+
+	for (u32 i = 0; i < scene->pool_count; i++) {
+		alice_entity_pool_t* pool = &scene->pools[i];
+		for (u32 j = 0; j < pool->count; j++) {
+			alice_entity_t* e = alice_entity_pool_get(pool, j);
+			if (e->parent == alice_null_entity_handle) {
+				draw_entity_hierarchy(ui, scene, alice_new_entity_handle(j, pool->type_id));
+			}
+		}
+	}
+}
 
 void main() {
 	alice_init_resource_manager("res");
@@ -294,6 +333,9 @@ void main() {
 
 					alice_init_scripts(scene->script_context);
 				}
+
+				mu_layout_row(ui, 1, (int[]) { -1 }, 0);
+				draw_scene_hierarchy(ui, scene);
 			}
 
 			mu_end_window(ui);
