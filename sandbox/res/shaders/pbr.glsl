@@ -193,7 +193,7 @@ float random(vec3 seed, int i) {
 }
 
 float calculate_directional_shadow(DirectionalLight light, vec3 normal, vec3 light_dir) {
-	if (!use_shadows) { return 0.0; }
+	if (!use_shadows) { return 1.0; }
 
 	vec4 light_space_pos = light.transform * vec4(fs_in.world_pos, 1.0);
 	vec3 proj_coords = light_space_pos.xyz / light_space_pos.w;
@@ -261,8 +261,8 @@ vec3 fresnel_schlick(float cosTheta, vec3 F0) {
 vec3 calculate_point_light(PointLight light, vec3 N, vec3 V, vec3 F0) {
 	vec3 L = normalize(light.position - fs_in.world_pos);
 	vec3 H = normalize(V + L);
-	float distance = length(light.position - fs_in.world_pos);
-	float attenuation = (1.0 / (distance * distance)) * light.range;
+	float dist = length(light.position - fs_in.world_pos);
+	float attenuation = 1.0 / (pow((dist / light.range) * 5.0, 2.0) + 1.0);
 	vec3 radiance = light.color * light.intensity * attenuation;
 
 	float NDF = distribution_ggx(N, H, roughness);

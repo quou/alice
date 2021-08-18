@@ -48,15 +48,15 @@ scene {
 			active true;
 		}
 		renderable_3d {
-			name "vampire";
+			name "vampire visual";
 			position {
-				x 0;
+				x 2.61;
 				y 0.2;
-				z 1.5;
+				z 2.03;
 			}
 			rotation {
 				x 0;
-				y 180;
+				y 208;
 				z 0;
 			}
 			scale {
@@ -93,13 +93,13 @@ scene {
 				g 0;
 				b 0;
 			}
-			range 1;
-			intensity 4;
+			range 1.49998;
+			intensity 280;
 		}
 		point_light {
 			name "blue lamp";
 			position {
-				x 0;
+				x -1.94;
 				y 0.6;
 				z 0;
 			}
@@ -118,8 +118,8 @@ scene {
 				g 0;
 				b 1;
 			}
-			range 1;
-			intensity 10;
+			range 2.30012;
+			intensity 280;
 		}
 		directional_light {
 			name "sun";
@@ -149,9 +149,9 @@ scene {
 		rigidbody_3d {
 			name "cube";
 			position {
-				x -3.81;
-				y 1.18145;
-				z -1.51807;
+				x -3.73815;
+				y 1.17932;
+				z 3.80442;
 			}
 			rotation {
 				x 0;
@@ -216,13 +216,13 @@ scene {
 		rigidbody_3d {
 			name "monkey";
 			position {
-				x -0.250936;
-				y 5.59198;
-				z 0.0532315;
+				x -0.573319;
+				y 1.17932;
+				z -1.41435;
 			}
 			rotation {
 				x 0;
-				y 0;
+				y 124;
 				z 0;
 			}
 			scale {

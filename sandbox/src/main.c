@@ -16,6 +16,12 @@
 #include <alice/physics.h>
 #include <alice/debugrenderer.h>
 
+typedef struct sandbox_t {
+	alice_entity_handle_t selected_entity;
+} sandbox_t;
+
+sandbox_t sandbox;
+
 static void draw_entity_hierarchy(mu_Context* ui, alice_scene_t* scene, alice_entity_handle_t entity) {
 	assert(ui);
 	assert(scene);
@@ -30,10 +36,20 @@ static void draw_entity_hierarchy(mu_Context* ui, alice_scene_t* scene, alice_en
 		opts |= MU_OPT_LEAF;
 	}
 
-	if (mu_begin_treenode_ex(ui, name, opts)) {
+	if (sandbox.selected_entity == entity) {
+		opts |= MU_OPT_SELECTED;
+	}
+
+	int r = mu_begin_treenode_ex(ui, name, opts);
+
+	if (mu_item_hovered(ui) && alice_mouse_button_just_released(ALICE_MOUSE_BUTTON_LEFT)) {
+		sandbox.selected_entity = entity;
+	}
+
+	if (r) {
 		for (u32 i = 0; i < ptr->child_count; i++) {
 			draw_entity_hierarchy(ui, scene, ptr->children[i]);
-		}	
+		}
 
 		mu_end_treenode(ui);
 	}
@@ -49,6 +65,40 @@ static void draw_scene_hierarchy(mu_Context* ui, alice_scene_t* scene) {
 			alice_entity_t* e = alice_entity_pool_get(pool, j);
 			if (e->parent == alice_null_entity_handle) {
 				draw_entity_hierarchy(ui, scene, alice_new_entity_handle(j, pool->type_id));
+			}
+		}
+	}
+}
+
+static void draw_renderable_properties(mu_Context* ui, alice_scene_t* scene, alice_renderable_3d_t* renderable) {
+	mu_checkbox(ui, "Cast shadows", &renderable->cast_shadows);
+
+	if (renderable->model != alice_null) {
+		for (u32 i = 0; i < renderable->model->mesh_count; i++) {
+			char name[32] = "";
+			sprintf(name, "Mesh %d", i);
+			if (mu_begin_treenode(ui, name)) {
+				alice_mesh_t* mesh = &renderable->model->meshes[i];
+
+				alice_material_t* material = alice_null;
+				if (i < renderable->material_count) {
+					material = renderable->materials[i];
+				} else if (renderable->material_count == 1) {
+					material = renderable->materials[0];
+				}
+
+				if (!material) {
+					continue;
+				}
+
+				const char* material_path = alice_get_material_resource_filename(material);
+
+				mu_layout_row(ui, 2, (int[]) {-200, -1}, 0);
+
+				mu_label(ui, "Material: ");
+				mu_label(ui, material_path);
+
+				mu_end_treenode(ui);
 			}
 		}
 	}
@@ -219,7 +269,7 @@ void main() {
 */
 
 	alice_3d_pick_context_t* pick_context = alice_new_3d_pick_context(alice_load_shader("shaders/pick.glsl"));
-	alice_entity_handle_t selected_entity = alice_null_entity_handle;
+	sandbox.selected_entity = alice_null_entity_handle;
 
 	mu_Context* ui = malloc(sizeof(mu_Context));
 	mu_init(ui);
@@ -259,8 +309,8 @@ void main() {
 			alice_render_scene_3d(scene->renderer, app->width, app->height, scene, alice_null);
 		}
 
-		if (alice_mouse_button_just_released(ALICE_MOUSE_BUTTON_LEFT)) {
-			selected_entity = alice_3d_pick(pick_context, scene);
+		if (alice_mouse_button_just_released(ALICE_MOUSE_BUTTON_RIGHT)) {
+			sandbox.selected_entity = alice_3d_pick(pick_context, scene);
 		}
 
 		if (scene->renderer_2d) {
@@ -270,24 +320,86 @@ void main() {
 		alice_update_microui(ui);
 
 		mu_begin(ui);
-		if (mu_begin_window(ui, "Entity", mu_rect(10, 320, 400, 300))) {
-			if (selected_entity != alice_null_entity_handle) {
-				alice_entity_t* ptr = alice_get_entity_ptr(scene, selected_entity);
+		if (mu_begin_window(ui, "Entity", mu_rect(10, 420, 400, 300))) {
+			static char entity_name_buf[256] = "";
+			static alice_entity_handle_t old_selected = alice_null_entity_handle;
+
+			if (sandbox.selected_entity != alice_null_entity_handle) {
+				alice_entity_t* ptr = alice_get_entity_ptr(scene, sandbox.selected_entity);
+
+				if (old_selected != sandbox.selected_entity) {
+					old_selected = sandbox.selected_entity;
+					if (ptr->name) {
+						strcpy(entity_name_buf, ptr->name);
+					} else {
+						strcpy(entity_name_buf, "unnamed entity");
+					}
+				}
 
 				mu_layout_row(ui, 2, (int[]) { -200, -1 }, 0);
 
 				mu_label(ui, "Name");
-				if (ptr->name) {
-					mu_label(ui, ptr->name);
-				} else {
-					mu_label(ui, "unnamed entity");
+				if (mu_textbox(ui, entity_name_buf, sizeof(entity_name_buf)) == MU_RES_SUBMIT) {
+					free(ptr->name);
+
+					ptr->name = alice_copy_string(entity_name_buf);
+				}
+
+				mu_layout_row(ui, 4, (int[]) { -200, -132, -66, -1 }, 0);
+				mu_label(ui, "Position: ");
+				mu_number(ui, &ptr->position.x, 0.01f);
+				mu_number(ui, &ptr->position.y, 0.01f);
+				mu_number(ui, &ptr->position.z, 0.01f);
+
+				mu_label(ui, "Rotation: ");
+				mu_number(ui, &ptr->rotation.x, 0.5f);
+				mu_number(ui, &ptr->rotation.y, 0.5f);
+				mu_number(ui, &ptr->rotation.z, 0.5f);
+
+				mu_label(ui, "Scale: ");
+				mu_number(ui, &ptr->scale.x, 0.01f);
+				mu_number(ui, &ptr->scale.y, 0.01f);
+				mu_number(ui, &ptr->scale.z, 0.01f);
+
+				mu_layout_row(ui, 1, (int[]) { -1 }, 0);
+
+				u32 selected_entity_type_id = alice_get_entity_handle_type(sandbox.selected_entity);
+				if (selected_entity_type_id == alice_get_type_info(alice_renderable_3d_t).id) {
+					mu_label(ui, "Type: Renderable 3D");
+
+					alice_renderable_3d_t* renderable = (alice_renderable_3d_t*)ptr;
+
+					draw_renderable_properties(ui, scene, renderable);
+				} else if (selected_entity_type_id == alice_get_type_info(alice_rigidbody_3d_t).id) {
+					mu_label(ui, "Type: Rigidbody 3D");
+				} else if (selected_entity_type_id == alice_get_type_info(alice_camera_3d_t).id) {
+					mu_label(ui, "Type: Camera 3D");
+				} else if (selected_entity_type_id == alice_get_type_info(alice_camera_2d_t).id) {
+					mu_label(ui, "Type: Camera 2D");
+				} else if (selected_entity_type_id == alice_get_type_info(alice_point_light_t).id) {
+					mu_label(ui, "Type: Point Light");
+
+					alice_point_light_t* light = (alice_point_light_t*)ptr;
+		
+					mu_layout_row(ui, 2, (int[]) { -200, -1 }, 0);
+
+					mu_label(ui, "Intensity");
+					mu_number(ui, &light->intensity, 0.1f);
+					mu_label(ui, "Range");
+					mu_number(ui, &light->range, 0.1f);
+				} else if (selected_entity_type_id == alice_get_type_info(alice_directional_light_t).id) {
+					mu_label(ui, "Type: Directional Light");
+
+					alice_directional_light_t* light = (alice_directional_light_t*)ptr;
+
+					mu_checkbox(ui, "Cast shadows", &light->cast_shadows);
 				}
 			}
 
 			mu_end_window(ui);
 		}
 
-		if (mu_begin_window(ui, "Scene", mu_rect(10, 10, 400, 300))) {
+		if (mu_begin_window(ui, "Scene", mu_rect(10, 10, 400, 400))) {
 			if (scene->renderer) {
 				mu_layout_row(ui, 1, (int[]) { -1 }, 0);
 
@@ -330,6 +442,8 @@ void main() {
 					alice_free_scene(scene);
 					scene = alice_new_scene(script_lib_name);
 					alice_deserialise_scene(scene, scene_filename_buffer);
+
+					sandbox.selected_entity = alice_null_entity_handle;
 
 					alice_init_scripts(scene->script_context);
 				}

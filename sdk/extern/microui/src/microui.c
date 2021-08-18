@@ -951,7 +951,9 @@ static int header(mu_Context *ctx, const char *label, int istreenode, int opt) {
 
   /* draw */
   if (istreenode) {
-    if (ctx->hover == id || opt & MU_OPT_SELECTED) {
+    if (opt & MU_OPT_SELECTED) {
+      ctx->draw_frame(ctx, r, MU_COLOR_BUTTONFOCUS);
+    } else if (ctx->hover == id) {
       ctx->draw_frame(ctx, r, MU_COLOR_BUTTONHOVER);
     }
   } else {
@@ -1211,4 +1213,8 @@ void mu_begin_panel_ex(mu_Context *ctx, const char *name, int opt) {
 void mu_end_panel(mu_Context *ctx) {
   mu_pop_clip_rect(ctx);
   pop_container(ctx);
+}
+
+int mu_item_hovered(mu_Context* ctx) {
+	return mu_mouse_over(ctx, ctx->last_rect);
 }
