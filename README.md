@@ -34,8 +34,7 @@ doesn't have.
 
 ## Building
 Generate build files using Premake5. Tested with GCC
-on Gentoo and Linux Mint, and MSVC on Windows. Mac OS
-probably doesn't work.
+on Void Linux, and MSVC on Windows. Mac OS probably doesn't work.
 
 ## Architecture overview
 Alice handles entities in a way that's fairly unique - It's somewhere halfway
