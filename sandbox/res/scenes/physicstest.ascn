@@ -149,9 +149,9 @@ scene {
 		rigidbody_3d {
 			name "cube";
 			position {
-				x -3.73815;
+				x -3.81;
 				y 1.17932;
-				z 3.80442;
+				z -3.58818;
 			}
 			rotation {
 				x 0;
@@ -207,7 +207,72 @@ scene {
 					model "cube";
 					materials [
 						"default_material";
-						"materials/basicphong.mat";
+					]
+
+				}
+			}
+		}
+		rigidbody_3d {
+			name "sphere";
+			position {
+				x 3.4273;
+				y 1.17932;
+				z 0.684062;
+			}
+			rotation {
+				x 0;
+				y 0;
+				z 0;
+			}
+			scale {
+				x 1;
+				y 1;
+				z 1;
+			}
+			mass 1;
+			dynamic_friction 0.3;
+			static_friction 0.3;
+			restitution 0.3;
+			gravity_scale 1;
+			box {
+				dimentions {
+					x 2;
+					y 2;
+					z 2;
+				}
+				position {
+					x 0;
+					y 0;
+					z 0;
+				}
+			}
+			constraints {
+				x false;
+				y false;
+				z false;
+			}
+			children {
+				renderable_3d {
+					name "sphere visual";
+					position {
+						x 0;
+						y 0;
+						z 0;
+					}
+					rotation {
+						x 0;
+						y 0;
+						z 0;
+					}
+					scale {
+						x 2;
+						y 2;
+						z 2;
+					}
+					cast_shadows true;
+					model "sphere";
+					materials [
+						"materials/rustediron.mat";
 					]
 
 				}
@@ -216,13 +281,13 @@ scene {
 		rigidbody_3d {
 			name "monkey";
 			position {
-				x -0.573319;
+				x -0.871357;
 				y 1.17932;
-				z -1.41435;
+				z 3.81;
 			}
 			rotation {
 				x 0;
-				y 124;
+				y 381;
 				z 0;
 			}
 			scale {
@@ -278,7 +343,7 @@ scene {
 					cast_shadows true;
 					model "models/monkey.glb";
 					materials [
-						"materials/basic.mat";
+						"default_material";
 					]
 
 				}

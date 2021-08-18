@@ -1,8 +1,6 @@
 ![logo](https://raw.githubusercontent.com/veridisquot/alice/master/sandbox/res/splash.png)
 
-![screenshot](https://raw.githubusercontent.com/veridisquot/alice/master/screenshots/003.png)
-
-![screenshot](https://raw.githubusercontent.com/veridisquot/alice/master/screenshots/shadows.png)
+![screenshot](https://raw.githubusercontent.com/veridisquot/alice/master/screenshots/005.png)
 
 ![screenshot](https://raw.githubusercontent.com/veridisquot/alice/master/screenshots/stress.png)
 

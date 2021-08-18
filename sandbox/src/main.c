@@ -18,6 +18,7 @@
 
 typedef struct sandbox_t {
 	alice_entity_handle_t selected_entity;
+	alice_entity_handle_t old_selected;
 } sandbox_t;
 
 sandbox_t sandbox;
@@ -81,22 +82,33 @@ static void draw_renderable_properties(mu_Context* ui, alice_scene_t* scene, ali
 				alice_mesh_t* mesh = &renderable->model->meshes[i];
 
 				alice_material_t* material = alice_null;
+				alice_material_t** material_ptr = alice_null;
 				if (i < renderable->material_count) {
 					material = renderable->materials[i];
+					material_ptr = &renderable->materials[i];
 				} else if (renderable->material_count == 1) {
 					material = renderable->materials[0];
+					material_ptr = &renderable->materials[0];
 				}
 
-				if (!material) {
-					continue;
-				}
+				static char material_buf[256];
+				static alice_material_t* old_material = alice_null;
 
-				const char* material_path = alice_get_material_resource_filename(material);
+				if (material && old_material != material) {
+					const char* material_path = alice_get_material_resource_filename(material);
+					strncpy(material_buf, material_path, 256);
+
+					old_material = material;
+				}
 
 				mu_layout_row(ui, 2, (int[]) {-200, -1}, 0);
 
 				mu_label(ui, "Material: ");
-				mu_label(ui, material_path);
+				int r = mu_textbox(ui, material_buf, sizeof(material_buf));
+
+				if (r == MU_RES_SUBMIT) {
+					*material_ptr = alice_load_material(material_buf);
+				}
 
 				mu_end_treenode(ui);
 			}
@@ -270,6 +282,7 @@ void main() {
 
 	alice_3d_pick_context_t* pick_context = alice_new_3d_pick_context(alice_load_shader("shaders/pick.glsl"));
 	sandbox.selected_entity = alice_null_entity_handle;
+	sandbox.old_selected = alice_null_entity_handle;
 
 	mu_Context* ui = malloc(sizeof(mu_Context));
 	mu_init(ui);
@@ -322,13 +335,12 @@ void main() {
 		mu_begin(ui);
 		if (mu_begin_window(ui, "Entity", mu_rect(10, 420, 400, 300))) {
 			static char entity_name_buf[256] = "";
-			static alice_entity_handle_t old_selected = alice_null_entity_handle;
 
 			if (sandbox.selected_entity != alice_null_entity_handle) {
 				alice_entity_t* ptr = alice_get_entity_ptr(scene, sandbox.selected_entity);
 
-				if (old_selected != sandbox.selected_entity) {
-					old_selected = sandbox.selected_entity;
+				if (sandbox.old_selected != sandbox.selected_entity) {
+					sandbox.old_selected = sandbox.selected_entity;
 					if (ptr->name) {
 						strcpy(entity_name_buf, ptr->name);
 					} else {

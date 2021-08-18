@@ -18,9 +18,9 @@ material {
 			is_antialiased true;
 		}
 		albedo {
-			r 0.34902;
-			g 0.603922;
-			b 0.439216;
+			r 1;
+			g 1;
+			b 1;
 		}
 		metallic 1;
 		roughness 1;
