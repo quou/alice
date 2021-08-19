@@ -343,9 +343,13 @@ alice_scene_t* alice_new_scene(const char* script_assembly) {
 	alice_register_entity_type(new, alice_directional_light_t);
 	alice_register_entity_type(new, alice_rigidbody_3d_t);
 	alice_register_entity_type(new, alice_sprite_2d_t);
+	alice_register_entity_type(new, alice_tilemap_t);
 
 	alice_set_entity_create_function(new, alice_renderable_3d_t, alice_on_renderable_3d_create);
 	alice_set_entity_destroy_function(new, alice_renderable_3d_t, alice_on_renderable_3d_destroy);
+
+	alice_set_entity_create_function(new, alice_tilemap_t, alice_on_tilemap_create);
+	alice_set_entity_destroy_function(new, alice_tilemap_t, alice_on_tilemap_destroy);
 
 	alice_set_entity_create_function(new, alice_rigidbody_3d_t, alice_on_rigidbody_3d_create);
 

@@ -1906,10 +1906,66 @@ void alice_free_scene_renderer_2d(alice_scene_renderer_2d_t* renderer) {
 	free(renderer);
 }
 
+static void alice_scene_renderer_2d_push_quad(alice_scene_renderer_2d_t* renderer,
+		u32* quad_count,
+		u32* texture_count,
+		alice_texture_t** used_textures,
+		alice_v3f_t position, alice_v3f_t scale, alice_v4f_t source_rect,
+		alice_texture_t* texture) {
+	i32 texture_index = -1;
+	for (u32 i = 0; i < *texture_count; i++) {
+		if (used_textures[i] == texture) {
+			texture_index = i;
+		}
+	}
+
+	if (texture_index == -1) {
+		used_textures[*texture_count] = texture;
+		texture_index = *texture_count;
+
+		alice_bind_texture(texture, *texture_count);
+
+		*texture_count = *texture_count + 1;
+
+		if (*texture_count >= 32) {
+			alice_log_warning("Only 32 textures are allowed to render.");
+			return;
+		}
+	}
+
+	alice_v4f_t s = {
+		.x = source_rect.x,
+		.y = texture->height - (source_rect.y + source_rect.w),
+		.z = source_rect.z,
+		.w = source_rect.w
+	};
+
+	float verts[] = {
+		position.x,		position.y,		0.0f, 1.0f, s.x, s.y, s.z, s.w, texture->width, texture->height, (float)texture_index,
+		position.x + scale.x,	position.y,		1.0f, 1.0f, s.x, s.y, s.z, s.w, texture->width, texture->height, (float)texture_index,
+		position.x + scale.x,	position.y + scale.y,	1.0f, 0.0f, s.x, s.y, s.z, s.w, texture->width, texture->height, (float)texture_index,
+		position.x,		position.y + scale.y,	0.0f, 0.0f, s.x, s.y, s.z, s.w, texture->width, texture->height, (float)texture_index,
+	};
+
+	const u32 index_offset = *quad_count * 4;
+
+	u32 indices[] = {
+		index_offset + 3, index_offset + 2, index_offset + 1,
+		index_offset + 3, index_offset + 1, index_offset + 0
+	};
+
+	alice_update_vertices(renderer->quad, verts, *quad_count * 11 * 4, 11 * 4);
+	alice_update_indices(renderer->quad, indices, *quad_count * 6, 6);
+
+	*quad_count = *quad_count + 1;
+}
+
 void alice_render_scene_2d(alice_scene_renderer_2d_t* renderer, u32 width, u32 height,
 		alice_scene_t* scene, alice_render_target_t* render_target) {
 	assert(renderer);
 	assert(scene);
+
+	glViewport(0.0f, 0.0f, width, height);
 
 	alice_camera_2d_t* camera = alice_get_scene_camera_3d_2d(scene);
 
@@ -1941,45 +1997,40 @@ void alice_render_scene_2d(alice_scene_renderer_2d_t* renderer, u32 width, u32 h
 
 		alice_v4f_t s = sprite->source_rect;
 
-		i32 texture_index = -1;
-		for (u32 i = 0; i < texture_count; i++) {
-			if (used_textures[i] == sprite->image) {
-				texture_index = i;
+		alice_scene_renderer_2d_push_quad(renderer,
+				&quad_count, &texture_count, used_textures,
+				position, scale, s, sprite->image);
+	}
+
+	for (alice_entity_iter(scene, iter, alice_tilemap_t)) {
+		alice_tilemap_t* tilemap = iter.current_ptr;
+
+		for (u32 x = 0; x < tilemap->dimentions.x; x++) {
+			for (u32 y = 0; y < tilemap->dimentions.y; y++) {
+				alice_v3f_t position = {
+					.x = tilemap->base.position.x +
+						x * tilemap->tile_size * tilemap->base.scale.x,
+					.y = tilemap->base.position.y +
+						y * tilemap->tile_size * tilemap->base.scale.y,
+					.z = 0.0f
+				};
+
+				alice_v3f_t scale = { 
+					tilemap->tile_size * tilemap->base.scale.x,
+					tilemap->tile_size * tilemap->base.scale.y,
+					1.0f };
+
+				i32 tile_id = tilemap->data[x + y * tilemap->dimentions.x];
+
+				if (tile_id == -1) { continue; }
+
+				alice_v4f_t s = tilemap->tiles[tile_id];
+
+				alice_scene_renderer_2d_push_quad(renderer,
+						&quad_count, &texture_count, used_textures,
+						position, scale, s, tilemap->texture);
 			}
 		}
-
-		if (texture_index == -1) {
-			used_textures[texture_count] = sprite->image;
-			texture_index = texture_count;
-
-			alice_bind_texture(sprite->image, texture_count);
-
-			texture_count++;
-
-			if (texture_count >= 32) {
-				alice_log_warning("Only 32 textures are allowed to render.");
-				continue;
-			}
-		}
-
-		float verts[] = {
-			position.x,		position.y,		0.0f, 1.0f, s.x, s.y, s.z, s.w, sprite->image->width, sprite->image->height, (float)texture_index,
-			position.x + scale.x,	position.y,		1.0f, 1.0f, s.x, s.y, s.z, s.w, sprite->image->width, sprite->image->height, (float)texture_index,
-			position.x + scale.x,	position.y + scale.y,	1.0f, 0.0f, s.x, s.y, s.z, s.w, sprite->image->width, sprite->image->height, (float)texture_index,
-			position.x,		position.y + scale.y,	0.0f, 0.0f, s.x, s.y, s.z, s.w, sprite->image->width, sprite->image->height, (float)texture_index,
-		};
-
-		const u32 index_offset = quad_count * 4;
-
-		u32 indices[] = {
-			index_offset + 3, index_offset + 2, index_offset + 1,
-			index_offset + 3, index_offset + 1, index_offset + 0
-		};
-
-		alice_update_vertices(renderer->quad, verts, quad_count * 11 * 4, 11 * 4);
-		alice_update_indices(renderer->quad, indices, quad_count * 6, 6);
-
-		quad_count++;
 	}
 
 	alice_bind_vertex_buffer_for_edit(alice_null);
@@ -2004,4 +2055,43 @@ void alice_render_scene_2d(alice_scene_renderer_2d_t* renderer, u32 width, u32 h
 	if (render_target) {
 		alice_unbind_render_target(render_target);
 	}
+}
+
+void alice_on_tilemap_create(alice_scene_t* scene, alice_entity_handle_t handle, void* ptr) {
+	alice_tilemap_t* tilemap = ptr;
+
+	tilemap->data = alice_null;
+	tilemap->tile_size = 16;
+
+	tilemap->dimentions = (alice_v2u_t) { 0, 0 };
+
+	tilemap->texture = alice_null;
+}
+
+void alice_on_tilemap_destroy(alice_scene_t* scene, alice_entity_handle_t handle, void* ptr) {
+	alice_tilemap_t* tilemap = ptr;
+
+	if (tilemap->data) {
+		free(tilemap->data);
+	}
+}
+
+void alice_tilemap_set_tile(alice_tilemap_t* tilemap, i32 id, alice_v4f_t tile) {
+	assert(tilemap);
+
+	if (id < 0 || id > 255) { return; }
+	
+	tilemap->tiles[id] = tile;
+}
+
+void alice_tilemap_set(alice_tilemap_t* tilemap, alice_v2u_t position, i32 tile) {
+	assert(tilemap);
+
+	if (
+			position.x > tilemap->dimentions.x ||
+			position.y > tilemap->dimentions.y) {
+		return;
+	}
+
+	tilemap->data[position.x + position.y * tilemap->dimentions.x] = tile;
 }

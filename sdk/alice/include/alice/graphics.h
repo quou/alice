@@ -361,3 +361,22 @@ ALICE_API alice_scene_renderer_2d_t* alice_new_scene_renderer_2d(alice_shader_t*
 ALICE_API void alice_free_scene_renderer_2d(alice_scene_renderer_2d_t* renderer);
 ALICE_API void alice_render_scene_2d(alice_scene_renderer_2d_t* renderer, u32 width, u32 height,
 		alice_scene_t* scene, alice_render_target_t* render_target);
+
+typedef struct alice_tilemap_t {
+	alice_entity_t base;
+
+	alice_v4f_t tiles[32];
+	u32 tile_count;
+
+	u32 tile_size;
+
+	i32* data;
+	alice_v2u_t dimentions;
+
+	alice_texture_t* texture;
+} alice_tilemap_t;
+
+ALICE_API void alice_on_tilemap_create(alice_scene_t* scene, alice_entity_handle_t handle, void* ptr);
+ALICE_API void alice_on_tilemap_destroy(alice_scene_t* scene, alice_entity_handle_t handle, void* ptr);
+ALICE_API void alice_tilemap_set_tile(alice_tilemap_t* tilemap, i32 id, alice_v4f_t tile);
+ALICE_API void alice_tilemap_set(alice_tilemap_t* tilemap, alice_v2u_t position, i32 tile);

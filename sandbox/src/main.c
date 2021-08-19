@@ -135,12 +135,12 @@ void main() {
 	const char* script_lib_name = "./libscripts.so";
 #endif
 
-	char scene_filename_buffer[256] = "scenes/physicstest.ascn";
+	char scene_filename_buffer[256] = "scenes/2dtest.ascn";
 	
 	alice_scene_t* scene = alice_new_scene(script_lib_name);
 
 	alice_deserialise_scene(scene, scene_filename_buffer);
-	alice_serialise_scene(scene, scene_filename_buffer);
+	//alice_serialise_scene(scene, scene_filename_buffer);
 
 	alice_init_scripts(scene->script_context);
 
@@ -405,6 +405,14 @@ void main() {
 					alice_directional_light_t* light = (alice_directional_light_t*)ptr;
 
 					mu_checkbox(ui, "Cast shadows", &light->cast_shadows);
+				} else if (selected_entity_type_id == alice_get_type_info(alice_sprite_2d_t).id) {
+					mu_label(ui, "Type: Sprite 2D");
+
+					alice_sprite_2d_t* sprite = (alice_sprite_2d_t*)ptr;
+				} else if (selected_entity_type_id == alice_get_type_info(alice_tilemap_t).id) {
+					mu_label(ui, "Type: Tilemap");
+
+					alice_tilemap_t* tilemap = (alice_tilemap_t*)ptr;
 				}
 			}
 
@@ -412,9 +420,9 @@ void main() {
 		}
 
 		if (mu_begin_window(ui, "Scene", mu_rect(10, 10, 400, 400))) {
-			if (scene->renderer) {
-				mu_layout_row(ui, 1, (int[]) { -1 }, 0);
+			mu_layout_row(ui, 1, (int[]) { -1 }, 0);
 
+			if (scene->renderer) {
 				static char fps_buf[256] = "1000";
 				static char frame_time_buf[256] = "0.001";
 				static double time_until_next_fps_print = 1.0;
@@ -442,27 +450,28 @@ void main() {
 							2.0f, 100.0f, 2.0f, "%g", 0) == MU_RES_CHANGE) {
 					scene->renderer->bloom_blur_iterations = blur_iterations;
 				}
-
-				mu_label(ui, "Scene filename");
-				mu_textbox(ui, scene_filename_buffer, 256);
-
-				if (mu_button(ui, "Save")) {
-					alice_serialise_scene(scene, scene_filename_buffer);
-				}
-
-				if (mu_button(ui, "Load")) {
-					alice_free_scene(scene);
-					scene = alice_new_scene(script_lib_name);
-					alice_deserialise_scene(scene, scene_filename_buffer);
-
-					sandbox.selected_entity = alice_null_entity_handle;
-
-					alice_init_scripts(scene->script_context);
-				}
-
-				mu_layout_row(ui, 1, (int[]) { -1 }, 0);
-				draw_scene_hierarchy(ui, scene);
 			}
+
+			mu_layout_row(ui, 2, (int[]) { -200, -1 }, 0);
+			mu_label(ui, "Scene filename");
+			mu_textbox(ui, scene_filename_buffer, 256);
+
+			if (mu_button(ui, "Save")) {
+				alice_serialise_scene(scene, scene_filename_buffer);
+			}
+
+			if (mu_button(ui, "Load")) {
+				alice_free_scene(scene);
+				scene = alice_new_scene(script_lib_name);
+				alice_deserialise_scene(scene, scene_filename_buffer);
+
+				sandbox.selected_entity = alice_null_entity_handle;
+
+				alice_init_scripts(scene->script_context);
+			}
+
+			mu_layout_row(ui, 1, (int[]) { -1 }, 0);
+			draw_scene_hierarchy(ui, scene);
 
 			mu_end_window(ui);
 		}

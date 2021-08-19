@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "alice/sceneserialise.h"
 #include "alice/dtable.h"
@@ -16,7 +17,8 @@ typedef enum alice_serialisable_type_t {
 	ALICE_ST_CAMERA3D,
 	ALICE_ST_CAMERA2D,
 	ALICE_ST_RIGIDBODY3D,
-	ALICE_ST_SPRITE2D
+	ALICE_ST_SPRITE2D,
+	ALICE_ST_TILEMAP
 } alice_serialisable_type_t;
 
 static alice_serialisable_type_t alice_determine_entity_type(alice_entity_handle_t handle) {
@@ -36,6 +38,8 @@ static alice_serialisable_type_t alice_determine_entity_type(alice_entity_handle
 		return ALICE_ST_RIGIDBODY3D;
 	} else if (type_id == alice_get_type_info(alice_sprite_2d_t).id) {
 		return ALICE_ST_SPRITE2D;
+	} else if (type_id == alice_get_type_info(alice_tilemap_t).id) {
+		return ALICE_ST_TILEMAP;
 	}
 
 	return ALICE_ST_ENTITY;
@@ -71,6 +75,8 @@ static void alice_serialise_entity(alice_dtable_t* table, alice_scene_t* scene, 
 		case ALICE_ST_SPRITE2D:
 			type_name = "sprite_2d";
 			break;
+		case ALICE_ST_TILEMAP:
+			type_name = "tilemap";
 	}
 
 	alice_dtable_t entity_table = alice_new_empty_dtable(type_name);
@@ -386,6 +392,10 @@ static void alice_serialise_entity(alice_dtable_t* table, alice_scene_t* scene, 
 
 			break;
 		}
+		case ALICE_ST_TILEMAP: {
+			alice_tilemap_t* tilemap = (alice_tilemap_t*)entity;
+			break;
+		}
 	}
 
 	if (entity->child_count > 0) {
@@ -546,6 +556,8 @@ static alice_serialisable_type_t alice_determine_dtable_type(alice_dtable_t* tab
 		return ALICE_ST_RIGIDBODY3D;
 	} else if (strcmp(table->name, "sprite_2d") == 0) {
 		return ALICE_ST_SPRITE2D;
+	} else if (strcmp(table->name, "tilemap") == 0) {
+		return ALICE_ST_TILEMAP;
 	}
 
 	return ALICE_ST_ENTITY;
@@ -580,6 +592,9 @@ static alice_entity_handle_t alice_deserialise_entity(alice_dtable_t* table, ali
 			break;
 		case ALICE_ST_SPRITE2D:
 			create_type = alice_get_type_info(alice_sprite_2d_t);
+			break;
+		case ALICE_ST_TILEMAP:
+			create_type = alice_get_type_info(alice_tilemap_t);
 			break;
 		default:
 			break;
@@ -988,6 +1003,103 @@ static alice_entity_handle_t alice_deserialise_entity(alice_dtable_t* table, ali
 					sprite->source_rect.w = h_table->value.as.number;
 				}
 			}
+			break;
+		}
+		case ALICE_ST_TILEMAP: {
+			alice_tilemap_t* tilemap = (alice_tilemap_t*)entity;
+
+			alice_dtable_t* tile_size_table = alice_dtable_find_child(table, "tile_size");
+			if (tile_size_table && tile_size_table->value.type == ALICE_DTABLE_NUMBER) {
+				tilemap->tile_size = (u32)tile_size_table->value.as.number;
+			}
+
+			alice_dtable_t* dimentions_table = alice_dtable_find_child(table, "dimentions");
+			if (dimentions_table) {
+				alice_dtable_t* x_table = alice_dtable_find_child(dimentions_table, "x");
+				if (x_table && x_table->value.type == ALICE_DTABLE_NUMBER) {
+					tilemap->dimentions.x = (u32)x_table->value.as.number;
+				}
+
+				alice_dtable_t* y_table = alice_dtable_find_child(dimentions_table, "y");
+				if (y_table && y_table->value.type == ALICE_DTABLE_NUMBER) {
+					tilemap->dimentions.y = (u32)y_table->value.as.number;
+				}
+			}
+
+			alice_dtable_t* texture_table = alice_dtable_find_child(table, "texture");
+			if (texture_table) {
+				const char* texture_path = alice_null;
+				alice_texture_flags_t flags = 0;
+
+				alice_dtable_t* path_table = alice_dtable_find_child(texture_table, "path");
+				if (path_table && path_table->value.type == ALICE_DTABLE_STRING) {
+					texture_path = path_table->value.as.string;
+				}
+
+				alice_dtable_t* is_antialiased_table =
+					alice_dtable_find_child(texture_table, "is_antialiased_table");
+				if (is_antialiased_table &&
+						is_antialiased_table->value.type == ALICE_DTABLE_BOOL) {
+					flags |= ALICE_TEXTURE_ANTIALIASED;
+				} else {
+					flags |= ALICE_TEXTURE_ALIASED;
+				}
+
+				tilemap->texture = alice_load_texture(texture_path, flags);
+			}
+
+			alice_dtable_t* tiles_table = alice_dtable_find_child(table, "tiles");
+			if (tiles_table) {
+				for (u32 i = 0; i < tiles_table->child_count; i++) {
+					alice_dtable_t* tile_table = &tiles_table->children[i];
+
+					i32 id = -1;
+					alice_v4f_t rect = { 0.0f, 0.0f,
+						tilemap->dimentions.x,
+						tilemap->dimentions.y };
+
+					alice_dtable_t* id_table = alice_dtable_find_child(tile_table, "id");
+					if (id_table && id_table->value.type == ALICE_DTABLE_NUMBER) {
+						id = (i32)id_table->value.as.number;
+					}
+					
+					alice_dtable_t* rect_table = alice_dtable_find_child(tile_table, "rect");
+					if (rect_table) {
+						alice_dtable_t* x_table = alice_dtable_find_child(rect_table, "x");
+						if (x_table && x_table->value.type == ALICE_DTABLE_NUMBER) {
+							rect.x = x_table->value.as.number;
+						}
+
+						alice_dtable_t* y_table = alice_dtable_find_child(rect_table, "y");
+						if (y_table && y_table->value.type == ALICE_DTABLE_NUMBER) {
+							rect.y = y_table->value.as.number;
+						}
+
+						alice_dtable_t* w_table = alice_dtable_find_child(rect_table, "w");
+						if (w_table && w_table->value.type == ALICE_DTABLE_NUMBER) {
+							rect.z = w_table->value.as.number;
+						}
+
+						alice_dtable_t* h_table = alice_dtable_find_child(rect_table, "h");
+						if (h_table && h_table->value.type == ALICE_DTABLE_NUMBER) {
+							rect.w = h_table->value.as.number;
+						}
+					}
+
+					alice_tilemap_set_tile(tilemap, id, rect);
+				}	
+			}
+
+			tilemap->data = malloc(tilemap->dimentions.x * tilemap->dimentions.y * sizeof(i32));
+
+			alice_dtable_t* data_table = alice_dtable_find_child(table, "data");
+			if (data_table && data_table->value.type == ALICE_DTABLE_ARRAY) {
+				for (u32 i = 0; i < data_table->value.as.array->count; i++) {
+					tilemap->data[i] = data_table->value.as.array->values[i].as.number;
+				}
+			}
+
+			break;
 		}
 		default:
 			break;

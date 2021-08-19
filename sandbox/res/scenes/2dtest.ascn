@@ -29,7 +29,7 @@ scene {
 				x 640;
 				y 480;
 			}
-			stretch true;
+			stretch false;
 			active true;
 		}
 		sprite_2d {
@@ -85,6 +85,61 @@ scene {
 				w 154;
 				h 150;
 			}
+		}
+
+		tilemap {
+			name "tilemap";
+			position {
+				x 300;
+				y 100;
+				z 0;
+			}
+			rotation {
+				x 0;
+				y 0;
+				z 0;
+			}
+			scale {
+				x 1;
+				y 1;
+				z 1;
+			}
+			tile_size 96;
+			dimentions {
+				x 5;
+				y 5;
+			}
+			texture {
+				path "textures/tiles.png";
+				is_antialiased true;
+			}
+			tiles {
+				tile {
+					id 0;
+					rect {
+						x 192;
+						y 96;
+						w 96;
+						h 96;
+					}
+				}
+				tile {
+					id 1;
+					rect {
+						x 692;
+						y 61;
+						w 96;
+						h 96;
+					}
+				}
+			}
+			data [
+				0; 0; 0; 0; 0;
+				0; 0; 1; 1; 0;
+				0; 0; 1; 1; 0;
+				0; 0; 0; 0; 0;
+				0; 0; 0; 0; 0;
+			]
 		}
 	}
 }
