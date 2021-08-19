@@ -29,6 +29,7 @@ typedef struct alice_dtable_value_array_t {
 	alice_dtable_value_t* values;
 	u32 count;
 	u32 capacity;
+	u32 row_width;
 } alice_dtable_value_array_t;
 
 ALICE_API alice_dtable_value_array_t* alice_new_dtable_value_array();

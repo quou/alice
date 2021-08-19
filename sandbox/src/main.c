@@ -135,12 +135,11 @@ void main() {
 	const char* script_lib_name = "./libscripts.so";
 #endif
 
-	char scene_filename_buffer[256] = "scenes/2dtest.ascn";
+	char scene_filename_buffer[256] = "scenes/physicstest.ascn";
 	
 	alice_scene_t* scene = alice_new_scene(script_lib_name);
 
 	alice_deserialise_scene(scene, scene_filename_buffer);
-	//alice_serialise_scene(scene, scene_filename_buffer);
 
 	alice_init_scripts(scene->script_context);
 

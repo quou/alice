@@ -12,10 +12,10 @@ scene {
 			use_antialiasing true;
 			shadowmap_resolution 2048;
 			ambient_intensity 0.2;
-			b 1;
+			b 0.917647;
 			ambient_color {
-				r 0.67451;
-				g 0.686275;
+				r 0.678431;
+				g 0.690196;
 			}
 		}
 		physics {
@@ -69,7 +69,6 @@ scene {
 			materials [
 				"materials/vampire.mat";
 			]
-
 		}
 		point_light {
 			name "red lamp";
@@ -208,7 +207,6 @@ scene {
 					materials [
 						"default_material";
 					]
-
 				}
 			}
 		}
@@ -274,7 +272,6 @@ scene {
 					materials [
 						"materials/rustediron.mat";
 					]
-
 				}
 			}
 		}
@@ -345,7 +342,6 @@ scene {
 					materials [
 						"default_material";
 					]
-
 				}
 			}
 		}
@@ -412,7 +408,6 @@ scene {
 						"default_material";
 						"materials/basicphong.mat";
 					]
-
 				}
 			}
 		}
@@ -479,7 +474,6 @@ scene {
 						"default_material";
 						"materials/basicphong.mat";
 					]
-
 				}
 			}
 		}
@@ -546,7 +540,6 @@ scene {
 						"default_material";
 						"materials/basicphong.mat";
 					]
-
 				}
 			}
 		}

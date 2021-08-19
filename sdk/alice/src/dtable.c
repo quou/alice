@@ -365,6 +365,8 @@ alice_dtable_value_array_t* alice_new_dtable_value_array() {
 	new->count = 0;
 	new->capacity = 0;
 
+	new->row_width = 1;
+
 	return new;
 }
 
@@ -524,21 +526,30 @@ static void alice_write_dtable_value(PHYSFS_File* file, alice_dtable_value_t val
 	case ALICE_DTABLE_ARRAY: {
 		alice_dtable_value_array_t* array = value.as.array;
 		PHYSFS_writeBytes(file, "[\n", 2);
+		u32 current_x = 0;
 		for (u32 i = 0; i < array->count; i++) {
-			for (u32 i = 0; i < indent + 1; i++) {
-				PHYSFS_writeBytes(file, "\t", 1);
-			}
+			if (current_x == 0) {
+				for (u32 i = 0; i < indent + 1; i++) {
+					PHYSFS_writeBytes(file, "\t", 1);
+				}
+			}	
 
 			alice_write_dtable_value(file, array->values[i], indent);
 
-			PHYSFS_writeBytes(file, "\n", 1);
+			if (current_x >= array->row_width - 1) {
+				PHYSFS_writeBytes(file, "\n", 1);
+				current_x = 0;
+			} else {
+				PHYSFS_writeBytes(file, " ", 1);
+				current_x++;
+			}
 		}
 
 		for (u32 i = 0; i < indent; i++) {
 			PHYSFS_writeBytes(file, "\t", 1);
 		}
 
-		PHYSFS_writeBytes(file, "]\n", 2);
+		PHYSFS_writeBytes(file, "]", 1);
 	}
 	default:
 		break;

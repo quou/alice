@@ -466,6 +466,7 @@ static void alice_serialise_entity(alice_dtable_t* table, alice_scene_t* scene, 
 
 			{
 				alice_dtable_value_array_t* array = alice_new_dtable_value_array();
+				array->row_width = tilemap->dimentions.x;
 
 				for (u32 y = 0; y < tilemap->dimentions.y; y++) {
 					for (u32 x = 0; x < tilemap->dimentions.x; x++) {
