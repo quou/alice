@@ -394,6 +394,94 @@ static void alice_serialise_entity(alice_dtable_t* table, alice_scene_t* scene, 
 		}
 		case ALICE_ST_TILEMAP: {
 			alice_tilemap_t* tilemap = (alice_tilemap_t*)entity;
+			
+			alice_dtable_t tile_size_table = alice_new_number_dtable("tile_size",
+					(double)tilemap->tile_size);
+			alice_dtable_add_child(&entity_table, tile_size_table);
+
+			alice_dtable_t dimentions_table = alice_new_empty_dtable("dimentions");
+			{
+				alice_dtable_t x_table = alice_new_number_dtable("x", tilemap->dimentions.x);
+				alice_dtable_add_child(&dimentions_table, x_table);
+
+				alice_dtable_t y_table = alice_new_number_dtable("y", tilemap->dimentions.y);
+				alice_dtable_add_child(&dimentions_table, y_table);
+
+				alice_dtable_add_child(&entity_table, dimentions_table);
+			}
+
+			{
+				alice_dtable_t texture_table = alice_new_empty_dtable("texture");
+
+				const char* texture_path = alice_get_texture_resource_filename(tilemap->texture);
+
+				alice_dtable_t path_table = alice_new_string_dtable("path", texture_path);
+				alice_dtable_add_child(&texture_table, path_table);
+
+				alice_dtable_t is_antialiased_table = alice_new_bool_dtable("is_antialiased",
+						tilemap->texture->flags & ALICE_TEXTURE_ANTIALIASED);
+				alice_dtable_add_child(&texture_table, is_antialiased_table);
+
+				alice_dtable_add_child(&entity_table, texture_table);
+			}
+
+			{
+				alice_dtable_t tiles_table = alice_new_empty_dtable("tiles");
+
+				for (u32 i = 0; i < sizeof(tilemap->tiles) / sizeof(*tilemap->tiles); i++) {
+					const alice_v4f_t rect = tilemap->tiles[i];
+
+					if (rect.x == 0.0f && rect.y == 0.0f &&
+							rect.z == 0.0f && rect.w == 0.0f) {
+						continue;
+					}
+
+					alice_dtable_t tile_table = alice_new_empty_dtable("tile");
+
+					alice_dtable_t id_table = alice_new_number_dtable("id", (double)i);
+					alice_dtable_add_child(&tile_table, id_table);
+
+					alice_dtable_t rect_table = alice_new_empty_dtable("rect");
+					{
+						alice_dtable_t x_table = alice_new_number_dtable("x", rect.x);
+						alice_dtable_add_child(&rect_table, x_table);
+
+						alice_dtable_t y_table = alice_new_number_dtable("y", rect.y);
+						alice_dtable_add_child(&rect_table, y_table);
+
+						alice_dtable_t w_table = alice_new_number_dtable("w", rect.z);
+						alice_dtable_add_child(&rect_table, w_table);
+
+						alice_dtable_t h_table = alice_new_number_dtable("h", rect.w);
+						alice_dtable_add_child(&rect_table, h_table);
+
+						alice_dtable_add_child(&tile_table, rect_table);
+					}
+
+					alice_dtable_add_child(&tiles_table, tile_table);
+				}
+
+				alice_dtable_add_child(&entity_table, tiles_table);
+			}
+
+			{
+				alice_dtable_value_array_t* array = alice_new_dtable_value_array();
+
+				for (u32 y = 0; y < tilemap->dimentions.y; y++) {
+					for (u32 x = 0; x < tilemap->dimentions.x; x++) {
+						i32 tile_id = tilemap->data[x + y * tilemap->dimentions.x];
+
+						alice_dtable_value_array_add(array, (alice_dtable_value_t){
+									ALICE_DTABLE_NUMBER,
+									.as = {.number = (double)tile_id }
+								});
+					}
+				}
+
+				alice_dtable_t data_table = alice_new_array_dtable("data", array);
+				alice_dtable_add_child(&entity_table, data_table);
+			}
+
 			break;
 		}
 	}

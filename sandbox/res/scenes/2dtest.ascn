@@ -26,8 +26,8 @@ scene {
 				z 1;
 			}
 			dimentions {
-				x 640;
-				y 480;
+				x 1024;
+				y 728;
 			}
 			stretch false;
 			active true;
@@ -86,7 +86,6 @@ scene {
 				h 150;
 			}
 		}
-
 		tilemap {
 			name "tilemap";
 			position {
@@ -111,7 +110,7 @@ scene {
 			}
 			texture {
 				path "textures/tiles.png";
-				is_antialiased true;
+				is_antialiased false;
 			}
 			tiles {
 				tile {
@@ -134,12 +133,33 @@ scene {
 				}
 			}
 			data [
-				0; 0; 0; 0; 0;
-				0; 0; 1; 1; 0;
-				0; 0; 1; 1; 0;
-				0; 0; 0; 0; 0;
-				0; 0; 0; 0; 0;
+				0;
+				0;
+				0;
+				0;
+				0;
+				0;
+				0;
+				1;
+				1;
+				0;
+				0;
+				0;
+				1;
+				1;
+				0;
+				0;
+				0;
+				0;
+				0;
+				0;
+				0;
+				0;
+				0;
+				0;
+				0;
 			]
+
 		}
 	}
 }

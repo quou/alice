@@ -2063,6 +2063,12 @@ void alice_on_tilemap_create(alice_scene_t* scene, alice_entity_handle_t handle,
 	tilemap->data = alice_null;
 	tilemap->tile_size = 16;
 
+	for (u32 i = 0; i < sizeof(tilemap->tiles) / sizeof(*tilemap->tiles); i++) {
+		tilemap->tiles[i] = (alice_v4f_t) {
+			0.0f, 0.0f, 0.0f, 0.0f
+		};
+	}
+
 	tilemap->dimentions = (alice_v2u_t) { 0, 0 };
 
 	tilemap->texture = alice_null;
