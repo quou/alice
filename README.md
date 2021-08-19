@@ -26,11 +26,11 @@ doesn't have.
 ## Roadmap
  - Level editor
  - Audio
+ - Reflection for scripts
  - Custom shading language
  - Vulkan renderer
  - Software renderer
  - Raytraced renderer
- - C++11 interface
 
 ## Building
 Generate build files using Premake5. Tested with GCC
