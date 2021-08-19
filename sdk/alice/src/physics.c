@@ -56,16 +56,16 @@ static void alice_correct_rigidbody_positions(alice_rigidbody_pair_t* pair) {
 		.z = correction * pair->manifold.normal.z
 	};
 
-	a->base.position = (alice_v3f_t) {
-		.x = a->base.position.x - a->inverse_mass * correction_vector.x,
-		.y = a->base.position.y - a->inverse_mass * correction_vector.y,
-		.z = a->base.position.z - a->inverse_mass * correction_vector.z,
+	a->position = (alice_v3f_t) {
+		.x = a->position.x - a->inverse_mass * correction_vector.x,
+		.y = a->position.y - a->inverse_mass * correction_vector.y,
+		.z = a->position.z - a->inverse_mass * correction_vector.z,
 	};
 
-	b->base.position = (alice_v3f_t) {
-		.x = b->base.position.x + b->inverse_mass * correction_vector.x,
-		.y = b->base.position.y + b->inverse_mass * correction_vector.y,
-		.z = b->base.position.z + b->inverse_mass * correction_vector.z,
+	b->position = (alice_v3f_t) {
+		.x = b->position.x + b->inverse_mass * correction_vector.x,
+		.y = b->position.y + b->inverse_mass * correction_vector.y,
+		.z = b->position.z + b->inverse_mass * correction_vector.z,
 	};
 }
 
@@ -257,9 +257,9 @@ static void alice_tick_physics_engine(alice_physics_engine_t* engine, double tim
 		body->velocity.y = body->constraints.y ? 0.0f : body->velocity.y;
 		body->velocity.z = body->constraints.z ? 0.0f : body->velocity.z;
 
-		body->base.position.x += body->velocity.x * (float)timestep;
-		body->base.position.y += body->velocity.y * (float)timestep;
-		body->base.position.z += body->velocity.z * (float)timestep;
+		body->position.x += body->velocity.x * (float)timestep;
+		body->position.y += body->velocity.y * (float)timestep;
+		body->position.z += body->velocity.z * (float)timestep;
 	}
 
 	/* Check collisions */
@@ -434,10 +434,27 @@ void alice_update_physics_engine(alice_physics_engine_t* engine, double timestep
 		alice_tick_physics_engine(engine, dt);
 		engine->accumulator -= (float)dt;
 	}
+
+	const float alpha = engine->accumulator / dt;
+
+	for (alice_entity_iter(engine->scene, iter, alice_rigidbody_3d_t)) {
+		alice_rigidbody_3d_t* body = iter.current_ptr;
+
+		body->base.position = (alice_v3f_t) {
+			.x = body->old_position.x * alpha + body->position.x * (1.0f - alpha),
+			.y = body->old_position.y * alpha + body->position.y * (1.0f - alpha),
+			.z = body->old_position.z * alpha + body->position.z * (1.0f - alpha)
+		};
+
+		body->old_position = body->position;
+	}
 }
 
 void alice_on_rigidbody_3d_create(alice_scene_t* scene, alice_entity_handle_t handle, void* ptr) {
 	alice_rigidbody_3d_t* rigidbody = ptr;
+
+	rigidbody->position = (alice_v3f_t) { 0.0f, 0.0f, 0.0f };
+	rigidbody->old_position = rigidbody->position;
 
 	rigidbody->mass = 1.0f;
 	rigidbody->restitution = 0.3f;

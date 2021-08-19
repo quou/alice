@@ -961,6 +961,8 @@ static alice_entity_handle_t alice_deserialise_entity(alice_dtable_t* table, ali
 		case ALICE_ST_RIGIDBODY3D: {
 			alice_rigidbody_3d_t* rigidbody = (alice_rigidbody_3d_t*)entity;
 
+			rigidbody->position = rigidbody->base.position;
+
 			alice_dtable_t* mass_table = alice_dtable_find_child(table, "mass");
 			if (mass_table && mass_table->value.type == ALICE_DTABLE_NUMBER) {
 				rigidbody->mass = (float)mass_table->value.as.number;
