@@ -148,7 +148,7 @@ scene {
 		rigidbody_3d {
 			name "cube";
 			position {
-				x -3.81;
+				x -2.04418;
 				y 1.17932;
 				z -3.58818;
 			}
@@ -278,13 +278,13 @@ scene {
 		rigidbody_3d {
 			name "monkey";
 			position {
-				x -0.871357;
+				x -3.36256;
 				y 1.17932;
 				z 3.81;
 			}
 			rotation {
 				x 0;
-				y 381;
+				y 0;
 				z 0;
 			}
 			scale {

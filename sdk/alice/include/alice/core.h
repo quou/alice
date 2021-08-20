@@ -67,6 +67,7 @@ typedef int64_t i64;
 
 ALICE_API char* alice_copy_string(const char* string);
 ALICE_API u32 alice_hash_string(const char* string);
+ALICE_API u32 alice_hash_string_seed(const char* string, u32 seed);
 
 ALICE_API void alice_log(const char* fmt, ...);
 ALICE_API void alice_log_warning(const char* fmt, ...);

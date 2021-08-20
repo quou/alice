@@ -33,6 +33,20 @@ u32 alice_hash_string(const char* string) {
 	return hash;
 }
 
+u32 alice_hash_string_seed(const char* string, u32 seed) {
+	assert(string);
+
+	const u32 len = (u32)strlen(string);
+
+	u32 hash = seed;
+	for (u32 i = 0; i < len; i++) {
+		hash ^= string[i];
+		hash *= 16777619;
+	}
+
+	return hash;
+}
+
 #if defined(ALICE_PLATFORM_LINUX)
 
 #define CONSOLE_COLOR_RESET "\033[0m"
