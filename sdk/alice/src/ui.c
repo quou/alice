@@ -11,6 +11,8 @@
 #include "alice/application.h"
 #include "alice/input.h"
 
+const u32 ui_renderer_max_quads = 800;
+
 static alice_ui_renderer_t* mu_renderer;
 
 alice_ui_renderer_t* alice_new_ui_renderer(alice_shader_t* shader, alice_font_t* font) {
@@ -19,19 +21,14 @@ alice_ui_renderer_t* alice_new_ui_renderer(alice_shader_t* shader, alice_font_t*
 	renderer->shader = shader;
 	renderer->quad_count = 0;
 
-	renderer->atlas = alice_new_texture_from_memory_uncompressed(
-				atlas_texture, sizeof(atlas_texture), 
-				ATLAS_WIDTH, ATLAS_HEIGHT, 1,
-				ALICE_TEXTURE_ANTIALIASED);
-
 	alice_vertex_buffer_t* buffer = alice_new_vertex_buffer(
 			ALICE_VERTEXBUFFER_DRAW_TRIANGLES | ALICE_VERTEXBUFFER_DYNAMIC_DRAW);
 
 	renderer->font = font;
 
 	alice_bind_vertex_buffer_for_edit(buffer);
-	alice_push_vertices(buffer, alice_null, (9 * 4) * 10000);
-	alice_push_indices(buffer, alice_null, 6 * 10000);
+	alice_push_vertices(buffer, alice_null, (9 * 4) * ui_renderer_max_quads);
+	alice_push_indices(buffer, alice_null, 6 * ui_renderer_max_quads);
 	alice_configure_vertex_buffer(buffer, 0, 2, 9, 0); /* vec2 position */
 	alice_configure_vertex_buffer(buffer, 1, 2, 9, 2); /* vec2 uv */
 	alice_configure_vertex_buffer(buffer, 2, 4, 9, 4); /* vec4 color */
@@ -43,12 +40,10 @@ alice_ui_renderer_t* alice_new_ui_renderer(alice_shader_t* shader, alice_font_t*
 	alice_bind_vertex_buffer_for_edit(alice_null);
 
 	renderer->vb = buffer;
-
 }
 
 void alice_free_ui_renderer(alice_ui_renderer_t* renderer) {
 	alice_free_vertex_buffer(renderer->vb);
-	alice_free_texture(renderer->atlas);
 
 	free(renderer);
 }
@@ -92,6 +87,9 @@ void alice_ui_renderer_push_quad(alice_ui_renderer_t* renderer, alice_rect_t dst
 
 	renderer->quad_count++;
 
+	if (renderer->quad_count >= ui_renderer_max_quads) {
+		alice_flush_ui_renderer(renderer);
+	}
 }
 
 void alice_begin_ui_renderer(alice_ui_renderer_t* renderer, u32 width, u32 height) {
@@ -128,7 +126,7 @@ void alice_flush_ui_renderer(alice_ui_renderer_t* renderer) {
 	alice_bind_vertex_buffer_for_edit(alice_null);
 	alice_bind_shader(renderer->shader);	
 
-	alice_bind_texture(renderer->atlas, 0);
+	alice_bind_texture(renderer->icon_texture, 0);
 	alice_shader_set_int(renderer->shader, "atlas", 0);
 
 	alice_bind_texture(renderer->font->bitmap, 1);
@@ -189,11 +187,7 @@ void alice_ui_renderer_draw_rect(alice_ui_renderer_t* renderer, alice_rect_t rec
 
 void alice_ui_renderer_draw_icon(alice_ui_renderer_t* renderer, u32 id, alice_rect_t rect,
 		alice_color_t color, float transparency) {
-	mu_Rect mu_src = atlas[id];
-
-	alice_rect_t src = {
-		mu_src.x, mu_src.y, mu_src.w, mu_src.h
-	};
+	alice_rect_t src = renderer->icon_rects[id];
 
 	i32 x = rect.x + (rect.w - src.w) / 2;
 	i32 y = rect.y + (rect.h - src.h) / 2;
@@ -237,9 +231,22 @@ void alice_set_ui_renderer_clip(alice_ui_renderer_t* renderer, alice_rect_t rect
 
 void alice_init_microui_renderer(alice_shader_t* shader, alice_font_t* font) {
 	mu_renderer = alice_new_ui_renderer(shader, font);
+
+	mu_renderer->icon_texture = alice_new_texture_from_memory_uncompressed(
+				atlas_texture, sizeof(atlas_texture), 
+				ATLAS_WIDTH, ATLAS_HEIGHT, 1,
+				ALICE_TEXTURE_ANTIALIASED);
+
+	for (u32 i = MU_ICON_CLOSE; i <= MU_ICON_MAX; i++) {
+		mu_Rect rect = atlas[i];
+		
+		mu_renderer->icon_rects[i] = (alice_rect_t) {rect.x, rect.y, rect.w, rect.h };
+	}
 }
 
 void alice_deinit_microui_renderer() {
+	alice_free_texture(mu_renderer->icon_texture);
+
 	alice_free_ui_renderer(mu_renderer);
 }
 

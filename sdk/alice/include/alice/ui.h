@@ -20,12 +20,14 @@ typedef struct alice_ui_renderer_t {
 
 	alice_vertex_buffer_t* vb;
 	alice_shader_t* shader;
-	alice_texture_t* atlas;
 
 	alice_font_t* font;
 
 	alice_m4f_t camera;
 	u32 width, height;
+
+	alice_rect_t icon_rects[256];
+	alice_texture_t* icon_texture;
 } alice_ui_renderer_t;
 
 ALICE_API alice_ui_renderer_t* alice_new_ui_renderer(alice_shader_t* shader, alice_font_t* font);
