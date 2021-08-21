@@ -1203,6 +1203,9 @@ void alice_apply_point_lights(alice_scene_t* scene, alice_aabb_t mesh_aabb, alic
 		sprintf(name, "point_lights[%d].range", light_count);
 		alice_shader_set_float(material->shader, name, light->range);
 
+		sprintf(name, "point_lights[%d].cast_shadows", light_count);
+		alice_shader_set_int(material->shader, name, light->cast_shadows);
+
 		light_count++;
 	}
 
@@ -1357,13 +1360,140 @@ void alice_bind_shadowmap_output(alice_shadowmap_t* shadowmap, u32 unit) {
 	glBindTexture(GL_TEXTURE_2D, shadowmap->output);
 }
 
+ALICE_API alice_point_shadowmap_t* alice_new_point_shadowmap(u32 res, alice_shader_t* shader) {
+	alice_point_shadowmap_t* new = malloc(sizeof(alice_point_light_t));
+
+	new->shader = shader;
+	new->res = res;
+
+	glGenFramebuffers(1, &new->framebuffer);
+
+	glGenTextures(1, &new->cubemap);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, new->cubemap);
+	for (u32 i = 0; i < 6; i++) {
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT,
+				res, res, 0, GL_DEPTH_COMPONENT,
+				GL_FLOAT, alice_null);
+	}
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, new->framebuffer);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, new->cubemap, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	return new;
+}
+
+ALICE_API void alice_free_point_shadowmap(alice_point_shadowmap_t* shadowmap) {
+	assert(shadowmap);
+	
+	glDeleteTextures(1, &shadowmap->cubemap);
+	glDeleteFramebuffers(1, &shadowmap->framebuffer);
+
+	free(shadowmap);
+}
+
+ALICE_API void alice_draw_point_shadowmap(alice_point_shadowmap_t* shadowmap,
+		alice_scene_t* scene) {
+
+	assert(shadowmap);
+	assert(scene);
+
+	shadowmap->in_use = false;
+
+	alice_point_light_t* light = alice_null;
+
+	for (alice_entity_iter(scene, iter, alice_point_light_t)) {
+		alice_point_light_t* entity = iter.current_ptr;
+
+		if (entity->cast_shadows) {
+			light = entity;
+			break;
+		}
+	}
+
+	if (!light) { return; }
+
+	alice_v3f_t light_pos = alice_get_entity_world_position(scene, (alice_entity_t*)light);
+
+	shadowmap->in_use = true;
+
+	glViewport(0, 0, shadowmap->res, shadowmap->res);
+	glBindFramebuffer(GL_FRAMEBUFFER, shadowmap->framebuffer);
+	glClear(GL_DEPTH_BUFFER_BIT);
+
+	const float near = 0.0f;
+	const float far = 25.0f;
+
+	alice_m4f_t shadow_proj = alice_m4f_persp(45.0f,
+			(float)shadowmap->res / (float)shadowmap->res, near, far);
+
+	alice_m4f_t shadow_matrices[] = {
+		alice_m4f_multiply(shadow_proj, alice_m4f_lookat(light_pos, (alice_v3f_t){light_pos.x + 1.0f, light_pos.y + 0.0f, light_pos.z + 0.0f}, (alice_v3f_t){0.0f, -1.0f,  0.0f})),
+		alice_m4f_multiply(shadow_proj, alice_m4f_lookat(light_pos, (alice_v3f_t){light_pos.x - 1.0f, light_pos.y + 0.0f, light_pos.z + 0.0f}, (alice_v3f_t){0.0f, -1.0f,  0.0f})),
+		alice_m4f_multiply(shadow_proj, alice_m4f_lookat(light_pos, (alice_v3f_t){light_pos.x + 0.0f, light_pos.y + 1.0f, light_pos.z + 0.0f}, (alice_v3f_t){0.0f,  0.0f,  1.0f})),
+		alice_m4f_multiply(shadow_proj, alice_m4f_lookat(light_pos, (alice_v3f_t){light_pos.x + 0.0f, light_pos.y - 1.0f, light_pos.z + 0.0f}, (alice_v3f_t){0.0f,  0.0f, -1.0f})),
+		alice_m4f_multiply(shadow_proj, alice_m4f_lookat(light_pos, (alice_v3f_t){light_pos.x + 0.0f, light_pos.y + 0.0f, light_pos.z + 1.0f}, (alice_v3f_t){0.0f, -1.0f,  0.0f})),
+		alice_m4f_multiply(shadow_proj, alice_m4f_lookat(light_pos, (alice_v3f_t){light_pos.x + 0.0f, light_pos.y + 0.0f, light_pos.z - 1.0f}, (alice_v3f_t){0.0f, -1.0f,  0.0f}))
+	};
+
+	alice_bind_shader(shadowmap->shader);
+
+	for (u32 i = 0; i < 6; i++) {
+		char name[32];
+		sprintf(name, "shadow_matrices[%d]", i);
+		alice_shader_set_m4f(shadowmap->shader, name, shadow_matrices[i]);
+	}
+
+	alice_shader_set_float(shadowmap->shader, "far", far);
+	alice_shader_set_v3f(shadowmap->shader, "light_position", light_pos);
+
+	for (alice_entity_iter(scene, iter, alice_renderable_3d_t)) {
+		alice_renderable_3d_t* renderable = iter.current_ptr;
+
+		alice_model_t* model = renderable->model;
+		if (!model || !renderable->cast_shadows) {
+			continue;
+		}
+
+		alice_m4f_t transform_matrix = renderable->base.transform;
+
+		for (u32 i = 0; i < model->mesh_count; i++) {
+			alice_mesh_t* mesh = &model->meshes[i];
+			alice_vertex_buffer_t* vb = mesh->vb;
+
+			alice_m4f_t model = alice_m4f_multiply(transform_matrix, mesh->transform);
+			alice_shader_set_m4f(shadowmap->shader, "transform", model);
+
+			alice_bind_vertex_buffer_for_draw(vb);
+			alice_draw_vertex_buffer(vb);
+		}
+	}
+}
+
+ALICE_API void alice_bind_point_shadowmap_output(alice_point_shadowmap_t* shadowmap, u32 unit) {
+	assert(shadowmap);
+
+	glActiveTexture(GL_TEXTURE0 + unit);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, shadowmap->cubemap);
+}
+
 alice_scene_renderer_3d_t* alice_new_scene_renderer_3d(alice_shader_t* postprocess_shader,
-		alice_shader_t* extract_shader, alice_shader_t* blur_shader, alice_shader_t* depth_shader,
-		bool debug, alice_shader_t* debug_shader, u32 shadowmap_resolution) {
+	alice_shader_t* extract_shader, alice_shader_t* blur_shader, alice_shader_t* depth_shader,
+	alice_shader_t* point_depth_shader, bool debug, alice_shader_t* debug_shader,
+	u32 shadowmap_resolution) {
+	
 	assert(postprocess_shader);
 	assert(extract_shader);
 	assert(blur_shader);
 	assert(depth_shader);
+	assert(point_depth_shader);
 
 	alice_scene_renderer_3d_t* new = malloc(sizeof(alice_scene_renderer_3d_t));
 
@@ -1376,6 +1506,7 @@ alice_scene_renderer_3d_t* alice_new_scene_renderer_3d(alice_shader_t* postproce
 	new->extract = extract_shader;
 	new->blur = blur_shader;
 	new->shadowmap = alice_new_shadowmap(shadowmap_resolution, depth_shader);
+	new->point_shadowmap = alice_new_point_shadowmap(1024, point_depth_shader);
 
 	new->use_bloom = false;
 	new->bloom_threshold = 100.0f;
@@ -1425,6 +1556,7 @@ void alice_free_scene_renderer_3d(alice_scene_renderer_3d_t* renderer) {
 	alice_free_vertex_buffer(renderer->quad);
 
 	alice_free_shadowmap(renderer->shadowmap);
+	alice_free_point_shadowmap(renderer->point_shadowmap);
 
 	if (renderer->debug) {
 		alice_free_debug_renderer(renderer->debug_renderer);
@@ -1544,6 +1676,7 @@ void alice_render_scene_3d(alice_scene_renderer_3d_t* renderer, u32 width, u32 h
 	alice_enable_depth();
 
 	alice_draw_shadowmap(renderer->shadowmap, scene, camera);
+	alice_draw_point_shadowmap(renderer->point_shadowmap, scene);
 
 	alice_resize_render_target(renderer->output, width, height);
 	alice_bind_render_target(renderer->output, width, height);
@@ -1602,6 +1735,9 @@ void alice_render_scene_3d(alice_scene_renderer_3d_t* renderer, u32 width, u32 h
 
 			alice_shader_set_int(shader, "shadowmap", 8);
 			alice_bind_shadowmap_output(renderer->shadowmap, 8);
+
+			alice_shader_set_int(shader, "point_shadowmap", 9);
+			alice_bind_point_shadowmap_output(renderer->point_shadowmap, 9);
 
 			alice_m4f_t model = alice_m4f_multiply(transform_matrix, mesh->transform);
 

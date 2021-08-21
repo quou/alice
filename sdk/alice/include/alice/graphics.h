@@ -207,6 +207,8 @@ typedef struct alice_point_light_t {
 	alice_color_t color;
 	float intensity;
 	float range;
+
+	bool cast_shadows;
 } alice_point_light_t;
 
 typedef struct alice_directional_light_t {
@@ -298,6 +300,23 @@ ALICE_API void alice_free_shadowmap(alice_shadowmap_t* shadowmap);
 ALICE_API void alice_draw_shadowmap(alice_shadowmap_t* shadowmap, alice_scene_t* scene, alice_camera_3d_t* camera);
 ALICE_API void alice_bind_shadowmap_output(alice_shadowmap_t* shadowmap, u32 unit);
 
+typedef struct alice_point_shadowmap_t {
+	alice_shader_t* shader;
+
+	u32 res;
+
+	bool in_use;
+
+	u32 cubemap;
+	u32 framebuffer;
+} alice_point_shadowmap_t;
+
+ALICE_API alice_point_shadowmap_t* alice_new_point_shadowmap(u32 res, alice_shader_t* shader);
+ALICE_API void alice_free_point_shadowmap(alice_point_shadowmap_t* shadowmap);
+ALICE_API void alice_draw_point_shadowmap(alice_point_shadowmap_t* shadowmap,
+		alice_scene_t* scene);
+ALICE_API void alice_bind_point_shadowmap_output(alice_point_shadowmap_t* shadowmap, u32 unit);
+
 typedef struct alice_scene_renderer_3d_t {
 	alice_render_target_t* bright_pixels;
 	alice_render_target_t* bloom_ping_pong[2];
@@ -311,6 +330,7 @@ typedef struct alice_scene_renderer_3d_t {
 	alice_debug_renderer_t* debug_renderer;
 
 	alice_shadowmap_t* shadowmap;
+	alice_point_shadowmap_t* point_shadowmap;
 
 	bool use_bloom;
 	float bloom_threshold;
@@ -325,7 +345,8 @@ typedef struct alice_scene_renderer_3d_t {
 
 ALICE_API alice_scene_renderer_3d_t* alice_new_scene_renderer_3d(alice_shader_t* postprocess_shader,
 	alice_shader_t* extract_shader, alice_shader_t* blur_shader, alice_shader_t* depth_shader,
-	bool debug, alice_shader_t* debug_shader, u32 shadowmap_resolution);
+	alice_shader_t* point_depth_shader, bool debug, alice_shader_t* debug_shader,
+	u32 shadowmap_resolution);
 ALICE_API void alice_free_scene_renderer_3d(alice_scene_renderer_3d_t* renderer);
 ALICE_API void alice_render_scene_3d(alice_scene_renderer_3d_t* renderer, u32 width, u32 height,
 	alice_scene_t* scene, alice_render_target_t* render_target);

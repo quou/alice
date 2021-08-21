@@ -66,6 +66,8 @@ struct PointLight {
 	vec3 color;
 	float intensity;
 	float range;
+
+	bool cast_shadows;
 };
 
 struct DirectionalLight {
@@ -86,6 +88,7 @@ uniform float ambient_intensity;
 uniform vec3 ambient_color;
 
 uniform sampler2DShadow shadowmap;
+uniform samplerCube point_shadowmap;
 uniform bool use_shadows = false;
 
 out vec4 color;
@@ -258,6 +261,24 @@ vec3 fresnel_schlick(float cosTheta, vec3 F0) {
 	return F0 + (1.0 - F0) * pow(max(1.0 - cosTheta, 0.0), 5.0);
 }
 
+float calculate_point_shadow(PointLight light) {
+	if (!light.cast_shadows) { return 0.0; }
+
+	vec3 frag_to_light = fs_in.world_pos - light.position;
+
+	float closest_depth = texture(point_shadowmap, frag_to_light).r;
+
+	/* TODO: make this the far plane */
+	closest_depth *= 25.0;
+
+	float current_depth = length(frag_to_light);
+
+	float bias = 0.05;
+	float shadow = current_depth - bias > closest_depth ? 1.0 : 0.0;
+
+	return shadow;
+}
+
 vec3 calculate_point_light(PointLight light, vec3 N, vec3 V, vec3 F0) {
 	vec3 L = normalize(light.position - fs_in.world_pos);
 	vec3 H = normalize(V + L);
@@ -280,7 +301,7 @@ vec3 calculate_point_light(PointLight light, vec3 N, vec3 V, vec3 F0) {
 
 	float NdotL = max(dot(N, L), 0.0);
 
-	return (kD * albedo / PI + specular) * radiance * NdotL;
+	return (1.0 - calculate_point_shadow(light)) * (kD * albedo / PI + specular) * radiance * NdotL;
 }
 
 vec3 calculate_directional_light(DirectionalLight light, vec3 N, vec3 V, vec3 F0) {

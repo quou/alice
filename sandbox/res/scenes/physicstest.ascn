@@ -5,6 +5,7 @@ scene {
 			bright_extract_shader "shaders/bright_extract.glsl";
 			blur_shader "shaders/blur.glsl";
 			depth_shader "shaders/depth.glsl";
+			point_depth_shader "shaders/point_depth.glsl";
 			debug false;
 			use_bloom false;
 			bloom_threshold 1;
@@ -12,10 +13,10 @@ scene {
 			use_antialiasing true;
 			shadowmap_resolution 2048;
 			ambient_intensity 0.2;
-			b 0.917647;
+			b 1;
 			ambient_color {
-				r 0.678431;
-				g 0.690196;
+				r 0.67451;
+				g 0.686275;
 			}
 		}
 		physics {
@@ -94,6 +95,7 @@ scene {
 			}
 			range 1.49998;
 			intensity 280;
+			cast_shadows false;
 		}
 		point_light {
 			name "blue lamp";
@@ -119,6 +121,7 @@ scene {
 			}
 			range 2.30012;
 			intensity 280;
+			cast_shadows true;
 		}
 		directional_light {
 			name "sun";
@@ -148,7 +151,7 @@ scene {
 		rigidbody_3d {
 			name "cube";
 			position {
-				x -2.04418;
+				x -1.43223;
 				y 1.17932;
 				z -3.58818;
 			}
@@ -213,7 +216,7 @@ scene {
 		rigidbody_3d {
 			name "sphere";
 			position {
-				x 3.4273;
+				x 4.17517;
 				y 1.17932;
 				z 0.684062;
 			}
@@ -278,9 +281,9 @@ scene {
 		rigidbody_3d {
 			name "monkey";
 			position {
-				x -3.36256;
-				y 1.17932;
-				z 3.81;
+				x -0.061541;
+				y 5.09108;
+				z -0.149833;
 			}
 			rotation {
 				x 0;

@@ -213,6 +213,10 @@ static void alice_serialise_entity(alice_dtable_t* table, alice_scene_t* scene, 
 			alice_dtable_t intensity_table = alice_new_number_dtable("intensity", light->intensity);
 			alice_dtable_add_child(&entity_table, intensity_table);
 
+			alice_dtable_t cast_shadows_table = alice_new_bool_dtable("cast_shadows",
+					light->cast_shadows);
+			alice_dtable_add_child(&entity_table, cast_shadows_table);
+
 			break;
 		}
 		case ALICE_ST_DIRECTIONALLIGHT: {
@@ -528,6 +532,12 @@ void alice_serialise_scene(alice_scene_t* scene, const char* file_path) {
 		if (scene->renderer->shadowmap->shader) {
 			alice_dtable_t shader_table = alice_new_string_dtable("depth_shader",
 					alice_get_resource_filename(scene->renderer->shadowmap->shader));
+			alice_dtable_add_child(&renderer_table, shader_table);
+		}
+
+		if (scene->renderer->point_shadowmap->shader) {
+			alice_dtable_t shader_table = alice_new_string_dtable("point_depth_shader",
+					alice_get_resource_filename(scene->renderer->point_shadowmap->shader));
 			alice_dtable_add_child(&renderer_table, shader_table);
 		}
 
@@ -897,6 +907,11 @@ static alice_entity_handle_t alice_deserialise_entity(alice_dtable_t* table, ali
 				light->intensity = (float)intensity_table->value.as.number;
 			}
 
+			alice_dtable_t* cast_shadows_table = alice_dtable_find_child(table, "cast_shadows");
+			if (cast_shadows_table && cast_shadows_table->value.type == ALICE_DTABLE_BOOL) {
+				light->cast_shadows = cast_shadows_table->value.as.boolean;
+			}
+
 			alice_dtable_t* color_table = alice_dtable_find_child(table, "color");
 			if (color_table) {
 				alice_rgb_color_t color = (alice_rgb_color_t){1.0, 1.0, 1.0};
@@ -1223,6 +1238,7 @@ void alice_deserialise_scene(alice_scene_t* scene, const char* file_path) {
 			alice_shader_t* extract = alice_null;
 			alice_shader_t* debug_shader = alice_null;
 			alice_shader_t* depth_shader = alice_null;
+			alice_shader_t* point_depth_shader = alice_null;
 			bool debug = false;
 			u32 shadowmap_resolution = 1024;
 
@@ -1257,6 +1273,12 @@ void alice_deserialise_scene(alice_scene_t* scene, const char* file_path) {
 				depth_shader = alice_load_shader(depth_shader_table->value.as.string);
 			}
 
+			alice_dtable_t* point_depth_shader_table = alice_dtable_find_child(renderer_3d_table,
+					"point_depth_shader");
+			if (point_depth_shader_table && point_depth_shader_table->value.type == ALICE_DTABLE_STRING) {
+				point_depth_shader = alice_load_shader(point_depth_shader_table->value.as.string);
+			}
+
 			alice_dtable_t* debug_table = alice_dtable_find_child(renderer_3d_table, "debug");
 			if (debug_table && debug_table->value.type == ALICE_DTABLE_BOOL) {
 				debug = debug_table->value.as.boolean;
@@ -1269,7 +1291,7 @@ void alice_deserialise_scene(alice_scene_t* scene, const char* file_path) {
 			}
 
 			scene->renderer = alice_new_scene_renderer_3d(postprocess, extract, blur, depth_shader,
-					debug, debug_shader, shadowmap_resolution);
+					point_depth_shader, debug, debug_shader, shadowmap_resolution);
 			scene->renderer->use_antialiasing = true;
 			scene->renderer->use_bloom = true;
 
