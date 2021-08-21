@@ -56,10 +56,7 @@ ALICE_API const char* alice_get_file_extension(const char* file_name);
 ALICE_API const char* alice_get_file_name(const char* file_path);
 ALICE_API alice_resource_type_t alice_predict_resource_type(const char* file_extension);
 
-ALICE_API const char* alice_get_texture_resource_filename(alice_texture_t* texture);
-ALICE_API const char* alice_get_shader_resource_filename(alice_shader_t* shader);
-ALICE_API const char* alice_get_material_resource_filename(alice_material_t* material);
-ALICE_API const char* alice_get_model_resource_filename(alice_model_t* model);
+ALICE_API const char* alice_get_resource_filename(void* payload);
 
 ALICE_API void alice_get_working_dir(char* working_dir);
 

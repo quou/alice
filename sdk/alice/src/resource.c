@@ -340,60 +340,16 @@ const char* alice_get_file_name(const char* file_path) {
 	return slash + 1;
 }
 
-const char* alice_get_texture_resource_filename(alice_texture_t* texture) {
-	assert(texture);
-
+const char* alice_get_resource_filename(void* payload) {
 	for (u32 i = 0; i < rm.table->capacity; i++) {
 		alice_resource_t* resource = rm.table->entries[i].value;
 
-		if (resource && resource->payload == texture) {
+		if (resource && resource->payload == payload || resource == payload) {
 			return resource->file_name;
 		}
 	}
 
-	return NULL;
-}
-
-const char* alice_get_shader_resource_filename(alice_shader_t* shader) {
-	assert(shader);
-
-	for (u32 i = 0; i < rm.table->capacity; i++) {
-		alice_resource_t* resource = rm.table->entries[i].value;
-
-		if (resource && resource->payload == shader) {
-			return resource->file_name;
-		}
-	}
-
-	return NULL;
-}
-
-const char* alice_get_material_resource_filename(alice_material_t* material) {
-	assert(material);
-
-	for (u32 i = 0; i < rm.table->capacity; i++) {
-		alice_resource_t* resource = rm.table->entries[i].value;
-
-		if (resource && resource->payload == material) {
-			return resource->file_name;
-		}
-	}
-
-	return NULL;
-}
-
-const char* alice_get_model_resource_filename(alice_model_t* model) {
-	assert(model);
-
-	for (u32 i = 0; i < rm.table->capacity; i++) {
-		alice_resource_t* resource = rm.table->entries[i].value;
-
-		if (resource && resource->payload == model) {
-			return resource->file_name;
-		}
-	}
-
-	return NULL;
+	return alice_null;
 }
 
 static bool impl_alice_load_binary(alice_resource_t* resource, const char* path) {
@@ -1124,7 +1080,7 @@ void alice_iterate_resource_directory(const char* directory, alice_resource_iter
 		char path[256];
 		strncpy(path, directory, 128);
 		if (path[strlen(path) - 1] != '/') {
-			strncat(path, "/", 1);
+			strcat(path, "/");
 		}
 		strncat(path, *i, 127);
 
@@ -1146,7 +1102,7 @@ static void impl_alice_save_material_texture(alice_dtable_t* parent_table,
 		const char* name, alice_texture_t* texture) {
 	if (!texture) { return; }
 
-	const char* texture_path = alice_get_texture_resource_filename(texture);
+	const char* texture_path = alice_get_resource_filename(texture);
 	alice_dtable_t texture_table = alice_new_empty_dtable(name);
 
 	alice_dtable_t path_table = alice_new_string_dtable("path", texture_path);
@@ -1239,7 +1195,7 @@ void alice_save_material(alice_material_t* material, const char* path) {
 
 	alice_dtable_t material_table = alice_new_empty_dtable("material");
 
-	const char* shader_path = alice_get_shader_resource_filename(material->shader);
+	const char* shader_path = alice_get_resource_filename(material->shader);
 	alice_dtable_t shader_table = alice_new_string_dtable("shader", shader_path);
 	alice_dtable_add_child(&material_table, shader_table);
 

@@ -159,7 +159,7 @@ static void alice_serialise_entity(alice_dtable_t* table, alice_scene_t* scene, 
 		case ALICE_ST_RENDERABLE3D: {
 			alice_renderable_3d_t* renderable = (alice_renderable_3d_t*)entity;
 
-			const char* model_path = alice_get_model_resource_filename(renderable->model);
+			const char* model_path = alice_get_resource_filename(renderable->model);
 
 			alice_dtable_t cast_shadows_table = alice_new_bool_dtable("cast_shadows",
 					renderable->cast_shadows);
@@ -174,7 +174,7 @@ static void alice_serialise_entity(alice_dtable_t* table, alice_scene_t* scene, 
 				alice_material_t* material = renderable->materials[i];
 
 				const char* material_path =
-					alice_get_material_resource_filename(material);
+					alice_get_resource_filename(material);
 				if (strcmp(material_path, "default_material") != 0) {
 					alice_save_material(material, material_path);
 				}
@@ -362,7 +362,7 @@ static void alice_serialise_entity(alice_dtable_t* table, alice_scene_t* scene, 
 
 			alice_dtable_t image_table = alice_new_empty_dtable("image");
 
-			const char* image_path = alice_get_texture_resource_filename(sprite->image);
+			const char* image_path = alice_get_resource_filename(sprite->image);
 
 			alice_dtable_t path_table = alice_new_string_dtable("path", image_path);
 			alice_dtable_add_child(&image_table, path_table);
@@ -413,7 +413,7 @@ static void alice_serialise_entity(alice_dtable_t* table, alice_scene_t* scene, 
 			{
 				alice_dtable_t texture_table = alice_new_empty_dtable("texture");
 
-				const char* texture_path = alice_get_texture_resource_filename(tilemap->texture);
+				const char* texture_path = alice_get_resource_filename(tilemap->texture);
 
 				alice_dtable_t path_table = alice_new_string_dtable("path", texture_path);
 				alice_dtable_add_child(&texture_table, path_table);
@@ -509,25 +509,25 @@ void alice_serialise_scene(alice_scene_t* scene, const char* file_path) {
 
 		if (scene->renderer->postprocess) {
 			alice_dtable_t shader_table = alice_new_string_dtable("postprocess_shader",
-					alice_get_shader_resource_filename(scene->renderer->postprocess));
+					alice_get_resource_filename(scene->renderer->postprocess));
 			alice_dtable_add_child(&renderer_table, shader_table);
 		}
 
 		if (scene->renderer->extract) {
 			alice_dtable_t shader_table = alice_new_string_dtable("bright_extract_shader",
-					alice_get_shader_resource_filename(scene->renderer->extract));
+					alice_get_resource_filename(scene->renderer->extract));
 			alice_dtable_add_child(&renderer_table, shader_table);
 		}
 
 		if (scene->renderer->blur) {
 			alice_dtable_t shader_table = alice_new_string_dtable("blur_shader",
-					alice_get_shader_resource_filename(scene->renderer->blur));
+					alice_get_resource_filename(scene->renderer->blur));
 			alice_dtable_add_child(&renderer_table, shader_table);
 		}
 
 		if (scene->renderer->shadowmap->shader) {
 			alice_dtable_t shader_table = alice_new_string_dtable("depth_shader",
-					alice_get_shader_resource_filename(scene->renderer->shadowmap->shader));
+					alice_get_resource_filename(scene->renderer->shadowmap->shader));
 			alice_dtable_add_child(&renderer_table, shader_table);
 		}
 
@@ -536,7 +536,7 @@ void alice_serialise_scene(alice_scene_t* scene, const char* file_path) {
 
 		if (scene->renderer->debug) {
 			alice_dtable_t shader_table = alice_new_string_dtable("line_shader",
-					alice_get_shader_resource_filename(
+					alice_get_resource_filename(
 						scene->renderer->debug_renderer->line_shader));
 			alice_dtable_add_child(&renderer_table, shader_table);
 		}
@@ -596,7 +596,7 @@ void alice_serialise_scene(alice_scene_t* scene, const char* file_path) {
 		alice_dtable_t renderer_table = alice_new_empty_dtable("renderer_2d");
 
 		const char* sprite_shader_path =
-			alice_get_shader_resource_filename(scene->renderer_2d->sprite_shader);
+			alice_get_resource_filename(scene->renderer_2d->sprite_shader);
 
 		alice_dtable_t sprite_shader_path_table =
 			alice_new_string_dtable("sprite_shader", sprite_shader_path);

@@ -15,7 +15,6 @@
 #include <alice/scripting.h>
 #include <alice/physics.h>
 #include <alice/debugrenderer.h>
-#include <alice/hashtable.h>
 
 typedef struct sandbox_t {
 	alice_entity_handle_t selected_entity;
@@ -23,50 +22,6 @@ typedef struct sandbox_t {
 } sandbox_t;
 
 sandbox_t sandbox;
-
-static u32 hash_func(void* in, u32 seed) {
-	return alice_hash_string(in);
-}
-
-static bool equal_func(void* a, void* b) {
-	//alice_log("%s, %s", a, b);
-	return strcmp(a, b) == 0;
-}
-
-static void hashtable_test() {
-	alice_hashtable_t* table = alice_new_hashtable(hash_func, equal_func, alice_null);
-
-	u32 is[100];
-
-	for (u32 i = 0; i < 100; i++) {
-		is[i] = i;
-	}
-
-	alice_hashtable_set(table, "thing", &is[25]);
-	alice_hashtable_set(table, "another thing", &is[21]);
-	alice_hashtable_set(table, "yes", &is[22]);
-	alice_hashtable_set(table, "haha", &is[23]);
-	alice_hashtable_set(table, "hello", &is[24]);
-	alice_hashtable_set(table, "no", &is[27]);
-
-	alice_hashtable_set(table, " sss thing", &is[1]);
-	alice_hashtable_set(table, "#another thing", &is[21]);
-	alice_hashtable_set(table, "#yes", &is[90]);
-	alice_hashtable_set(table, "@haha", &is[23]);
-	alice_hashtable_set(table, "#hello", &is[24]);
-	alice_hashtable_set(table, "@no", &is[30]);
-
-	u32* i;
-	if (alice_hashtable_get(table, "thing", (void**)&i)) {
-		alice_log("%d", *i);
-	}
-
-	if (alice_hashtable_get(table, "yes", (void**)&i)) {
-		alice_log("%d", *i);
-	}
-
-	alice_free_hashtable(table);
-}
 
 static void draw_entity_hierarchy(mu_Context* ui, alice_scene_t* scene, alice_entity_handle_t entity) {
 	assert(ui);
@@ -140,8 +95,10 @@ static void draw_renderable_properties(mu_Context* ui, alice_scene_t* scene, ali
 				static alice_material_t* old_material = alice_null;
 
 				if (material && old_material != material) {
-					const char* material_path = alice_get_material_resource_filename(material);
-					strncpy(material_buf, material_path, 256);
+					const char* material_path = alice_get_resource_filename(material);
+					if (material_path) {
+						strncpy(material_buf, material_path, 256);
+					}
 
 					old_material = material;
 				}
@@ -162,9 +119,6 @@ static void draw_renderable_properties(mu_Context* ui, alice_scene_t* scene, ali
 }
 
 void main() {
-	hashtable_test();
-	return;
-
 	alice_init_resource_manager("res");
 	alice_init_application((alice_application_config_t){
 				.name = "sandbox",
