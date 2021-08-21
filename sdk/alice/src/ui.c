@@ -10,37 +10,16 @@
 #include "alice/ui.h"
 #include "alice/application.h"
 #include "alice/input.h"
-#include "alice/graphics.h"
 
-typedef struct alice_opengl_state_backup_t {
-	bool blend;
-	bool cull_face;
-	bool depth_test;
-	bool scissor_test;
-} alice_opengl_state_backup_t;
+static alice_ui_renderer_t* mu_renderer;
 
-typedef struct alice_ui_renderer_t {
-	alice_opengl_state_backup_t backup;
+alice_ui_renderer_t* alice_new_ui_renderer(alice_shader_t* shader, alice_font_t* font) {
+	alice_ui_renderer_t* renderer = malloc(sizeof(alice_ui_renderer_t));
 
-	u32 quad_count;
+	renderer->shader = shader;
+	renderer->quad_count = 0;
 
-	alice_vertex_buffer_t* vb;
-	alice_shader_t* shader;
-	alice_texture_t* atlas;
-
-	alice_font_t* font;
-
-	alice_m4f_t camera;
-	u32 width, height;
-} alice_ui_renderer_t;
-
-static alice_ui_renderer_t renderer;
-
-void alice_init_microui_renderer(alice_shader_t* shader, alice_font_t* font) {
-	renderer.shader = shader;
-	renderer.quad_count = 0;
-
-	renderer.atlas = alice_new_texture_from_memory_uncompressed(
+	renderer->atlas = alice_new_texture_from_memory_uncompressed(
 				atlas_texture, sizeof(atlas_texture), 
 				ATLAS_WIDTH, ATLAS_HEIGHT, 1,
 				ALICE_TEXTURE_ANTIALIASED);
@@ -48,7 +27,7 @@ void alice_init_microui_renderer(alice_shader_t* shader, alice_font_t* font) {
 	alice_vertex_buffer_t* buffer = alice_new_vertex_buffer(
 			ALICE_VERTEXBUFFER_DRAW_TRIANGLES | ALICE_VERTEXBUFFER_DYNAMIC_DRAW);
 
-	renderer.font = font;
+	renderer->font = font;
 
 	alice_bind_vertex_buffer_for_edit(buffer);
 	alice_push_vertices(buffer, alice_null, (9 * 4) * 10000);
@@ -63,16 +42,20 @@ void alice_init_microui_renderer(alice_shader_t* shader, alice_font_t* font) {
 	alice_configure_vertex_buffer(buffer, 3, 1, 9, 8); /* float mode */
 	alice_bind_vertex_buffer_for_edit(alice_null);
 
-	renderer.vb = buffer;
+	renderer->vb = buffer;
+
 }
 
-void alice_deinit_microui_renderer() {
-	alice_free_vertex_buffer(renderer.vb);
-	alice_free_texture(renderer.atlas);
+void alice_free_ui_renderer(alice_ui_renderer_t* renderer) {
+	alice_free_vertex_buffer(renderer->vb);
+	alice_free_texture(renderer->atlas);
+
+	free(renderer);
 }
 
-static void alice_microui_renderer_push_quad(alice_rect_t dst, alice_rect_t src, mu_Color color, u32 mode) {
-	alice_bind_vertex_buffer_for_edit(renderer.vb);
+void alice_ui_renderer_push_quad(alice_ui_renderer_t* renderer, alice_rect_t dst, alice_rect_t src, 
+		alice_color_t color, float transparency, u32 mode) {
+	alice_bind_vertex_buffer_for_edit(renderer->vb);
 
 	float tx = src.x;
 	float ty = src.y;
@@ -86,60 +69,36 @@ static void alice_microui_renderer_push_quad(alice_rect_t dst, alice_rect_t src,
 		th /= (float)ATLAS_HEIGHT;
 	}
 
-	alice_rgb_color_t col;
-	col.r = (float)color.r / 255.0f;
-	col.g = (float)color.g / 255.0f;
-	col.b = (float)color.b / 255.0f;
+	alice_rgb_color_t col = alice_rgb_color_from_color(color);
 
 	float verts[] = {
-		dst.x, 		dst.y,		tx, 		ty, 	col.r, col.g, col.b, (float)color.a / 255.0f, (float)mode,
-		dst.x + dst.w, 	dst.y,		tx + tw, 	ty, 	col.r, col.g, col.b, (float)color.a / 255.0f, (float)mode,
-		dst.x + dst.w, 	dst.y + dst.h,	tx + tw, 	ty + th, col.r, col.g, col.b, (float)color.a / 255.0f, (float)mode,
-		dst.x, 		dst.y + dst.h,	tx,		ty + th, col.r, col.g, col.b, (float)color.a / 255.0f, (float)mode
+		dst.x, 		dst.y,		tx, 		ty, 	col.r, col.g, col.b, transparency, (float)mode,
+		dst.x + dst.w, 	dst.y,		tx + tw, 	ty, 	col.r, col.g, col.b, transparency, (float)mode,
+		dst.x + dst.w, 	dst.y + dst.h,	tx + tw, 	ty + th, col.r, col.g, col.b, transparency, (float)mode,
+		dst.x, 		dst.y + dst.h,	tx,		ty + th, col.r, col.g, col.b, transparency, (float)mode
 	};
 
-	const u32 index_offset = renderer.quad_count * 4;
+	const u32 index_offset = renderer->quad_count * 4;
 
 	u32 indices[] = {
 		index_offset + 3, index_offset + 2, index_offset + 1,
 		index_offset + 3, index_offset + 1, index_offset + 0
 	};
 
-	alice_update_vertices(renderer.vb, verts, renderer.quad_count * 9 * 4, 9 * 4);
-	alice_update_indices(renderer.vb, indices, renderer.quad_count * 6, 6);
+	alice_update_vertices(renderer->vb, verts, renderer->quad_count * 9 * 4, 9 * 4);
+	alice_update_indices(renderer->vb, indices, renderer->quad_count * 6, 6);
 
 	alice_bind_vertex_buffer_for_edit(alice_null);
 
-	renderer.quad_count++;
+	renderer->quad_count++;
+
 }
 
-static void alice_flush_microui_renderer() {
-	alice_bind_vertex_buffer_for_edit(alice_null);
-	alice_bind_shader(renderer.shader);	
-
-	alice_bind_texture(renderer.atlas, 0);
-	alice_shader_set_int(renderer.shader, "atlas", 0);
-
-	alice_bind_texture(renderer.font->bitmap, 1);
-	alice_shader_set_int(renderer.shader, "font", 1);
-
-	alice_shader_set_m4f(renderer.shader, "camera", renderer.camera);
-
-	alice_bind_vertex_buffer_for_draw(renderer.vb);
-	alice_draw_vertex_buffer_custom_count(renderer.vb, renderer.quad_count * 6);
-	alice_bind_vertex_buffer_for_draw(alice_null);
-
-	alice_bind_texture(alice_null, 0);
-	alice_bind_shader(alice_null);
-
-	renderer.quad_count = 0;
-}
-
-static void alice_begin_microui_render(u32 width, u32 height) {
-	renderer.backup.blend = glIsEnabled(GL_BLEND);
-	renderer.backup.cull_face = glIsEnabled(GL_CULL_FACE);
-	renderer.backup.depth_test = glIsEnabled(GL_DEPTH_TEST);
-	renderer.backup.scissor_test = glIsEnabled(GL_SCISSOR_TEST);
+void alice_begin_ui_renderer(alice_ui_renderer_t* renderer, u32 width, u32 height) {
+	renderer->backup.blend = glIsEnabled(GL_BLEND);
+	renderer->backup.cull_face = glIsEnabled(GL_CULL_FACE);
+	renderer->backup.depth_test = glIsEnabled(GL_DEPTH_TEST);
+	renderer->backup.scissor_test = glIsEnabled(GL_SCISSOR_TEST);
 
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
@@ -147,38 +106,56 @@ static void alice_begin_microui_render(u32 width, u32 height) {
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_SCISSOR_TEST);
 
-	renderer.quad_count = 0;
+	renderer->quad_count = 0;
 
-	renderer.width = width;
-	renderer.height = height;
-	renderer.camera = alice_m4f_ortho(0.0f, (float)width, (float)height, 0.0f, -1.0f, 1.0f);
+	renderer->width = width;
+	renderer->height = height;
+	renderer->camera = alice_m4f_ortho(0.0f, (float)width, (float)height, 0.0f, -1.0f, 1.0f);
 
 	glScissor(0.0f, 0.0f, (float)width, (float)height);
 }
 
-static void alice_end_microui_render() {
-	alice_flush_microui_renderer();
+void alice_end_ui_renderer(alice_ui_renderer_t* renderer) {
+	alice_flush_ui_renderer(renderer);
 
-	if (renderer.backup.blend) {        glEnable(GL_BLEND); }        else { glDisable(GL_BLEND); }
-	if (renderer.backup.cull_face) {    glEnable(GL_CULL_FACE); }    else { glDisable(GL_CULL_FACE); }
-	if (renderer.backup.depth_test) {   glEnable(GL_DEPTH_TEST); }   else { glDisable(GL_DEPTH_TEST); }
-	if (renderer.backup.scissor_test) { glEnable(GL_SCISSOR_TEST); } else { glDisable(GL_SCISSOR_TEST); }
+	if (renderer->backup.blend) {        glEnable(GL_BLEND); }        else { glDisable(GL_BLEND); }
+	if (renderer->backup.cull_face) {    glEnable(GL_CULL_FACE); }    else { glDisable(GL_CULL_FACE); }
+	if (renderer->backup.depth_test) {   glEnable(GL_DEPTH_TEST); }   else { glDisable(GL_DEPTH_TEST); }
+	if (renderer->backup.scissor_test) { glEnable(GL_SCISSOR_TEST); } else { glDisable(GL_SCISSOR_TEST); }
 }
 
-static void alice_set_microui_renderer_clip(mu_Rect rect) {
-	alice_flush_microui_renderer();
-	glScissor(rect.x, renderer.height - (rect.y + rect.h), rect.w, rect.h);
+void alice_flush_ui_renderer(alice_ui_renderer_t* renderer) {
+	alice_bind_vertex_buffer_for_edit(alice_null);
+	alice_bind_shader(renderer->shader);	
+
+	alice_bind_texture(renderer->atlas, 0);
+	alice_shader_set_int(renderer->shader, "atlas", 0);
+
+	alice_bind_texture(renderer->font->bitmap, 1);
+	alice_shader_set_int(renderer->shader, "font", 1);
+
+	alice_shader_set_m4f(renderer->shader, "camera", renderer->camera);
+
+	alice_bind_vertex_buffer_for_draw(renderer->vb);
+	alice_draw_vertex_buffer_custom_count(renderer->vb, renderer->quad_count * 6);
+	alice_bind_vertex_buffer_for_draw(alice_null);
+
+	alice_bind_texture(alice_null, 0);
+	alice_bind_shader(alice_null);
+
+	renderer->quad_count = 0;
 }
 
-static void alice_render_microui_text(const char* text, mu_Vec2 pos, mu_Color color) {
-	mu_Rect dst = { pos.x, pos.y, 0, 0 };
+void alice_ui_renderer_draw_text(alice_ui_renderer_t* renderer, const char* text,
+		alice_v2f_t position, alice_color_t color, float transparency) {
+	alice_rect_t dst = { position.x, position.y, 0, 0 };
 
-	float xpos = pos.x, ypos = pos.y + 12;
+	float xpos = position.x, ypos = position.y + 12;
 
 	for (const char* c = text; *c; c++) {
 		stbtt_aligned_quad quad;
-		stbtt_GetPackedQuad((stbtt_packedchar*)renderer.font->char_data,
-				renderer.font->bitmap->width, renderer.font->bitmap->height,
+		stbtt_GetPackedQuad((stbtt_packedchar*)renderer->font->char_data,
+				renderer->font->bitmap->width, renderer->font->bitmap->height,
 				*c - 32, &xpos, &ypos, &quad, 0);
 
 		alice_rect_t src = { 
@@ -191,11 +168,12 @@ static void alice_render_microui_text(const char* text, mu_Vec2 pos, mu_Color co
 			quad.x1 - quad.x0, quad.y1 - quad.y0
 		};
 
-		alice_microui_renderer_push_quad(dst, src, color, 2);
+		alice_ui_renderer_push_quad(renderer, dst, src, color, transparency, 2);
 	}
 }
 
-static void alice_render_microui_rect(mu_Rect rect, mu_Color color) {
+void alice_ui_renderer_draw_rect(alice_ui_renderer_t* renderer, alice_rect_t rect,
+		alice_color_t color, float transparency) {
 	alice_rect_t dst = {
 		rect.x, rect.y, rect.w, rect.h
 	};
@@ -206,10 +184,11 @@ static void alice_render_microui_rect(mu_Rect rect, mu_Color color) {
 		mu_src.x, mu_src.y, mu_src.w, mu_src.h
 	};
 
-	alice_microui_renderer_push_quad(dst, src, color, 0);
+	alice_ui_renderer_push_quad(renderer, dst, src, color, transparency, 0);
 }
 
-static void alice_render_microui_icon(i32 id, mu_Rect rect, mu_Color color) {
+void alice_ui_renderer_draw_icon(alice_ui_renderer_t* renderer, u32 id, alice_rect_t rect,
+		alice_color_t color, float transparency) {
 	mu_Rect mu_src = atlas[id];
 
 	alice_rect_t src = {
@@ -219,17 +198,17 @@ static void alice_render_microui_icon(i32 id, mu_Rect rect, mu_Color color) {
 	i32 x = rect.x + (rect.w - src.w) / 2;
 	i32 y = rect.y + (rect.h - src.h) / 2;
 
-	alice_microui_renderer_push_quad((alice_rect_t) {x, y, src.w, src.h}, src, color, 1);
+	alice_ui_renderer_push_quad(renderer, (alice_rect_t) {x, y, src.w, src.h}, src, color, transparency, 1);
 }
 
-i32 alice_microui_text_width(mu_Font font, const char* text, i32 len) {
+float alice_ui_text_width(alice_ui_renderer_t* renderer, const char* text) {
 	float result = 0.0f;
 
 	float xpos = 0.0f, ypos = 0.0f;
-	for (const char* c = text; *c && len--; c++) {
+	for (const char* c = text; *c; c++) {
 		stbtt_aligned_quad quad;
-		stbtt_GetPackedQuad((stbtt_packedchar*)renderer.font->char_data,
-				renderer.font->bitmap->width, renderer.font->bitmap->height,
+		stbtt_GetPackedQuad((stbtt_packedchar*)renderer->font->char_data,
+				renderer->font->bitmap->width, renderer->font->bitmap->height,
 				*c - 32, &xpos, &ypos, &quad, 0);
 
 		result += quad.x1 - quad.x0;
@@ -237,18 +216,95 @@ i32 alice_microui_text_width(mu_Font font, const char* text, i32 len) {
 		const char* next = c + 1;
 		if (*next != '\0') {
 			stbtt_aligned_quad next_quad;
-			stbtt_GetPackedQuad((stbtt_packedchar*)renderer.font->char_data,
-					renderer.font->bitmap->width, renderer.font->bitmap->height,
+			stbtt_GetPackedQuad((stbtt_packedchar*)renderer->font->char_data,
+					renderer->font->bitmap->width, renderer->font->bitmap->height,
 					*c - 32, &xpos, &ypos, &next_quad, 0);
 			result += next_quad.x0 - quad.x1;
 		}
 	}
 
-	return (i32)result;
+	return result;
+}
+
+float alice_ui_tect_height(alice_ui_renderer_t* renderer) {
+	return renderer->font->size;
+}
+
+void alice_set_ui_renderer_clip(alice_ui_renderer_t* renderer, alice_rect_t rect) {
+	alice_flush_ui_renderer(renderer);
+	glScissor(rect.x, renderer->height - (rect.y + rect.h), rect.w, rect.h);
+}
+
+void alice_init_microui_renderer(alice_shader_t* shader, alice_font_t* font) {
+	mu_renderer = alice_new_ui_renderer(shader, font);
+}
+
+void alice_deinit_microui_renderer() {
+	alice_free_ui_renderer(mu_renderer);
+}
+
+static void alice_microui_renderer_push_quad(alice_rect_t dst, alice_rect_t src, mu_Color color, u32 mode) {
+	alice_rgb_color_t rgb = { (float)color.r / 255.0f, (float)color.g / 255.0f, (float)color.b / 255.0f };
+
+	alice_color_t c = alice_color_from_rgb_color(rgb);
+
+	alice_ui_renderer_push_quad(mu_renderer, dst, src, c, (float)color.a / 255.0f, mode);
+}
+
+static void alice_flush_microui_renderer() {
+	alice_flush_ui_renderer(mu_renderer);
+}
+
+static void alice_begin_microui_render(u32 width, u32 height) {
+	alice_begin_ui_renderer(mu_renderer, width, height);
+}
+
+static void alice_end_microui_render() {
+	alice_end_ui_renderer(mu_renderer);
+}
+
+static void alice_set_microui_renderer_clip(mu_Rect rect) {
+	alice_rect_t r = { rect.x, rect.y, rect.w, rect.h };
+
+	alice_set_ui_renderer_clip(mu_renderer, r);
+}
+
+static void alice_render_microui_text(const char* text, mu_Vec2 pos, mu_Color color) {
+	alice_v2f_t p = { pos.x, pos.y };
+
+	alice_rgb_color_t rgb = { (float)color.r / 255.0f, (float)color.g / 255.0f, (float)color.b / 255.0f };
+
+	alice_color_t c = alice_color_from_rgb_color(rgb);
+
+	alice_ui_renderer_draw_text(mu_renderer, text, p, c, (float)color.a / 255.0f);
+}
+
+static void alice_render_microui_rect(mu_Rect rect, mu_Color color) {
+	alice_rect_t r = { rect.x, rect.y, rect.w, rect.h };
+
+	alice_rgb_color_t rgb = { (float)color.r / 255.0f, (float)color.g / 255.0f, (float)color.b / 255.0f };
+
+	alice_color_t c = alice_color_from_rgb_color(rgb);
+
+	alice_ui_renderer_draw_rect(mu_renderer, r, c, (float)color.a / 255.0f);
+}
+
+static void alice_render_microui_icon(i32 id, mu_Rect rect, mu_Color color) {
+	alice_rect_t r = { rect.x, rect.y, rect.w, rect.h };
+
+	alice_rgb_color_t rgb = { (float)color.r / 255.0f, (float)color.g / 255.0f, (float)color.b / 255.0f };
+
+	alice_color_t c = alice_color_from_rgb_color(rgb);
+
+	alice_ui_renderer_draw_icon(mu_renderer, id, r, c, (float)color.a / 255.0f);
+}
+
+i32 alice_microui_text_width(mu_Font font, const char* text, i32 len) {
+	return (i32)alice_ui_text_width(mu_renderer, text);
 }
 
 i32 alice_microui_text_height(mu_Font font) {
-	return (i32)renderer.font->size;
+	return (i32)alice_ui_tect_height(mu_renderer); 
 }
 
 void alice_update_microui(mu_Context* context) {
