@@ -268,7 +268,6 @@ float calculate_point_shadow(PointLight light) {
 
 	float closest_depth = texture(point_shadowmap, frag_to_light).r;
 
-	/* TODO: make this the far plane */
 	closest_depth *= 25.0;
 
 	float current_depth = length(frag_to_light);
@@ -301,7 +300,7 @@ vec3 calculate_point_light(PointLight light, vec3 N, vec3 V, vec3 F0) {
 
 	float NdotL = max(dot(N, L), 0.0);
 
-	return (1.0 - calculate_point_shadow(light)) * (kD * albedo / PI + specular) * radiance * NdotL;
+	return (kD * albedo / PI + specular) * radiance * NdotL;
 }
 
 vec3 calculate_directional_light(DirectionalLight light, vec3 N, vec3 V, vec3 F0) {

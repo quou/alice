@@ -111,6 +111,7 @@ void alice_begin_ui_renderer(alice_ui_renderer_t* renderer, u32 width, u32 heigh
 	renderer->camera = alice_m4f_ortho(0.0f, (float)width, (float)height, 0.0f, -1.0f, 1.0f);
 
 	glScissor(0.0f, 0.0f, (float)width, (float)height);
+	glViewport(0, 0, width, height);
 }
 
 void alice_end_ui_renderer(alice_ui_renderer_t* renderer) {

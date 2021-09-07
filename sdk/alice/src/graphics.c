@@ -1431,8 +1431,7 @@ ALICE_API void alice_draw_point_shadowmap(alice_point_shadowmap_t* shadowmap,
 	const float near = 0.0f;
 	const float far = 25.0f;
 
-	alice_m4f_t shadow_proj = alice_m4f_persp(45.0f,
-			(float)shadowmap->res / (float)shadowmap->res, near, far);
+	alice_m4f_t shadow_proj = alice_m4f_persp(45.0f, 1.0f, near, far);
 
 	alice_m4f_t shadow_matrices[] = {
 		alice_m4f_multiply(shadow_proj, alice_m4f_lookat(light_pos, (alice_v3f_t){light_pos.x + 1.0f, light_pos.y + 0.0f, light_pos.z + 0.0f}, (alice_v3f_t){0.0f, -1.0f,  0.0f})),
@@ -1488,7 +1487,7 @@ alice_scene_renderer_3d_t* alice_new_scene_renderer_3d(alice_shader_t* postproce
 	alice_shader_t* extract_shader, alice_shader_t* blur_shader, alice_shader_t* depth_shader,
 	alice_shader_t* point_depth_shader, bool debug, alice_shader_t* debug_shader,
 	u32 shadowmap_resolution) {
-	
+
 	assert(postprocess_shader);
 	assert(extract_shader);
 	assert(blur_shader);
@@ -1676,7 +1675,6 @@ void alice_render_scene_3d(alice_scene_renderer_3d_t* renderer, u32 width, u32 h
 	alice_enable_depth();
 
 	alice_draw_shadowmap(renderer->shadowmap, scene, camera);
-	alice_draw_point_shadowmap(renderer->point_shadowmap, scene);
 
 	alice_resize_render_target(renderer->output, width, height);
 	alice_bind_render_target(renderer->output, width, height);
@@ -1735,9 +1733,6 @@ void alice_render_scene_3d(alice_scene_renderer_3d_t* renderer, u32 width, u32 h
 
 			alice_shader_set_int(shader, "shadowmap", 8);
 			alice_bind_shadowmap_output(renderer->shadowmap, 8);
-
-			alice_shader_set_int(shader, "point_shadowmap", 9);
-			alice_bind_point_shadowmap_output(renderer->point_shadowmap, 9);
 
 			alice_m4f_t model = alice_m4f_multiply(transform_matrix, mesh->transform);
 
