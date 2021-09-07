@@ -1195,7 +1195,7 @@ void alice_apply_point_lights(alice_scene_t* scene, alice_aabb_t mesh_aabb, alic
 
 		alice_v3f_t world_position = alice_get_entity_world_position(scene, (alice_entity_t*)light);
 
-		if (!alice_sphere_vs_aabb(mesh_aabb, world_position, light->range * 5.0f)) {
+		if (!alice_sphere_vs_aabb(mesh_aabb, world_position, powf(light->range * 5.0f, 2))) {
 			continue;
 		}
 
