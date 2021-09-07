@@ -25,6 +25,7 @@ typedef struct alice_ui_renderer_t {
 	alice_opengl_state_backup_t backup;
 
 	u32 quad_count;
+	u32 draw_call_count;
 
 	alice_vertex_buffer_t* vb;
 	alice_shader_t* shader;
@@ -61,3 +62,4 @@ ALICE_API i32 alice_microui_text_width(mu_Font font, const char* test, i32 len);
 ALICE_API i32 alice_microui_text_height(mu_Font font);
 ALICE_API void alice_update_microui(mu_Context* context);
 ALICE_API void alice_render_microui(mu_Context* context, u32 width, u32 height);
+ALICE_API alice_ui_renderer_t* alice_get_microui_renderer();

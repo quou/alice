@@ -423,14 +423,26 @@ void main() {
 
 			static char fps_buf[256] = "1000";
 			static char frame_time_buf[256] = "0.001";
+			static char ui_draw_call_buf[256] = "UI Draw Calls: 0";
+			static char renderer_3d_draw_call_buf[256] = "Renderer 3D Draw Calls: 0";
+			static char total_draw_call_buf[256] = "Total Draw Calls: 0";
 			static double time_until_next_fps_print = 1.0;
 
 			time_until_next_fps_print -= app->timestep;
 			if (time_until_next_fps_print <= 0.0) {
 				time_until_next_fps_print = 1.0;
 				sprintf(fps_buf, "FPS: %g", 1.0f / app->timestep);
-				sprintf(frame_time_buf, "Frame Time %g", app->timestep);
+				sprintf(frame_time_buf, "Frame Time: %g", app->timestep);
+				sprintf(ui_draw_call_buf, "UI Draw Calls: %d", alice_get_microui_renderer()->draw_call_count);
+				if (scene->renderer) {
+					sprintf(renderer_3d_draw_call_buf, "Renderer 3D Draw Calls: %d", scene->renderer->draw_call_count);
+				}
+				sprintf(total_draw_call_buf, "Total Draw Calls: %d", alice_get_total_draw_calls());
 			}
+
+			mu_label(ui, renderer_3d_draw_call_buf);
+			mu_label(ui, ui_draw_call_buf);
+			mu_label(ui, total_draw_call_buf);
 
 			mu_label(ui, fps_buf);
 			mu_label(ui, frame_time_buf);

@@ -11,6 +11,12 @@
 #include "alice/debugrenderer.h"
 #include "alice/input.h"
 
+u32 total_draw_calls;
+
+u32 alice_get_total_draw_calls() {
+	return total_draw_calls;
+}
+
 alice_color_t alice_color_from_rgb_color(alice_rgb_color_t rgb) {
 	i8 r = (i8)(rgb.r * 255.0);
 	i8 g = (i8)(rgb.g * 255.0);
@@ -245,6 +251,8 @@ void alice_draw_vertex_buffer(alice_vertex_buffer_t* buffer) {
 	}
 
 	glDrawElements(draw_type, buffer->index_count, GL_UNSIGNED_INT, 0);
+
+	total_draw_calls++;
 }
 
 void alice_draw_vertex_buffer_custom_count(alice_vertex_buffer_t* buffer, u32 count) {
@@ -259,6 +267,8 @@ void alice_draw_vertex_buffer_custom_count(alice_vertex_buffer_t* buffer, u32 co
 	}
 
 	glDrawElements(draw_type, count, GL_UNSIGNED_INT, 0);
+
+	total_draw_calls++;
 }
 
 alice_shader_t* alice_init_shader(alice_shader_t* shader, char* source) {
@@ -1289,6 +1299,8 @@ void alice_draw_shadowmap(alice_shadowmap_t* shadowmap, alice_scene_t* scene, al
 
 	shadowmap->in_use = false;
 
+	shadowmap->draw_call_count = 0;
+
 	alice_directional_light_t* light = alice_null;
 
 	for (alice_entity_iter(scene, iter, alice_directional_light_t)) {
@@ -1349,6 +1361,7 @@ void alice_draw_shadowmap(alice_shadowmap_t* shadowmap, alice_scene_t* scene, al
 
 			alice_bind_vertex_buffer_for_draw(vb);
 			alice_draw_vertex_buffer(vb);
+			shadowmap->draw_call_count++;
 		}
 	}
 }
@@ -1495,6 +1508,8 @@ alice_scene_renderer_3d_t* alice_new_scene_renderer_3d(alice_shader_t* postproce
 	assert(point_depth_shader);
 
 	alice_scene_renderer_3d_t* new = malloc(sizeof(alice_scene_renderer_3d_t));
+
+	new->draw_call_count = 0;
 
 	new->output = alice_new_render_target(128, 128, 1);
 	new->bright_pixels = alice_new_render_target(128, 128, 1);
@@ -1664,6 +1679,8 @@ void alice_render_scene_3d(alice_scene_renderer_3d_t* renderer, u32 width, u32 h
 	assert(renderer);
 	assert(scene);
 
+	renderer->draw_call_count = 0;
+
 	alice_camera_3d_t* camera = alice_get_scene_camera_3d(scene);
 	if (!camera) {
 		alice_log_warning("Attempting 3D scene render with no active 3D camera");
@@ -1675,6 +1692,8 @@ void alice_render_scene_3d(alice_scene_renderer_3d_t* renderer, u32 width, u32 h
 	alice_enable_depth();
 
 	alice_draw_shadowmap(renderer->shadowmap, scene, camera);
+
+	renderer->draw_call_count += renderer->shadowmap->draw_call_count;
 
 	alice_resize_render_target(renderer->output, width, height);
 	alice_bind_render_target(renderer->output, width, height);
@@ -1744,6 +1763,8 @@ void alice_render_scene_3d(alice_scene_renderer_3d_t* renderer, u32 width, u32 h
 
 			alice_bind_vertex_buffer_for_draw(vb);
 			alice_draw_vertex_buffer(vb);
+
+			renderer->draw_call_count++;
 		}
 
 renderable_iter_continue:
@@ -1806,6 +1827,8 @@ renderable_iter_continue:
 		alice_draw_vertex_buffer(renderer->quad);
 		alice_bind_vertex_buffer_for_draw(alice_null);
 
+		renderer->draw_call_count++;
+
 		alice_unbind_render_target(renderer->bright_pixels);
 
 		/* Blur the bloom target */
@@ -1838,6 +1861,8 @@ renderable_iter_continue:
 			alice_bind_vertex_buffer_for_draw(renderer->quad);
 			alice_draw_vertex_buffer(renderer->quad);
 			alice_bind_vertex_buffer_for_draw(alice_null);
+
+			renderer->draw_call_count++;
 
 			alice_unbind_render_target(bloom_output);
 
@@ -1874,6 +1899,8 @@ renderable_iter_continue:
 	alice_bind_vertex_buffer_for_draw(renderer->quad);
 	alice_draw_vertex_buffer(renderer->quad);
 	alice_bind_vertex_buffer_for_draw(alice_null);
+
+	renderer->draw_call_count++;
 
 	alice_bind_shader(alice_null);
 

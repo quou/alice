@@ -84,6 +84,8 @@ ALICE_API void alice_configure_vertex_buffer(alice_vertex_buffer_t* buffer, u32 
 ALICE_API void alice_draw_vertex_buffer(alice_vertex_buffer_t* buffer);
 ALICE_API void alice_draw_vertex_buffer_custom_count(alice_vertex_buffer_t* buffer, u32 count);
 
+ALICE_API u32 alice_get_total_draw_calls();
+
 ALICE_API void alice_render_clear();
 ALICE_API void alice_depth_clear();
 
@@ -291,6 +293,8 @@ typedef struct alice_shadowmap_t {
 
 	bool in_use;
 
+	u32 draw_call_count;
+
 	u32 framebuffer;
 	u32 output;
 } alice_shadowmap_t;
@@ -335,6 +339,8 @@ typedef struct alice_scene_renderer_3d_t {
 	bool use_bloom;
 	float bloom_threshold;
 	u32 bloom_blur_iterations;
+
+	u32 draw_call_count;
 
 	bool use_antialiasing;
 

@@ -11,6 +11,8 @@
 #include "alice/maths.h"
 #include "alice/graphics.h"
 
+extern u32 total_draw_calls;
+
 static void APIENTRY gl_debug_callback(u32 source, u32 type, u32 id,
 	u32 severity, i32 length, const char* message, const void* up) {
 
@@ -199,6 +201,8 @@ void alice_init_application(alice_application_config_t cfg) {
 
 		alice_free_vertex_buffer(quad);
 	}
+
+	total_draw_calls = 0;
 }
 
 void alice_update_events() {
@@ -208,6 +212,8 @@ void alice_update_events() {
 
 void alice_update_application() {
 	glfwSwapBuffers(app.window);
+
+	total_draw_calls = 0;
 
 	app.now = glfwGetTime();
 	app.timestep = app.now - app.last;

@@ -35,6 +35,8 @@ static const char* alice_utf8_to_codepoint(const char* p, u32* dst) {
 alice_ui_renderer_t* alice_new_ui_renderer(alice_shader_t* shader, alice_font_t* font) {
 	alice_ui_renderer_t* renderer = malloc(sizeof(alice_ui_renderer_t));
 
+	renderer->draw_call_count = 0;
+
 	renderer->shader = shader;
 	renderer->quad_count = 0;
 
@@ -129,6 +131,7 @@ void alice_begin_ui_renderer(alice_ui_renderer_t* renderer, u32 width, u32 heigh
 	glEnable(GL_SCISSOR_TEST);
 
 	renderer->quad_count = 0;
+	renderer->draw_call_count = 0;
 
 	renderer->width = width;
 	renderer->height = height;
@@ -168,6 +171,7 @@ void alice_flush_ui_renderer(alice_ui_renderer_t* renderer) {
 	alice_bind_shader(alice_null);
 
 	renderer->quad_count = 0;
+	renderer->draw_call_count++;
 }
 
 float alice_ui_renderer_draw_text(alice_ui_renderer_t* renderer, const char* text,
@@ -423,4 +427,8 @@ void alice_render_microui(mu_Context* context, u32 width, u32 height) {
 	}
 
 	alice_end_microui_render();
+}
+
+alice_ui_renderer_t* alice_get_microui_renderer() {
+	return mu_renderer;
 }
