@@ -10,10 +10,27 @@
 #include "alice/ui.h"
 #include "alice/application.h"
 #include "alice/input.h"
+#include "font.h"
 
 const u32 ui_renderer_max_quads = 800;
 
 static alice_ui_renderer_t* mu_renderer;
+
+static const char* alice_utf8_to_codepoint(const char* p, u32* dst) {
+	u32 res, n;
+	switch (*p & 0xf0) {
+		case 0xf0 : res = *p & 0x07; n = 3; break;
+		case 0xe0 : res = *p & 0x0f; n = 2; break;
+		case 0xd0 :
+		case 0xc0 : res = *p & 0x1f; n = 1; break;
+		default   : res = *p;        n = 0; break;
+	}
+	while (n--) {
+		res = (res << 6) | (*(++p) & 0x3f);
+	}
+	*dst = res;
+	return p + 1;
+}
 
 alice_ui_renderer_t* alice_new_ui_renderer(alice_shader_t* shader, alice_font_t* font) {
 	alice_ui_renderer_t* renderer = malloc(sizeof(alice_ui_renderer_t));
@@ -62,6 +79,13 @@ void alice_ui_renderer_push_quad(alice_ui_renderer_t* renderer, alice_rect_t dst
 		ty /= (float)ATLAS_HEIGHT;
 		tw /= (float)ATLAS_WIDTH;
 		th /= (float)ATLAS_HEIGHT;
+	} else if (mode == 2) {
+		alice_texture_t* atlas = alice_get_glyph_set(renderer->font, 'a')->atlas;
+
+		tx /= (float)atlas->width;
+		ty /= (float)atlas->height;
+		tw /= (float)atlas->width;
+		th /= (float)atlas->height;
 	}
 
 	alice_rgb_color_t col = alice_rgb_color_from_color(color);
@@ -130,7 +154,8 @@ void alice_flush_ui_renderer(alice_ui_renderer_t* renderer) {
 	alice_bind_texture(renderer->icon_texture, 0);
 	alice_shader_set_int(renderer->shader, "atlas", 0);
 
-	alice_bind_texture(renderer->font->bitmap, 1);
+	/* TODO: bind the appropriate atlases, not just one. */
+	alice_bind_texture(alice_get_glyph_set(renderer->font, 'a')->atlas, 1);
 	alice_shader_set_int(renderer->shader, "font", 1);
 
 	alice_shader_set_m4f(renderer->shader, "camera", renderer->camera);
@@ -145,30 +170,30 @@ void alice_flush_ui_renderer(alice_ui_renderer_t* renderer) {
 	renderer->quad_count = 0;
 }
 
-void alice_ui_renderer_draw_text(alice_ui_renderer_t* renderer, const char* text,
+float alice_ui_renderer_draw_text(alice_ui_renderer_t* renderer, const char* text,
 		alice_v2f_t position, alice_color_t color, float transparency) {
-	alice_rect_t dst = { position.x, position.y, 0, 0 };
+	const char* p = text;
+	u32 code_point;
+	while (*p) {
+		p = alice_utf8_to_codepoint(p, &code_point);
+		alice_glyph_set_t* set = alice_get_glyph_set(renderer->font, code_point);
+		stbtt_bakedchar* g = &set->glyphs[code_point & 0xff];
 
-	float xpos = position.x, ypos = position.y + 12;
-
-	for (const char* c = text; *c; c++) {
-		stbtt_aligned_quad quad;
-		stbtt_GetPackedQuad((stbtt_packedchar*)renderer->font->char_data,
-				renderer->font->bitmap->width, renderer->font->bitmap->height,
-				*c - 32, &xpos, &ypos, &quad, 0);
-
-		alice_rect_t src = { 
-			quad.s0, quad.t0,
-			quad.s1 - quad.s0, quad.t1 - quad.t0
+		alice_rect_t src = {
+			g->x0, g->y0,
+			g->x1 - g->x0, g->y1 - g->y0
 		};
 
 		alice_rect_t dst = {
-			quad.x0, quad.y0,
-			quad.x1 - quad.x0, quad.y1 - quad.y0
+			position.x + g->xoff,
+			position.y + g->yoff,
+			src.w, src.h
 		};
 
 		alice_ui_renderer_push_quad(renderer, dst, src, color, transparency, 2);
+		position.x += g->xadvance;
 	}
+	return position.x;
 }
 
 void alice_ui_renderer_draw_rect(alice_ui_renderer_t* renderer, alice_rect_t rect,
@@ -197,32 +222,20 @@ void alice_ui_renderer_draw_icon(alice_ui_renderer_t* renderer, u32 id, alice_re
 }
 
 float alice_ui_text_width(alice_ui_renderer_t* renderer, const char* text) {
-	float result = 0.0f;
-
-	float xpos = 0.0f, ypos = 0.0f;
-	for (const char* c = text; *c; c++) {
-		stbtt_aligned_quad quad;
-		stbtt_GetPackedQuad((stbtt_packedchar*)renderer->font->char_data,
-				renderer->font->bitmap->width, renderer->font->bitmap->height,
-				*c - 32, &xpos, &ypos, &quad, 0);
-
-		result += quad.x1 - quad.x0;
-
-		const char* next = c + 1;
-		if (*next != '\0') {
-			stbtt_aligned_quad next_quad;
-			stbtt_GetPackedQuad((stbtt_packedchar*)renderer->font->char_data,
-					renderer->font->bitmap->width, renderer->font->bitmap->height,
-					*c - 32, &xpos, &ypos, &next_quad, 0);
-			result += next_quad.x0 - quad.x1;
-		}
+	i32 x = 0;
+	const char* p = text;
+	u32 codepoint;
+	while (*p) {
+		p = alice_utf8_to_codepoint(p, &codepoint);
+		alice_glyph_set_t* set = alice_get_glyph_set(renderer->font, codepoint);
+		stbtt_bakedchar* g = &set->glyphs[codepoint & 0xff];
+		x += g->xadvance;
 	}
-
-	return result;
+	return (float)x;
 }
 
 float alice_ui_tect_height(alice_ui_renderer_t* renderer) {
-	return renderer->font->size;
+	return renderer->font->height;
 }
 
 void alice_set_ui_renderer_clip(alice_ui_renderer_t* renderer, alice_rect_t rect) {

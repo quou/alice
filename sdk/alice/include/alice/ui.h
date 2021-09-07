@@ -6,6 +6,14 @@
 
 typedef struct mu_Context mu_Context;
 
+typedef struct alice_font_t alice_font_t;
+typedef struct alice_glyph_set_t alice_glyph_set_t;
+
+alice_glyph_set_t* alice_get_glyph_set(alice_font_t* font, i32 code_point);
+
+void alice_set_font_tab_size(alice_font_t* font, i32 n);
+i32 alice_get_font_tab_size(alice_font_t* font);
+
 typedef struct alice_opengl_state_backup_t {
 	bool blend;
 	bool cull_face;
@@ -38,7 +46,7 @@ ALICE_API void alice_begin_ui_renderer(alice_ui_renderer_t* renderer, u32 width,
 ALICE_API void alice_end_ui_renderer(alice_ui_renderer_t* renderer);
 ALICE_API void alice_flush_ui_renderer(alice_ui_renderer_t* renderer);
 ALICE_API void alice_set_ui_renderer_clip(alice_ui_renderer_t* renderer, alice_rect_t rect);
-ALICE_API void alice_ui_renderer_draw_text(alice_ui_renderer_t* renderer, const char* text,
+ALICE_API float alice_ui_renderer_draw_text(alice_ui_renderer_t* renderer, const char* text,
 		alice_v2f_t position, alice_color_t color, float transparency);
 ALICE_API void alice_ui_renderer_draw_rect(alice_ui_renderer_t* renderer, alice_rect_t rect,
 		alice_color_t color, float transparency);

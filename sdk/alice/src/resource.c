@@ -4,11 +4,13 @@
 #include <string.h>
 
 #include <physfs.h>
+#include <stb_rect_pack.h>
 #include <stb_truetype.h>
 
 #include "alice/resource.h"
 #include "alice/dtable.h"
 #include "alice/graphics.h"
+#include "font.h"
 
 #define ALICE_RESOURCE_TABLE_MAX_LOAD 0.75
 
@@ -170,9 +172,6 @@ void alice_free_resource_payload(alice_resource_t* resource) {
 	if (resource->type == ALICE_RESOURCE_TEXTURE) {
 		alice_deinit_texture(resource->payload);
 	}
-	else if (resource->type == ALICE_RESOURCE_FONT) {
-		alice_free_texture(((alice_font_t*)resource->payload)->bitmap);
-	}
 	else if (resource->type == ALICE_RESOURCE_SHADER) {
 		alice_deinit_shader(resource->payload);
 	}
@@ -182,6 +181,20 @@ void alice_free_resource_payload(alice_resource_t* resource) {
 	}
 	else if (resource->type == ALICE_RESOURCE_MODEL) {
 		alice_deinit_model(resource->payload);
+	} else if (resource->type == ALICE_RESOURCE_FONT) {
+		alice_font_t* font = resource->payload;
+
+		for (i32 i = 0; i < ALICE_MAX_GLYPHSET; i++) {
+			alice_glyph_set_t* set = font->sets[i];
+			if (set) {
+				if (set->atlas) {
+					alice_free_texture(set->atlas);
+				}
+				free(set);
+			}
+		}
+
+		free(font->data);
 	}
 	else {
 		free(resource->payload);
@@ -483,6 +496,50 @@ static bool impl_alice_load_shader(alice_resource_t* resource, const char* path,
 	return true;
 }
 
+static alice_glyph_set_t* alice_load_glyph_set(alice_font_t* font, i32 idx) {
+	alice_glyph_set_t* set = calloc(1, sizeof(alice_glyph_set_t));
+
+	i32 width = 128;
+	i32 height = 128;
+
+	i32 r = 0;
+	void* pixels = alice_null;
+	while (r <= 0) {
+		if (pixels) {
+			width *= 2;
+			height *= 2;
+			free(pixels);
+		}
+
+		pixels = malloc(width * height);
+		float s = stbtt_ScaleForMappingEmToPixels(&font->info, 1) /
+			stbtt_ScaleForPixelHeight(&font->info, 1);
+		r = stbtt_BakeFontBitmap(font->data, 0, font->size * s,
+				pixels, width, height, idx * 256, 256, set->glyphs);
+	}
+
+	set->atlas = alice_new_texture_from_memory_uncompressed(pixels, width * height, width, height, 1, ALICE_TEXTURE_ALIASED);
+
+	i32 ascent, descent, linegap;
+	stbtt_GetFontVMetrics(&font->info, &ascent, &descent, &linegap);
+	float scale = stbtt_ScaleForMappingEmToPixels(&font->info, font->size);
+	i32 scaled_ascent = ascent * scale + 0.5;
+	for (i32 i = 0; i < 256; i++) {
+		set->glyphs[i].yoff += scaled_ascent;
+		set->glyphs[i].xadvance = floor(set->glyphs[i].xadvance);
+	}
+
+	return set;
+}
+
+alice_glyph_set_t* alice_get_glyph_set(alice_font_t* font, i32 code_point) {
+	i32 idx = (code_point >> 8) % ALICE_MAX_GLYPHSET;
+	if (!font->sets[idx]) {
+		font->sets[idx] = alice_load_glyph_set(font, idx);
+	}
+	return font->sets[idx];
+}
+
 static bool impl_alice_load_font(alice_resource_t* resource, const char* path, float size, bool new) {
 	alice_resource_t* raw = malloc(sizeof(alice_resource_t));
 	if (!impl_alice_load_binary(raw, path)) {
@@ -497,39 +554,37 @@ static bool impl_alice_load_font(alice_resource_t* resource, const char* path, f
 	resource->file_name_hash = raw->file_name_hash;
 
 	if (new) {
-		resource->payload = malloc(sizeof(alice_font_t));
+		resource->payload = calloc(1, sizeof(alice_font_t));
 	}
 
 	strcpy(resource->file_name, path);
 	
 	alice_font_t* font = resource->payload;
+	font->data = raw->payload;
 
 	font->size = size;
 
-	const u32 bitmap_size = 512;
-
-	u8* ttf_bitmap = malloc(bitmap_size * bitmap_size);
-
-	stbtt_pack_context ctx;
-	stbtt_PackBegin(&ctx, ttf_bitmap, bitmap_size, bitmap_size, 0, 1, alice_null);
-
-	if (size < 24.0f) {
-		stbtt_PackSetOversampling(&ctx, 2, 2);
-	} else if (size < 18.0f) {
-		stbtt_PackSetOversampling(&ctx, 4, 4);
+	i32 r = stbtt_InitFont(&font->info, font->data, 0);
+	if (!r) {
+		goto fail;
 	}
 
-	stbtt_PackFontRange(&ctx, raw->payload, 0, size, 32, 96, (stbtt_packedchar*)font->char_data);
-	stbtt_PackEnd(&ctx);
+	i32 ascent, descent, linegap;
+	stbtt_GetFontVMetrics(&font->info, &ascent, &descent, &linegap);
+	float scale = stbtt_ScaleForMappingEmToPixels(&font->info, size);
+	font->height = (ascent - descent + linegap) * scale + 0.5;
 
-	font->bitmap = alice_new_texture_from_memory_uncompressed(ttf_bitmap, bitmap_size * bitmap_size,
-			bitmap_size, bitmap_size, 1, ALICE_TEXTURE_ANTIALIASED);
-
-	alice_free_resource(raw);
-	
-	free(ttf_bitmap);
+	stbtt_bakedchar* g = alice_get_glyph_set(font, '\n')->glyphs;
+	g['\t'].x1 = g['\t'].x0;
+	g['\n'].x1 = g['\n'].x0;
 
 	return true;
+
+fail:
+	free(raw);
+	if (font->data) { free(font->data); }
+	if (font) { free(font); }
+	return false;
 }
 
 static alice_texture_t* impl_alice_load_texture_from_dtable(alice_dtable_t* parent_table, const char* name) {

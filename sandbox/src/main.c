@@ -291,7 +291,7 @@ void main() {
 	ui->text_width = alice_microui_text_width;
 	ui->text_height = alice_microui_text_height;
 	alice_init_microui_renderer(alice_load_shader("shaders/ui.glsl"),
-			alice_load_font("fonts/opensans.ttf", 18.0f));
+			alice_load_font("fonts/opensans.ttf", 14.0f));
 
 	bool fullscreen = false;
 

@@ -9,18 +9,7 @@ typedef struct alice_shader_t alice_shader_t;
 typedef struct alice_material_t alice_material_t;
 typedef struct alice_model_t alice_model_t;
 
-typedef struct alice_font_character_info_t {
-	unsigned short x0, y0, x1, y1;
-	float xoff, yoff, xadvance;
-	float xoff2, yoff2;
-} alice_font_character_info_t;
-
-typedef struct alice_font_t {
-	alice_font_character_info_t char_data[96];
-	float size;
-
-	alice_texture_t* bitmap;
-} alice_font_t;
+typedef struct alice_font_t alice_font_t;
 
 typedef enum alice_resource_type_t {
 	ALICE_RESOURCE_STRING,
