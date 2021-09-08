@@ -7,7 +7,7 @@ scene {
 			depth_shader "shaders/depth.glsl";
 			point_depth_shader "shaders/point_depth.glsl";
 			debug false;
-			use_bloom false;
+			use_bloom true;
 			bloom_threshold 1;
 			bloom_blur_iterations 10;
 			use_antialiasing true;
@@ -75,7 +75,7 @@ scene {
 			name "red lamp";
 			position {
 				x -2;
-				y 0.4;
+				y 0.88;
 				z 2;
 			}
 			rotation {
@@ -151,9 +151,9 @@ scene {
 		rigidbody_3d {
 			name "cube";
 			position {
-				x -1.43223;
+				x -3.81;
 				y 1.17932;
-				z -3.58818;
+				z 3.81;
 			}
 			rotation {
 				x 0;
@@ -216,9 +216,9 @@ scene {
 		rigidbody_3d {
 			name "sphere";
 			position {
-				x 4.17517;
+				x 2.6091;
 				y 1.17932;
-				z 0.684062;
+				z 0.712768;
 			}
 			rotation {
 				x 0;
@@ -281,9 +281,9 @@ scene {
 		rigidbody_3d {
 			name "monkey";
 			position {
-				x -1.96938;
+				x 2.01513;
 				y 1.17932;
-				z 3.0372;
+				z -3.66681;
 			}
 			rotation {
 				x 0;
